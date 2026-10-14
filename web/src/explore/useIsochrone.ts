@@ -98,8 +98,10 @@ export function useIsochrone(sel: { lon: number; lat: number; city: CityId | nul
         };
         raf.current = requestAnimationFrame(tick);
       } catch (e) {
-        console.error(e);
-        if (alive) setState({ status: "error", iso: null, reached: null, reveal: 0 });
+        // a request cut short because the reader moved on (or left the page) is not a failure
+        if (!alive) return;
+        console.warn(e);
+        setState({ status: "error", iso: null, reached: null, reveal: 0 });
       }
     })();
     return () => {
