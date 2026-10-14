@@ -182,8 +182,8 @@ function WhyTheseCities({ summary }: { summary: Summary }) {
       <h2>One region, two answers to the same question</h2>
       <div className="cols">
         <p>
-          Singapore and Johor Bahru face each other across the Johor Strait, joined by a one-kilometre causeway that carried about 327,000 travellers a day in 2024,
-          making Woodlands one of the busiest land borders in the world. Every morning tens of thousands of Johor residents commute south.
+          Singapore and Johor Bahru face each other across the Johor Strait, joined by a one-kilometre causeway. Woodlands Checkpoint, at its Singapore end, handled about
+          327,000 travellers a day in 2024 — one of the busiest land borders in the world. Every morning tens of thousands of Johor residents commute south.
         </p>
         <p>
           Yet the two cities grew from different plans. Singapore built compact public-housing towns around transit and hawker centres; Johor Bahru grew outward as a car-oriented
@@ -603,7 +603,7 @@ function BorderSteps({ meta, state, setState, times, jbPop, cb }: Props & { meta
           {rts.peak_headway_min} minutes at peak, up to {int(rts.capacity_pphpd)} passengers an hour each way, with both countries' checks at the departure station.
         </p>
         <p className="small muted">
-          Under the bilateral agreement, KTM's Shuttle Tebrau is to stop within six months of the RTS Link opening (Malaysia has asked to retain it). <Badge kind="observed">MOT · LTA</Badge>
+          Under the bilateral agreement, KTM's Shuttle Tebrau is to stop within six months of the RTS Link opening (Malaysia has said it will seek to keep it). <Badge kind="observed">MOT · LTA</Badge>
         </p>
       </Step>
       <Step scene="border-baseline">

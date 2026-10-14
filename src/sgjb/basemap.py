@@ -91,11 +91,19 @@ ROAD_CLASS = {
 }
 
 
+def _line(way):
+    """LineString from the nodes of a way that have locations. Ways that cross the
+    edge of a bbox extract lose their outside nodes; the inside part is kept."""
+    pts = [(n.lon, n.lat) for n in way.nodes if n.location.valid()]
+    return shapely.LineString(pts) if len(pts) >= 2 else None
+
+
 def osm_layers(out_dir: Path) -> dict[str, int]:
     """Roads, rail, buildings, places and the international border from the OSM extract."""
     import osmium
 
     wkb = osmium.geom.WKBFactory()
+    bad_geometry = (RuntimeError, osmium.InvalidLocationError)
     roads, rail, buildings, places, border = [], [], [], [], []
     hw_pbf = config.interim("highways.osm.pbf")
     for w in osmium.FileProcessor(str(hw_pbf), osmium.osm.NODE | osmium.osm.WAY).with_locations():
@@ -104,9 +112,8 @@ def osm_layers(out_dir: Path) -> dict[str, int]:
         hw = w.tags.get("highway")
         if hw not in ROAD_CLASS or w.tags.get("area") == "yes":
             continue
-        try:
-            g = shapely.from_wkb(wkb.create_linestring(w))
-        except RuntimeError:
+        g = _line(w)
+        if g is None:
             continue
         cls, mz = ROAD_CLASS[hw]
         roads.append((g, {"class": cls, "name": w.tags.get("name", "")}, mz))
@@ -123,33 +130,33 @@ def osm_layers(out_dir: Path) -> dict[str, int]:
         elif o.is_way() and not o.is_area() and t.get("railway"):
             if o.is_closed() and t.get("railway") not in ("rail", "subway", "light_rail", "monorail", "construction"):
                 continue
-            try:
-                g = shapely.from_wkb(wkb.create_linestring(o))
-            except RuntimeError:
+            g = _line(o)
+            if g is None:
                 continue
             status = "construction" if t.get("railway") == "construction" else "active"
             rail.append((g, {"kind": t.get("construction") or t.get("railway"), "status": status, "name": t.get("name", "")}, 9))
         elif o.is_area() and (t.get("building") and t.get("building") != "no"):
             try:
                 g = shapely.from_wkb(wkb.create_multipolygon(o))
-            except RuntimeError:
+            except bad_geometry:
                 continue
             buildings.append((g, {}, 13))
-    # International boundary: ways belonging to the admin_level=2 relations of
-    # Singapore *and* Malaysia form the shared border (down the Johor Strait).
-    members: dict[str, set[int]] = {}
-    for r in osmium.FileProcessor(str(bm), osmium.osm.RELATION):
-        t = r.tags
-        if t.get("boundary") == "administrative" and t.get("admin_level") == "2":
-            iso = t.get("ISO3166-1") or t.get("ISO3166-1:alpha2") or t.get("name:en", "")
-            members[iso] = {m.ref for m in r.members if m.type == "w"}
-    shared = members.get("SG", set()) & members.get("MY", set())
+    # International boundary (Singapore–Malaysia, down the Johor Strait). A bbox
+    # extract does not always carry the country relations, so the boundary ways
+    # are used directly: admin_level=2 ways named "Singapore - Malaysia", plus the
+    # unnamed segments that close the line inside the Strait (north of 1.40°N).
     for w in osmium.FileProcessor(str(bm), osmium.osm.NODE | osmium.osm.WAY).with_locations():
-        if w.is_way() and w.id in shared:
-            try:
-                border.append((shapely.from_wkb(wkb.create_linestring(w)), {"kind": "sg-my"}, None))
-            except RuntimeError:
-                continue
+        if not w.is_way():
+            continue
+        t = w.tags
+        if t.get("boundary") != "administrative" or t.get("admin_level") != "2":
+            continue
+        name = t.get("name", "")
+        g = _line(w)
+        if g is None:
+            continue
+        if ("Singapore" in name and "Malaysia" in name) or (not name and g.bounds[1] >= 1.40):
+            border.append((g, {"kind": "sg-my"}, None))
     counts = {
         "roads": _write_geojsonl(out_dir / "roads.geojsonl", roads),
         "rail": _write_geojsonl(out_dir / "rail.geojsonl", rail),

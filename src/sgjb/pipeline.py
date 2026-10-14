@@ -41,7 +41,8 @@ def stage_prefilter() -> None:
     tags_filter(src, config.interim("features.osm.pbf"), Taxonomy().osmium_expressions())
     tags_filter(src, config.interim("basemap.osm.pbf"),
                 ["w/building", "r/building", "w/railway=rail,subway,light_rail,monorail,construction,narrow_gauge",
-                 "n/place=city,town,suburb,neighbourhood,quarter,village", "r/boundary=administrative"])
+                 "n/place=city,town,suburb,neighbourhood,quarter,village", "r/boundary=administrative",
+                  "w/boundary=administrative"])
     log("prefilter done")
 
 
@@ -234,11 +235,17 @@ def locate_hubs(spec: dict) -> dict:
             d = float(haversine_m(ref[0], ref[1], lon, lat))
             if d > spec[hub]["search_m"]:
                 continue
-            stationlike = (obj.tags.get("railway") in ("station", "halt", "construction")
-                           or obj.tags.get("public_transport") in ("station", "stop_area")
-                           or obj.tags.get("amenity") in ("bus_station", "border_control")
-                           or obj.tags.get("building") in ("train_station", "transportation", "government"))
-            score = d - (1000 if stationlike else 0)
+            # prefer the station itself, then transport facilities, then buildings named after them
+            tg = obj.tags
+            if tg.get("railway") in ("station", "halt", "construction") or tg.get("public_transport") == "station":
+                bonus = 3000
+            elif tg.get("amenity") in ("bus_station", "border_control") or tg.get("public_transport") == "stop_area":
+                bonus = 2000
+            elif tg.get("building") in ("train_station", "transportation", "government"):
+                bonus = 1000
+            else:
+                bonus = 0
+            score = d - bonus
             if hub not in best or score < best[hub][0]:
                 best[hub] = (score, {"lon": lon, "lat": lat, "osm": f"{'n' if obj.is_node() else 'w'}{obj.id}",
                                      "name": name, "tags": {k: v for k, v in obj.tags if k in ("railway", "public_transport", "building", "amenity", "construction", "station")},

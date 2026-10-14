@@ -30,9 +30,16 @@ def run_osmium(args: list[str]) -> None:
 
 
 def tags_filter(src: Path, dst: Path, expressions: list[str]) -> Path:
-    """Keep only objects matching the osmium tag expressions (+ referenced objects)."""
-    if not dst.exists() or dst.stat().st_mtime < src.stat().st_mtime:
+    """Keep only objects matching the osmium tag expressions (+ referenced objects).
+
+    The output is reused while it is newer than the source and was made with the
+    same expressions (recorded next to it)."""
+    stamp = dst.with_name(dst.name + ".filter")
+    key = "\n".join(expressions)
+    fresh = dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime and stamp.exists() and stamp.read_text() == key
+    if not fresh:
         run_osmium(["tags-filter", str(src), *expressions, "-o", str(dst), "--overwrite"])
+        stamp.write_text(key)
     return dst
 
 

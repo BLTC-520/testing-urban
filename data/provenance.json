@@ -99,6 +99,24 @@
       "url": "https://github.com/dosm-malaysia/data-open"
     }
   },
+  "osm": {
+    "sgjb-261005.osm.pbf": {
+      "bbox": [
+        103.3,
+        1.1,
+        104.3,
+        1.85
+      ],
+      "bytes": 56707912,
+      "method": "byte-range stream of the dated planet object through `osmium extract -s simple`",
+      "note": "streamed in two segments after a worker restart; the overlapping ways were trimmed from the first segment so that object order is strict. The planet object is immutable, but its MD5 cannot be recomputed from a segmented stream.",
+      "path": "data/raw/osm/sgjb-261005.osm.pbf",
+      "planet_md5_published": "d3b708ffc28873cf24a053e092dfd731",
+      "retrieved_utc": "2026-10-14T05:17:17+00:00",
+      "sha256": "7c321ebdd8946a81d286f62796dfb0f0d04a6351bdaca77087724e204d42640c",
+      "url": "https://osm-planet-us-west-2.s3.amazonaws.com/planet/pbf/2026/planet-261005.osm.pbf"
+    }
+  },
   "overture_places": {
     "places_sgjb_2026-09-23.1.parquet": {
       "bbox": [

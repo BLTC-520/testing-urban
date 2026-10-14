@@ -46,7 +46,7 @@ crossborder:
   # Woodlands CIQ are the official KTMB GTFS stop coordinates.
   hubs:
     bus:  {osm_names: ["Bangunan Sultan Iskandar", "Sultan Iskandar CIQ", "Kompleks Sultan Iskandar"], ref: [103.7660, 1.4640], search_m: 600}
-    ktm:  {osm_names: ["JB Sentral"], ref: [103.764445, 1.463147], search_m: 400}
+    ktm:  {osm_names: ["Johor Bahru Sentral", "JB Sentral"], ref: [103.764445, 1.463147], search_m: 400}
     rts:  {osm_names: ["Bukit Chagar"], ref: [103.7680, 1.4640], search_m: 800}
   gtfs_service_date: "2026-10-14"        # a Wednesday inside the feed's validity
   jb_access:
