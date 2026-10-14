@@ -34,6 +34,7 @@ const DATA = [
   ["meta.json", "Parameters and provenance: essentials taxonomy, walking speeds, thresholds, cross-border assumptions, data sources with licences and checksums"],
   ["neighbourhoods.geojson", "Neighbourhood outlines (Singapore planning areas, Johor Bahru state constituencies) with their access statistics"],
   ["parking_sites.geojson", "Car parks ranked by the Parking-to-Proximity scenario, with the residents each would bring to all six essentials"],
+  ["footpath.json", "The one-footpath scenario: the chosen link in Johor Bahru, its effect essential by essential, sample routes, alternatives, assumptions and site checks"],
   ["study_mask.geojson", "Study area outline"],
   ["pois_sg.json", "Names and kinds of the Singapore destinations (OpenStreetMap)"],
   ["pois_jb.json", "Names and kinds of the Johor Bahru destinations (OpenStreetMap)"],
@@ -71,6 +72,8 @@ try {
       await tab.evaluate(() => window.scrollTo(0, 0));
       await tab.waitForTimeout(300);
     }
+    // sections that load their data lazily mark their placeholder with data-loading
+    await tab.waitForFunction(() => !document.querySelector("[data-loading]"), null, { timeout: 60_000 });
     const snap = await tab.evaluate(snapshot, SITE_URL);
     if (errors.length) throw new Error(`${page.path}: page errors:\n${errors.join("\n")}`);
     if (snap.text.length < 500) throw new Error(`${page.path}: only ${snap.text.length} characters of text — data did not load?`);
@@ -237,14 +240,25 @@ function headline() {
   const n = (x) => Math.round(x).toLocaleString("en-US");
   const sg = s.cities.sg.all;
   const jb = s.cities.jb.all;
+  const ov = s.poi_source_overture;
+  const fpFile = join(DIST, "data", "footpath.json");
+  const fp = existsSync(fpFile) ? JSON.parse(readFileSync(fpFile, "utf8")).chosen : null;
+  const r2 = (x) => (Math.round(x / 10 ** (Math.floor(Math.log10(x)) - 1)) * 10 ** (Math.floor(Math.log10(x)) - 1)).toLocaleString("en-US");
   return [
     `- Residents who can walk to all six everyday essentials within 15 minutes: Singapore ${p(sg.share_complete)} of ${n(sg.population)}, Johor Bahru ${p(jb.share_complete)} of ${n(jb.population)} (2020 censuses).`,
+    `- These shares are of residents whose homes join the walking network: ${p(sg.population_on_network / sg.population)} of Singapore's and ${p(jb.population_on_network / jb.population)} of Johor Bahru's residents.`,
+    ...(ov ? [`- With Overture Places instead of OpenStreetMap as the source of destinations: Singapore ${p(ov.sg.share_complete)}, Johor Bahru ${p(ov.jb.share_complete)}.`] : []),
     `- Low access (fewer than three of six): Singapore ${p(sg.share_low_access)}, Johor Bahru ${p(jb.share_low_access)} (${n(jb.low_access_population)} people).`,
     ...["sg", "jb"].map((c) => {
       const a = s.cities[c].all;
       const k = s.basket.reduce((m, x) => (a[`share_within_${x}`] < a[`share_within_${m}`] ? x : m));
       return `- Essential most often out of reach in ${c === "sg" ? "Singapore" : "Johor Bahru"}: ${k.replace("_", " ")} (${p(a[`share_within_${k}`])} of residents within 15 minutes).`;
     }),
+    ...(fp
+      ? [
+          `- Scenario: one ${Math.round(fp.link_m)} m public footpath in ${fp.place ?? fp.unit_name} (${fp.unit_name}, Johor Bahru) between ${fp.a.street} and ${fp.b.street}, ${n(fp.walk_today_m)} m apart on foot today, would give about ${r2(fp.metrics["15min"].residents_gaining)} residents at least one more essential within 15 minutes (a desk study to be checked on site).`,
+        ]
+      : []),
   ];
 }
 

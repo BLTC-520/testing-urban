@@ -238,3 +238,12 @@
     color: var(--ink-0);
   }
 }
+
+.m-steps {
+  padding-left: 1.2em;
+  color: var(--paper-1);
+}
+
+.m-steps li {
+  margin-bottom: var(--space-2);
+}

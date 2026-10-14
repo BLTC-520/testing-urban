@@ -26,6 +26,8 @@ import {
   type Curve,
   type UnitPoint,
 } from "./charts";
+import { FootpathChapter } from "./FootpathChapter";
+import { Essay, Kicker } from "./parts";
 import type { Scene } from "./scenes";
 
 export interface StoryState {
@@ -58,23 +60,6 @@ function Step({ scene, children, wide = false }: { scene: string; children: Reac
   return (
     <div className="story-step" data-scene={scene}>
       <div className={`step-card${wide ? " wide" : ""}`}>{children}</div>
-    </div>
-  );
-}
-
-function Essay({ id, children, tone = "default" }: { id?: string; children: ReactNode; tone?: "default" | "deep" }) {
-  return (
-    <section className={`essay ${tone}`} id={id} data-scene="hold">
-      <div className="essay-inner">{children}</div>
-    </section>
-  );
-}
-
-function Kicker({ n, children }: { n?: string; children: ReactNode }) {
-  return (
-    <div className="kicker">
-      {n ? <span className="kicker-n">{n}</span> : null}
-      <span>{children}</span>
     </div>
   );
 }
@@ -127,6 +112,7 @@ export function Chapters(p: Props) {
       <AuditEssay meta={meta} summary={summary} />
       <BorderSteps {...p} meta={meta} summary={summary} />
       <ParkingSteps {...p} meta={meta} summary={summary} />
+      <FootpathChapter meta={meta} n="11" />
       <FuturesEssay {...p} meta={meta} summary={summary} />
       <RobustEssay meta={meta} summary={summary} />
       <Ending meta={meta} />
@@ -887,7 +873,7 @@ function FuturesEssay({ summary, sites }: Props & { meta: Meta; summary: Summary
   ];
   return (
     <Essay id="futures" tone="deep">
-      <Kicker n="11">Implications</Kicker>
+      <Kicker n="12">Implications</Kicker>
       <h2>What should infrastructure look like when many road users are autonomous agents?</h2>
       <p className="lede">
         Autonomy changes the vehicle, not the distance. The scenarios above suggest where it helps a walkable city — and where it cannot substitute for one.
@@ -924,7 +910,7 @@ function RobustEssay({ summary }: { meta: Meta; summary: Summary }) {
   }));
   return (
     <Essay id="robust">
-      <Kicker n="12">How sure are we?</Kicker>
+      <Kicker n="13">How sure are we?</Kicker>
       <h2>{s.runs} versions of the analysis</h2>
       <p className="lede">
         Walking speed (0.9, 1.2, 1.4 m/s), time budget (10, 15, 20 min), how strictly an essential is defined, how strictly a street counts as walkable, and which population model

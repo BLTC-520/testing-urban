@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Badge, type Evidence } from "../components/Controls";
 import { Header } from "../components/Header";
 import { Tex } from "../components/Tex";
+import { FootpathMethod } from "./FootpathMethod";
 import { loadMeta, loadSummary, peekMeta, peekSummary } from "../lib/data";
 import { int, pct } from "../lib/format";
 import type { Meta, Summary } from "../lib/types";
@@ -394,6 +395,7 @@ export function Methods() {
               {meta?.parking_to_proximity.sites_per_city.join(", ")} sites per city. This is an exploration of where land could matter, not a forecast that autonomous vehicles will
               free it.
             </p>
+            <FootpathMethod />
           </Section>
 
           <Section id="validation" title="Validation">
