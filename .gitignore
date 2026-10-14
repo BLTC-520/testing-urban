@@ -14,6 +14,5 @@ web/playwright-report/
 .DS_Store
 *.part
 
-# web artifacts are committed only from a full real-data run (see Makefile)
-web/public/data/
-web/public/tiles/
+# web/public/data and web/public/tiles are the published results of a full
+# real-data run (`make pipeline`); they are committed so the site builds as is.
