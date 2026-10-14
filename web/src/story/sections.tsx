@@ -422,6 +422,10 @@ function WhereSteps({ summary }: { summary: Summary }) {
           Johor Bahru, {low("jb").slice(0, 3).map((u) => `${u.name} (${pct(u.value)})`).join(", ")}.
         </p>
         <NeighbourhoodStrip units={units} labelIds={labelIds} caption="Share of residents reaching all six essentials, by neighbourhood" />
+        <p className="small">
+          In most of these areas the missing essential is a clinic or pharmacy within 15 minutes — also the category OpenStreetMap maps least completely (chapter 08), so treat
+          individual neighbourhoods as places to check, not verdicts.
+        </p>
         <p className="small muted">
           Dots are Singapore planning areas and Johor Bahru state constituencies, sized by residents. <Badge kind="calculated" /> <Badge kind="modelled">residents</Badge>
         </p>

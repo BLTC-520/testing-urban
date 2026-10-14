@@ -46,6 +46,11 @@
 
 .m-body {
   max-width: 780px;
+  min-width: 0; /* let wide tables scroll inside .table-wrap instead of widening the page */
+}
+
+.m-layout > * {
+  min-width: 0;
 }
 
 .m-head h1 {
