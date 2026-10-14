@@ -68,7 +68,9 @@ def export_meta() -> None:
         "h3_resolution": sa["h3_resolution"],
         "cities": {
             "sg": {"name": "Singapore", "center": [103.82, 1.355], "zoom": 10.6,
-                   "population_definition": "Residents (citizens and PRs), Census of Population 2020, by subzone"},
+                   "population_definition": "Residents (citizens and PRs), Census of Population 2020, by subzone",
+                   # outside the resident count; used only for the all-persons bound (Methods)
+                   **{k: sa["cities"]["sg"][k] for k in ("non_residents", "non_residents_source") if k in sa["cities"]["sg"]}},
             "jb": {"name": "Johor Bahru", "center": [103.72, 1.52], "zoom": 10.2,
                    "population_definition": "All persons, Population and Housing Census of Malaysia 2020, by state constituency"},
         },

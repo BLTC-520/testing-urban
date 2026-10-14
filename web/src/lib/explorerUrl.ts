@@ -44,6 +44,7 @@ export const EXPLORER_PARAMS: Record<string, string> = {
   lat: "latitude of a point to walk from (with lon)",
   city: "sg | jb (optional; inferred from lon/lat)",
   unit: "neighbourhood id to zoom to, e.g. BD (Bedok) or JB-N.46 (Perling); ids and names are in /data/summary.json",
+  view: "table (a sortable table of all 50 neighbourhoods for the current settings, instead of the map; works without WebGL)",
 };
 
 const pick = <T extends string | number>(v: string | null, allowed: readonly T[]): T | undefined =>
@@ -68,6 +69,19 @@ export function viewFromParams(p: URLSearchParams): ExplorerView {
     v.selection = { lon, lat, city: pick(p.get("city"), ["sg", "jb"] as CityId[]) ?? null };
   }
   return v;
+}
+
+/** The map (the default) or the neighbourhood table, which the URL writes as view=table. */
+export type ExplorerLayout = "map" | "table";
+
+export function layoutFromParams(p: URLSearchParams): ExplorerLayout {
+  return p.get("view") === "table" ? "table" : "map";
+}
+
+/** Adds view=table to a query string; the map is the default and is not written. */
+export function withLayout(p: URLSearchParams, layout: ExplorerLayout): URLSearchParams {
+  if (layout === "table") p.set("view", "table");
+  return p;
 }
 
 export function paramsFromView(v: ExplorerView): URLSearchParams {

@@ -37,6 +37,7 @@ long as its files exist.
 | `access_overture` | `overture.py` | the same distances with Overture Places destinations |
 | `form` | `form.py` | intersection density, dead ends, pedestrian share, arterial exposure, shed ratio, circuity, parking land |
 | `scenarios` | `parking.py`, `crossborder.py`, `transit.py` | Parking-to-Proximity greedy site selection; JB→border-hub access times (walk, walk+bus from GTFS, AV feeder) |
+| `footpath` | `footpath.py` | one-footpath scenario: missing-link candidates in Johor Bahru, desk filters (buildings, water, rail, major roads, walls, compounds), exact before/after scoring, sample routes, still-map geometry (`footpath.json`) |
 | `summary` | `summary.py`, `metrics.py`, `sensitivity.py`, `audit.py` | `summary.json`: headline metrics, neighbourhoods, 72-run sensitivity grid, audits, scenario results |
 | `export` | `web_export.py`, `export.py` | browser artifacts (below) |
 | `basemap` | `basemap.py` | PMTiles basemap from WorldCover + OSM via tippecanoe |
@@ -101,14 +102,23 @@ prerendered DOM with an identical first render and adds the maps.
 **For agents.** From the same rendered DOM the prerender step writes Markdown copies of the pages
 (`/index.md`, `/methods.md`, `/explore.md`, linked from each page with `rel="alternate"`),
 `/llms.txt` and `/llms-full.txt`, `/robots.txt`, `/sitemap.xml` and a data catalogue
-(`/data/index.json`). In the page, `src/agent/tools.ts` offers four tools — `get_city_summary`,
-`find_neighbourhoods`, `walk_from` (runs the same street-network search as the Explorer) and
-`open_explorer` — registered with WebMCP (`navigator.modelContext`) when the browser supports it
-and always available as `window.sgjb.call(name, input)`.
+(`/data/index.json`). In the page, `src/agent/tools.ts` offers five tools — `get_city_summary`,
+`find_neighbourhoods`, `walk_from` (runs the same street-network search as the Explorer),
+`get_footpath_scenario` and `open_explorer` — registered with WebMCP (`navigator.modelContext`)
+when the browser supports it and always available as `window.sgjb.call(name, input)`.
+
+**When the map cannot run.** The interactive maps need WebGL. `MapCanvas` checks for it, creates
+the map inside a try/catch and treats a lost context as a failure; an error boundary keeps any
+failure inside the map, and a page-level boundary replaces a blank page with links. Without a
+map, the Story shows a still of the current scene behind its text (one per scene, rendered from
+the live map with the text hidden by `scripts/stills.mjs`) and a notice saying what the still
+shows; the Explorer switches to its table view, which also works as an accessible alternative to
+the map (`view=table`). The footpath chapter's map is plain SVG and needs no WebGL at all.
 
 **Rendering.** MapLibre GL 5 draws the basemap from a self-hosted PMTiles archive; deck.gl 9
 (`MapboxOverlay`, interleaved) draws hexagons, walk-sheds and markers in the same WebGL context, so
-labels and analysis layers depth-sort together. H3 cells are aggregated to resolutions 8–9 at low
+labels and analysis layers depth-sort together: area fills are inserted beneath the place labels
+(`beforeId`), lines and markers above them. H3 cells are aggregated to resolutions 8–9 at low
 zoom to keep the number of drawn polygons bounded.
 
 ## Testing
@@ -120,4 +130,9 @@ zoom to keep the number of drawn polygons bounded.
   built site — the raw HTML, Markdown, llms.txt, robots and sitemap a crawler would fetch; the app
   taking over without errors; real and legacy URLs; Explorer state in the URL; and every agent tool,
   including registration through a WebMCP-style `navigator.modelContext`.
-* Playwright scripts (`web/scripts/shot*.mjs`) render the pages headlessly for visual review.
+  The same script runs the site in a browser with WebGL disabled (text, stills, the table, the
+  agent tools) and checks for horizontal overflow at a 390 px phone width.
+* `pytest tests/test_footpath.py`: the exact link update against full recomputation on random
+  graphs, the candidate search and the building filter.
+* Playwright scripts (`web/scripts/shot*.mjs`) render the pages headlessly for visual review;
+  `web/scripts/stills.mjs` renders the Story's fallback stills.

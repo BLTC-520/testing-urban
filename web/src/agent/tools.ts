@@ -12,9 +12,10 @@
  */
 import { latLngToCell, cellToParent } from "h3-js";
 import { reachedPois, streetGraph } from "../explore/useIsochrone";
-import { EXPLORER_PARAMS, METRICS, THRESHOLDS, paramsFromView, viewFromParams } from "../lib/explorerUrl";
+import { EXPLORER_PARAMS, METRICS, THRESHOLDS, layoutFromParams, paramsFromView, viewFromParams, withLayout } from "../lib/explorerUrl";
 import { loadCells, loadMeta, loadNeighbourhoods, loadPois, loadSummary } from "../lib/data";
 import { unitAt } from "../lib/geo";
+import { loadFootpath, type FootpathSite } from "../lib/footpath";
 import { href, navigate } from "../lib/router";
 import type { CityId, NeighbourhoodStats } from "../lib/types";
 
@@ -44,14 +45,18 @@ function cityArg(v: unknown): CityId | undefined {
 
 async function citySummary(input: Json) {
   const [summary, meta, labels] = await Promise.all([loadSummary(), loadMeta(), categoryLabels()]);
+  const overture = summary.poi_source_overture;
   const cities = (cityArg(input.city) ? [cityArg(input.city)!] : (["sg", "jb"] as CityId[])).map((c) => {
     const a = summary.cities[c].all as unknown as Record<string, number> & { share_complete_by_threshold: Record<string, number>; share_complete_by_speed: Record<string, number> };
     return {
       city: c,
       name: CITY_NAME[c],
       residents: Math.round(a.population),
+      residents_on_walking_network: Math.round(a.population_on_network),
+      percent_on_walking_network: pct(a.population_on_network / a.population),
       population_definition: meta.cities[c].population_definition,
       percent_with_all_six_essentials_within_15_min: pct(a.share_complete),
+      percent_with_all_six_using_overture_places: pct(overture?.[c]?.share_complete ?? NaN),
       percent_low_access: pct(a.share_low_access),
       low_access_residents: Math.round(a.low_access_population),
       mean_essentials_reached: round(a.mean_categories, 2),
@@ -66,8 +71,21 @@ async function citySummary(input: Json) {
       })),
     };
   });
+  const nonResidents = meta.cities.sg.non_residents;
+  const sgAll = summary.cities.sg.all;
+  const sgBound = nonResidents ? (sgAll.share_complete * sgAll.population_on_network) / (sgAll.population + nonResidents) : NaN;
+  const denominator = [
+    "Shares count residents whose homes are within 250 m of a walkable street (see residents_on_walking_network). Residents further out are left out of the share.",
+    "Singapore counts residents (citizens and permanent residents, Census of Population 2020). Johor Bahru counts all persons (Population and Housing Census of Malaysia 2020).",
+    nonResidents
+      ? `About ${(nonResidents / 1e6).toFixed(2)} million non-residents in Singapore are not counted. Even if none of them had all six essentials within reach, Singapore's share of all persons would still be at least ${pct(sgBound)}%.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return {
     question: "Share of residents who can walk to all six everyday essentials within 15 minutes on the street network",
+    denominator,
     essentials: meta.basket.map((k) => labels[k]),
     walking_speed_mps: meta.accessibility.walk_speed_mps.base,
     low_access_definition: `fewer than ${Math.round(meta.accessibility.low_access_completeness * meta.basket.length)} of ${meta.basket.length} essentials`,
@@ -177,15 +195,52 @@ async function openExplorer(input: Json) {
   const view = viewFromParams(p);
   const out = paramsFromView(view);
   if (p.get("unit") && !view.selection) out.set("unit", p.get("unit")!);
+  withLayout(out, layoutFromParams(p));
   navigate("/explore", out);
   return { url: window.location.href, applied: Object.fromEntries(out) };
+}
+
+async function footpathScenario() {
+  const [fp, labels] = await Promise.all([loadFootpath(), categoryLabels()]);
+  const site = (s: FootpathSite) => ({
+    place: s.place,
+    neighbourhood: s.unit_name,
+    between: [s.a.street, s.b.street],
+    ends: [
+      { lon: s.a.lon, lat: s.a.lat },
+      { lon: s.b.lon, lat: s.b.lat },
+    ],
+    link_m: s.link_m,
+    walk_today_m: s.walk_today_m,
+    needs_footbridge: s.footbridge,
+    residents_gaining_an_essential_within_15_min: Math.round(s.metrics["15min"].residents_gaining),
+    residents_newly_reaching_all_six: Math.round(s.metrics["15min"].newly_complete),
+  });
+  const c = fp.chosen;
+  return {
+    question: fp.question,
+    status: "scenario (desk study): every link must be checked on site before anyone builds it",
+    chosen: {
+      ...site(c),
+      sensitivity: Object.fromEntries(Object.entries(c.metrics).map(([k, m]) => [k, Math.round(m.residents_gaining)])),
+      by_essential: c.changes.by_essential
+        .filter((r) => r.residents_newly_within_15min > 0)
+        .map((r) => ({ essential: labels[r.essential] ?? r.essential, residents_newly_within_15_min: Math.round(r.residents_newly_within_15min), median_minutes_before: round(r.median_minutes_before ?? NaN), median_minutes_after: round(r.median_minutes_after ?? NaN) })),
+      sample_routes: fp.routes.map((r) => ({ essential: labels[r.essential] ?? r.essential, destination: r.after.destination.name, minutes_today: r.before.minutes, minutes_with_path: r.after.minutes })),
+    },
+    alternatives: fp.alternatives.map(site),
+    assumptions: fp.assumptions,
+    site_checks: fp.site_checks,
+    screening: fp.screening,
+    method: abs(href("/methods", undefined, "footpath")),
+  };
 }
 
 export const TOOLS: AgentTool[] = [
   {
     name: "get_city_summary",
     description:
-      "Headline results for Singapore and/or Johor Bahru: share of residents who can walk to all six everyday essentials (groceries, healthcare, education, a park, public transport, everyday food) within 15 minutes, low-access residents, and per-essential walking times.",
+      "Headline results for Singapore and/or Johor Bahru: share of residents who can walk to all six everyday essentials (a grocery or provision shop, a clinic, hospital or pharmacy, a school or childcare centre, a park of at least 0.5 ha, a bus stop or station, an eatery) within 15 minutes, the share on the walking network, the Overture Places check, low-access residents, and per-essential walking times.",
     inputSchema: { type: "object", properties: { city: { type: "string", enum: ["sg", "jb"], description: "Omit for both cities" } } },
     annotations: { readOnlyHint: true },
     run: citySummary,
@@ -224,9 +279,17 @@ export const TOOLS: AgentTool[] = [
     run: walkFrom,
   },
   {
+    name: "get_footpath_scenario",
+    description:
+      "The one-footpath scenario: the single short public footpath in Johor Bahru that would bring the most residents an extra everyday essential within a 15-minute walk, with its effect, sample routes, sensitivity, ranked alternatives, assumptions and the checks to make on site.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    run: footpathScenario,
+  },
+  {
     name: "open_explorer",
     description:
-      "Show a view in the interactive Explorer map: choose the essential, time budget, walking speed, population group, an alternative assumption, a car-park-to-hub scenario, a point to walk from, or a neighbourhood. Navigates this page and returns the shareable URL.",
+      "Show a view in the interactive Explorer map: choose the essential, time budget, walking speed, population group, an alternative assumption, a car-park-to-hub scenario, a point to walk from, or a neighbourhood, shown as the map or as a table of neighbourhoods. Navigates this page and returns the shareable URL.",
     inputSchema: {
       type: "object",
       properties: {
@@ -241,6 +304,7 @@ export const TOOLS: AgentTool[] = [
         lon: { type: "number" },
         lat: { type: "number" },
         unit: { type: "string", description: "Neighbourhood id from find_neighbourhoods" },
+        view: { type: "string", enum: ["map", "table"], description: "table: a sortable table of all neighbourhoods instead of the map" },
       },
     },
     run: openExplorer,

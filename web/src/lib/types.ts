@@ -60,7 +60,18 @@ export interface Meta {
     };
   };
   parking_to_proximity: { sites_per_city: number[]; hub_program: string[]; min_site_area_m2: number; label: string };
-  cities: Record<CityId, { name: string; center: [number, number]; zoom: number; population_definition: string }>;
+  cities: Record<
+    CityId,
+    {
+      name: string;
+      center: [number, number];
+      zoom: number;
+      population_definition: string;
+      /** Singapore only: non-residents, outside the census of residents (June 2020). */
+      non_residents?: number;
+      non_residents_source?: string;
+    }
+  >;
   hubs: Record<string, { lon: number; lat: number; name: string; osm: string | null }>;
   sources: SourceMeta[];
 }

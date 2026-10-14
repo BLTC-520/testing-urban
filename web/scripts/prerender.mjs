@@ -26,6 +26,7 @@ const PAGES = [
   { path: "/", out: "index.html", md: "index.md", ready: ".story .hero h1, .story h1", scroll: true },
   { path: "/explore/", out: "explore/index.html", md: "explore.md", ready: "#explorer-panel" },
   { path: "/methods/", out: "methods/index.html", md: "methods.md", ready: "#architecture .katex, #architecture" },
+  { path: "/about/", out: "about/index.html", md: "about.md", ready: ".about h1" },
 ];
 
 const DATA = [
@@ -33,6 +34,7 @@ const DATA = [
   ["meta.json", "Parameters and provenance: essentials taxonomy, walking speeds, thresholds, cross-border assumptions, data sources with licences and checksums"],
   ["neighbourhoods.geojson", "Neighbourhood outlines (Singapore planning areas, Johor Bahru state constituencies) with their access statistics"],
   ["parking_sites.geojson", "Car parks ranked by the Parking-to-Proximity scenario, with the residents each would bring to all six essentials"],
+  ["footpath.json", "The one-footpath scenario: the chosen link in Johor Bahru, its effect essential by essential, sample routes, alternatives, assumptions and site checks"],
   ["study_mask.geojson", "Study area outline"],
   ["pois_sg.json", "Names and kinds of the Singapore destinations (OpenStreetMap)"],
   ["pois_jb.json", "Names and kinds of the Johor Bahru destinations (OpenStreetMap)"],
@@ -49,15 +51,20 @@ const browser = await chromium.launch({
 });
 
 const results = [];
-try {
-  for (const page of PAGES) {
-    const tab = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
-    const errors = [];
-    tab.on("pageerror", (e) => errors.push(e.message));
+
+/** Load one page, let every section finish loading, and snapshot it. */
+async function render(page) {
+  const tab = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+  const errors = [];
+  tab.on("pageerror", (e) => errors.push(e.message));
+  let stage = "load";
+  try {
     await tab.goto(origin + BASE.replace(/\/$/, "") + page.path, { waitUntil: "networkidle", timeout: 120_000 });
+    stage = `wait for ${page.ready}`;
     await tab.waitForSelector(page.ready, { timeout: 60_000 });
     if (page.scroll) {
       // later chapters load their data as the reader approaches; walk down the page once
+      stage = "scroll";
       await tab.evaluate(async () => {
         const step = window.innerHeight * 0.6;
         for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
@@ -70,12 +77,34 @@ try {
       await tab.evaluate(() => window.scrollTo(0, 0));
       await tab.waitForTimeout(300);
     }
+    // sections that load their data lazily mark their placeholder with data-loading
+    stage = "wait for lazy sections";
+    await tab.waitForFunction(() => !document.querySelector("[data-loading]"), null, { timeout: 60_000 });
+    stage = "snapshot";
     const snap = await tab.evaluate(snapshot, SITE_URL);
-    if (errors.length) throw new Error(`${page.path}: page errors:\n${errors.join("\n")}`);
-    if (snap.text.length < 500) throw new Error(`${page.path}: only ${snap.text.length} characters of text — data did not load?`);
+    if (errors.length) throw new Error(`page errors:\n${errors.join("\n")}`);
+    if (snap.text.length < 500) throw new Error(`only ${snap.text.length} characters of text — data did not load?`);
+    return snap;
+  } catch (e) {
+    const pending = await tab.evaluate(() => [...document.querySelectorAll("[data-loading]")].map((n) => n.textContent.trim())).catch(() => []);
+    throw new Error(`${page.path} (${stage}): ${e.message}${pending.length ? `\nstill loading: ${pending.join(" | ")}` : ""}`);
+  } finally {
+    await tab.close();
+  }
+}
+
+try {
+  for (const page of PAGES) {
+    let snap;
+    try {
+      snap = await render(page);
+    } catch (e) {
+      // a slow CI runner can miss a timeout once; a second failure is real
+      console.warn(`retrying ${page.path}: ${e.message}`);
+      snap = await render(page);
+    }
     results.push({ ...page, ...snap });
     console.log(`prerendered ${page.path.padEnd(10)} ${String(snap.text.length).padStart(6)} chars of text, ${snap.markdown.length} chars of markdown`);
-    await tab.close();
   }
 } finally {
   await browser.close();
@@ -123,6 +152,7 @@ writeFileSync(
 const story = results.find((r) => r.path === "/");
 const methods = results.find((r) => r.path === "/methods/");
 const explore = results.find((r) => r.path === "/explore/");
+const about = results.find((r) => r.path === "/about/");
 
 const exploreMd = [
   `# Explorer — interactive map`,
@@ -155,6 +185,7 @@ const exploreMd = [
 
 writeFileSync(join(DIST, story.md), story.markdown);
 writeFileSync(join(DIST, methods.md), methods.markdown);
+writeFileSync(join(DIST, about.md), about.markdown);
 writeFileSync(join(DIST, explore.md), exploreMd);
 
 const catalogue = {
@@ -178,7 +209,7 @@ const llms = [
   ``,
   `> ${story.description}`,
   ``,
-  `An open, reproducible street-network study. Every number on the site is computed from published data (OpenStreetMap, the 2020 censuses of Singapore and Malaysia, Meta/CIESIN HRSL population, LTA and myBAS transit data, Overture Places) by the pipeline in the repository. Results are labelled as observed, calculated, modelled, assumed or scenario.`,
+  `An open, reproducible street-network study. Every result on the site is computed from published data (OpenStreetMap, the 2020 censuses of Singapore and Malaysia, Meta/CIESIN HRSL population, LTA and myBAS transit data, Overture Places) by the pipeline in the repository. Results are labelled as observed, calculated, modelled, assumed or scenario.`,
   ``,
   `## Key findings`,
   ``,
@@ -190,7 +221,8 @@ const llms = [
   `- [Story](${pageUrl("/")}): the findings as a scrolling narrative ([Markdown](${pageUrl("/" + story.md)}))`,
   `- [Explorer](${pageUrl("/explore/")}): interactive map; every view has a URL ([Markdown with URL parameters](${pageUrl("/" + explore.md)}))`,
   `- [Methods](${pageUrl("/methods/")}): data, formulas, validation, sensitivity, limitations ([Markdown](${pageUrl("/" + methods.md)}))`,
-  `- [Full text](${pageUrl("/llms-full.txt")}): Story and Methods in one file`,
+  `- [About](${pageUrl("/about/")}): who made the study, how it was built, three key decisions and how the results were checked ([Markdown](${pageUrl("/" + about.md)}))`,
+  `- [Full text](${pageUrl("/llms-full.txt")}): Story, About, Methods and Explorer in one file`,
   ``,
   `## Data`,
   ``,
@@ -212,7 +244,7 @@ const llms = [
   ``,
 ].join("\n");
 writeFileSync(join(DIST, "llms.txt"), llms);
-writeFileSync(join(DIST, "llms-full.txt"), [llms, "\n---\n", story.markdown, "\n---\n", methods.markdown, "\n---\n", exploreMd].join("\n"));
+writeFileSync(join(DIST, "llms-full.txt"), [llms, "\n---\n", story.markdown, "\n---\n", about.markdown, "\n---\n", methods.markdown, "\n---\n", exploreMd].join("\n"));
 
 writeFileSync(
   join(DIST, "robots.txt"),
@@ -233,14 +265,25 @@ function headline() {
   const n = (x) => Math.round(x).toLocaleString("en-US");
   const sg = s.cities.sg.all;
   const jb = s.cities.jb.all;
+  const ov = s.poi_source_overture;
+  const fpFile = join(DIST, "data", "footpath.json");
+  const fp = existsSync(fpFile) ? JSON.parse(readFileSync(fpFile, "utf8")).chosen : null;
+  const r2 = (x) => (Math.round(x / 10 ** (Math.floor(Math.log10(x)) - 1)) * 10 ** (Math.floor(Math.log10(x)) - 1)).toLocaleString("en-US");
   return [
-    `- Residents who can walk to all six everyday essentials within 15 minutes: Singapore ${p(sg.share_complete)} of ${n(sg.population)}, Johor Bahru ${p(jb.share_complete)} of ${n(jb.population)} (2020 censuses).`,
+    `- Share who can walk to all six everyday essentials within 15 minutes: Singapore ${p(sg.share_complete)} of ${n(sg.population)} residents (citizens and permanent residents), Johor Bahru ${p(jb.share_complete)} of ${n(jb.population)} people (all persons); 2020 censuses.`,
+    `- These shares are of residents whose homes join the walking network: ${p(sg.population_on_network / sg.population)} of Singapore's and ${p(jb.population_on_network / jb.population)} of Johor Bahru's residents.`,
+    ...(ov ? [`- With Overture Places instead of OpenStreetMap as the source of destinations: Singapore ${p(ov.sg.share_complete)}, Johor Bahru ${p(ov.jb.share_complete)}.`] : []),
     `- Low access (fewer than three of six): Singapore ${p(sg.share_low_access)}, Johor Bahru ${p(jb.share_low_access)} (${n(jb.low_access_population)} people).`,
     ...["sg", "jb"].map((c) => {
       const a = s.cities[c].all;
       const k = s.basket.reduce((m, x) => (a[`share_within_${x}`] < a[`share_within_${m}`] ? x : m));
       return `- Essential most often out of reach in ${c === "sg" ? "Singapore" : "Johor Bahru"}: ${k.replace("_", " ")} (${p(a[`share_within_${k}`])} of residents within 15 minutes).`;
     }),
+    ...(fp
+      ? [
+          `- Scenario: one ${Math.round(fp.link_m)} m public footpath in ${fp.place ?? fp.unit_name} (${fp.unit_name}, Johor Bahru) between ${fp.a.street} and ${fp.b.street}, ${n(fp.walk_today_m)} m apart on foot today, would give about ${r2(fp.metrics["15min"].residents_gaining)} residents at least one more essential within 15 minutes (a desk study to be checked on site).`,
+        ]
+      : []),
   ];
 }
 

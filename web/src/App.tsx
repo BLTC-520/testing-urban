@@ -6,6 +6,7 @@ import { href, interceptLinks, useRoute } from "./lib/router";
 import { Story } from "./story/Story";
 
 const Methods = lazy(() => import("./methods/Methods").then((m) => ({ default: m.Methods })));
+const About = lazy(() => import("./about/About").then((m) => ({ default: m.About })));
 
 export default function App() {
   const route = useRoute();
@@ -23,6 +24,12 @@ export default function App() {
       return (
         <Suspense fallback={<div className="page-loading">Loading…</div>}>
           <Methods />
+        </Suspense>
+      );
+    case "/about":
+      return (
+        <Suspense fallback={<div className="page-loading">Loading…</div>}>
+          <About />
         </Suspense>
       );
     default:

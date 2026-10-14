@@ -1,7 +1,7 @@
 # Singapore / Johor Bahru 15-Minute City Explorer
 
 **How far is daily life from home — and what could change it?** An open, reproducible
-street-network study of walkable access to everyday essentials for 5.8 million residents of
+street-network study of walkable access to everyday essentials for 5.8 million people in
 Singapore and Johor Bahru, with scenario models for the RTS Link, shared autonomous feeders and
 the conversion of car-park land into neighbourhood hubs.
 
@@ -16,29 +16,41 @@ assumption, click anywhere to walk the network) and a **Methods** page generated
 
 | | Singapore | Johor Bahru |
 |---|---:|---:|
-| Residents (census 2020) | 4,044,340 | 1,753,284 |
+| Census 2020 count (Singapore residents; Johor Bahru all persons) | 4,044,340 | 1,753,284 |
 | **All six essentials within a 15-minute walk** | **80.4 %** | **12.0 %** |
 | Fewer than three essentials | 2.0 % | 37.9 % (657,200 people) |
 | All six at a slower 0.9 m/s | 59.9 % | 5.1 % |
 | Essential most often missing | healthcare | healthcare |
 | Street junctions per km² · footpath share | 287 · 47 % | 98 · 11 % |
 
-*Essentials: groceries, healthcare (clinic or pharmacy), education (school or childcare), a park of
-at least 0.5 ha, public transport, everyday food. Walking on the mapped street network at 1.2 m/s.*
+*Essentials: a grocery or provision shop; a clinic, hospital or pharmacy; a school or childcare centre;
+a park of at least 0.5 ha; a bus stop or station; an eatery. Walking on the mapped street network at 1.2 m/s.*
+
+**Population basis.** Singapore's census counts residents; Johor Bahru's counts all persons. Shares cover
+residents whose homes are within 250 m of a walkable street (99.9 % of Singapore's census count, 98.9 % of
+Johor Bahru's). Singapore's 1.64 million non-residents are not counted. Even if none of them had all six
+essentials, Singapore's all-persons share would be at least 57.1 %, still far above Johor Bahru's 12.0 %,
+so the direction of the finding cannot flip.
 
 * **Robust.** Singapore leads in all 72 combinations of walking speed, time budget, definitions,
   network rules and population model; the gap exceeds 20 points in 70 of them.
-* **Not a mapping artefact.** Re-run with Overture Places instead of OpenStreetMap destinations:
-  89.5 % vs 23.0 %. OSM under-maps Johor Bahru's clinics by about two-thirds relative to Overture,
-  and the story says so.
-* **Different gaps.** Singapore's residents are typically one essential short (usually a clinic);
+* **Mostly not a mapping artefact.** Re-run with Overture Places instead of OpenStreetMap for food
+  shops, clinics, schools and eateries: 89.5 % vs 23.0 %, so the gap narrows by about two points.
+  OSM under-maps Johor Bahru's clinics, hospitals and pharmacies by about two-thirds relative to
+  Overture, and the story says so.
+* **Different gaps.** Singapore's residents are typically one essential short (usually healthcare);
   Johor Bahru's are spread from none to all six.
 * **The border is not a street.** With the RTS Link the median door-to-platform trip from a Johor
   Bahru home to a Singapore MRT platform falls from 132 to 124 minutes (central assumptions); with a
   shared autonomous feeder to the station, to 85 — the first kilometres are the slow part.
 * **Parking to Proximity.** Turning 25 well-chosen car parks per city into neighbourhood hubs would
-  give 393,500 more Singaporeans and 152,800 more Johor Bahru residents all six essentials within
+  give 393,500 more Singapore residents and 152,800 more Johor Bahru residents all six essentials within
   15 minutes (a scenario, with its caveats).
+* **One footpath.** A search of every dead end in Johor Bahru for streets that are close in a
+  straight line but far on foot finds a 75 m gap in Bukit Indah (Perling): Jalan Bestari 10/1 and
+  Jalan Penglin are 1,402 m apart on foot today. A public path there would give about 2,200
+  residents all six essentials within 15 minutes; most were one essential short, usually healthcare. A desk study:
+  ownership, walls and drains must be checked on site.
 
 | Walk-shed vs. the 15-minute circle | RTS Link + autonomous feeder | Parking to Proximity |
 |---|---|---|
@@ -50,9 +62,19 @@ Every page is prerendered to static HTML at build time, so the text, tables and 
 without JavaScript; the maps load on top. For agents the site also publishes
 [`/llms.txt`](https://sgjburbansideprojects.brianhar.site/llms.txt) (a guide with the key numbers),
 Markdown copies of each page, a [data catalogue](https://sgjburbansideprojects.brianhar.site/data/index.json),
-and four in-page tools — `get_city_summary`, `find_neighbourhoods`, `walk_from`, `open_explorer` —
-exposed through WebMCP where the browser supports it and as `window.sgjb`. Every Explorer view has
+and five in-page tools — `get_city_summary`, `find_neighbourhoods`, `walk_from`,
+`get_footpath_scenario`, `open_explorer` — exposed through WebMCP where the browser supports it and
+as `window.sgjb`. Without WebGL the pages keep working: the Story shows a still of each scene and
+the Explorer a table of neighbourhoods. Every Explorer view has
 its own URL, e.g. [healthcare within 10 minutes for slower walkers](https://sgjburbansideprojects.brianhar.site/explore/?metric=healthcare&minutes=10&speed=slow).
+
+## My contribution
+
+**[Brian Har](https://brianhar.site)**. Role: concept and brief, research questions, choice of cities and scenarios, design direction, and review of the results. Built with
+Claude Code, an AI coding assistant, which wrote the pipeline and the site under my direction.
+
+Dates: October 2026 (OpenStreetMap snapshot 5 October 2026; first public release 14 October 2026). The
+[About page](https://sgjburbansideprojects.brianhar.site/about/) explains how it was made, the three decisions behind the method and how the results were checked.
 
 ## Portfolio summary
 
@@ -62,8 +84,8 @@ its own URL, e.g. [healthcare within 10 minutes for slower walkers](https://sgjb
 2. **Why Singapore and Johor Bahru.** One functional region (about 327,000 crossings a day at
    Woodlands), two urban models: planned transit towns and a car-oriented metropolis of private
    estates — and a new cross-border rail link due by the end of 2026.
-3. **What the data revealed.** An 80 % vs 12 % gap in complete walkable access, robust to every
-   assumption tested, with healthcare as the scarcest essential in both cities.
+3. **What the data revealed.** An 80.4 % vs 12.0 % gap in complete walkable access. Singapore leads
+   in all 72 sensitivity runs, with healthcare as the scarcest essential in both cities.
 4. **Biggest differences.** Street connectivity (3× the junctions), dedicated footpaths (4×), and
    the spread of gaps (one missing essential vs several).
 5. **Interventions tested.** The RTS Link with and without a shared autonomous feeder, and
@@ -92,7 +114,8 @@ make check                 # end-to-end checks of web/dist: no-JS HTML, URLs, ag
 make test                  # pytest + vitest
 ```
 
-Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios summary export basemap`.
+Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios footpath summary export basemap`.
+After the data or the Story's scenes change, regenerate the fallback stills with `cd web && npm run build && node scripts/stills.mjs`.
 
 ## Repository
 

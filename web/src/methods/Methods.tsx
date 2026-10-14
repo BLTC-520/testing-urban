@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Badge, type Evidence } from "../components/Controls";
 import { Header } from "../components/Header";
 import { Tex } from "../components/Tex";
+import { FootpathMethod } from "./FootpathMethod";
 import { loadMeta, loadSummary, peekMeta, peekSummary } from "../lib/data";
 import { int, pct } from "../lib/format";
 import type { Meta, Summary } from "../lib/types";
@@ -41,6 +42,36 @@ function Formula({ tex, note }: { tex: string; note?: ReactNode }) {
   );
 }
 
+/** "subzone" → "subzones", "state constituency" → "state constituencies". */
+const pluralUnit = (u: string) => (u.endsWith("y") ? `${u.slice(0, -1)}ies` : `${u}s`);
+
+/** The two censuses count different populations. The all-persons bound is computed from summary.json. */
+function WhoIsCounted({ summary, nonResidents, source }: { summary: Summary; nonResidents: number; source?: string }) {
+  const sg = summary.cities.sg.all;
+  const jb = summary.cities.jb.all;
+  // Complete residents are at least share × on-network residents, whatever the non-residents' access.
+  const completeResidents = sg.share_complete * sg.population_on_network;
+  const allPersons = sg.population + nonResidents;
+  const bound = completeResidents / allPersons;
+  const gapNow = Math.round((sg.share_complete - jb.share_complete) * 100);
+  const gapBound = Math.round((bound - jb.share_complete) * 100);
+  return (
+    <>
+      <p>
+        <strong>Who is counted.</strong> Singapore's figures cover residents, citizens and permanent residents: {(sg.population / 1e6).toFixed(2)} million in the Census of Population
+        2020. About {(nonResidents / 1e6).toFixed(2)} million non-residents, many of them work-permit holders living in worker dormitories, often in industrial areas, are outside that count.
+        Johor Bahru's census counts all persons, including non-citizens, so the comparison sets Singapore's residents against all of Johor Bahru's population.
+      </p>
+      <p>
+        The effect can be bounded from the data. Even if none of Singapore's non-residents had all six essentials within reach, Singapore's share of all persons would still be at
+        least <strong>{pct(bound, 1)}</strong> (at least {(completeResidents / 1e6).toFixed(2)} million complete residents out of {(allPersons / 1e6).toFixed(2)} million persons), against{" "}
+        {pct(jb.share_complete, 1)} in Johor Bahru. The direction of the finding cannot flip. The gap is at least {gapBound} points, against {gapNow} for residents alone.
+      </p>
+      {source ? <p className="small muted">Non-residents: {source}.</p> : null}
+    </>
+  );
+}
+
 export function Methods() {
   const [meta, setMeta] = useState<Meta | null>(peekMeta);
   const [summary, setSummary] = useState<Summary | null>(peekSummary);
@@ -71,6 +102,7 @@ export function Methods() {
 
   const acc = meta?.accessibility;
   const cb = meta?.crossborder;
+  const sgNonResidents = meta?.cities.sg.non_residents;
   return (
     <div className="methods">
       <Header path="/methods" />
@@ -92,7 +124,7 @@ export function Methods() {
             <div className="eyebrow">Methodology · v{meta?.version ?? "1"}</div>
             <h1>How the numbers are made</h1>
             <p className="lede">
-              Every figure in this project is computed by an open, deterministic pipeline from public data. This page documents what was measured, what was calculated, what was
+              Every result in this project is computed by an open, deterministic pipeline from public data. This page documents what was measured, what was calculated, what was
               modelled and what was assumed — and how far each can be trusted.
             </p>
             <div className="m-badges">
@@ -233,7 +265,7 @@ export function Methods() {
                         <td>{r.city === "sg" ? "Singapore" : "Johor Bahru"}</td>
                         <td>{String(r.model)}</td>
                         <td>
-                          {String(r.units)} {String(r.unit)}s
+                          {String(r.units)} {pluralUnit(String(r.unit))}
                         </td>
                         <td className="num">{Number(r.log_correlation).toFixed(2)}</td>
                         <td className="num">{pct(Number(r.share_units_within_25pct))}</td>
@@ -246,6 +278,7 @@ export function Methods() {
             <p className="small muted">
               Model counts summed by census unit before calibration, against the census. These figures describe where people are placed inside units; calibrated totals are exact.
             </p>
+            {summary && sgNonResidents ? <WhoIsCounted summary={summary} nonResidents={sgNonResidents} source={meta?.cities.sg.non_residents_source} /> : null}
           </Section>
 
           <Section id="metrics" title="Metrics">
@@ -394,6 +427,7 @@ export function Methods() {
               {meta?.parking_to_proximity.sites_per_city.join(", ")} sites per city. This is an exploration of where land could matter, not a forecast that autonomous vehicles will
               free it.
             </p>
+            <FootpathMethod />
           </Section>
 
           <Section id="validation" title="Validation">

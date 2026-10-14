@@ -6,6 +6,7 @@ const LINKS = [
   { href: href("/"), label: "Story", path: "/" },
   { href: href("/explore"), label: "Explore", path: "/explore" },
   { href: href("/methods"), label: "Methods", path: "/methods" },
+  { href: href("/about"), label: "About", path: "/about" },
 ];
 
 export function Header({ path, overlay = false }: { path: string; overlay?: boolean }) {

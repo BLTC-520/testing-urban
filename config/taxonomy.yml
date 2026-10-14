@@ -19,11 +19,14 @@ basket: [groceries, healthcare, education, green_space, transit, dining]
 # Mapped and reported, but not part of the completeness score.
 supplementary: [rapid_transit, civic, parking]
 
+# Each `question` is shown on the site. It states only what is measured: whether a
+# destination of that kind is within reach on foot. The same text is mirrored in
+# web/public/data/meta.json, and tests/test_meta_config.py checks that the two agree.
 categories:
   groceries:
     label: Groceries
     short: Food shop
-    question: Can I buy fresh food and daily provisions?
+    question: Can I reach a grocery or provision shop?
     strict:
       shop: [supermarket, greengrocer]
       amenity: [marketplace]          # includes Singapore wet markets / Malaysian pasar
@@ -35,7 +38,7 @@ categories:
   healthcare:
     label: Healthcare
     short: Clinic or pharmacy
-    question: Can I see a doctor or fill a prescription?
+    question: Can I reach a clinic, hospital or pharmacy?
     strict:
       amenity: [clinic, doctors, hospital]
       healthcare: [clinic, doctor, hospital, centre]
@@ -50,7 +53,7 @@ categories:
   education:
     label: Education
     short: School or kindergarten
-    question: Can my children get to school or childcare?
+    question: Can my children reach a school or childcare centre?
     strict:
       amenity: [school]
     core:
@@ -61,7 +64,7 @@ categories:
   green_space:
     label: Green space
     short: Park ≥ 0.5 ha
-    question: Is there a usable park nearby?
+    question: Is there a park of at least half a hectare within reach?
     geometry: area            # accessed via points along the boundary, not the centroid
     strict:
       leisure: [park, nature_reserve, recreation_ground, garden]
@@ -82,7 +85,7 @@ categories:
   transit:
     label: Public transport
     short: Bus stop or station
-    question: Can I get on a bus or train?
+    question: Can I reach a bus stop or station?
     strict:
       highway: [bus_stop]
       amenity: [bus_station]
@@ -92,9 +95,9 @@ categories:
       public_transport: [platform, stop_position]
 
   dining:
-    label: Everyday food
+    label: Eateries
     short: Hawker, food court or eatery
-    question: Can I get an affordable meal?
+    question: Can I reach an eatery?
     strict:
       amenity: [food_court, restaurant, fast_food]   # hawker centres are amenity=food_court
     core:
@@ -107,7 +110,7 @@ categories:
   rapid_transit:
     label: Rapid transit
     short: MRT / LRT / rail station
-    question: Can I reach the rail network?
+    question: Can I reach a rail station?
     strict:
       railway: [station, halt, subway_entrance]
     core: {}
@@ -123,7 +126,7 @@ categories:
   civic:
     label: Civic & community
     short: Community centre or library
-    question: Is there a library or community space?
+    question: Can I reach a library or community centre?
     strict:
       amenity: [community_centre, library]
     core:

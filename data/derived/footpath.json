@@ -1,0 +1,1708 @@
+{
+ "question": "Which single short public footpath would bring the most Johor Bahru residents at least one more everyday essential within a 15-minute walk?",
+ "city": "jb",
+ "parameters": {
+  "max_link_m": 80,
+  "min_saving_m": 400,
+  "building_clearance_m": 2,
+  "report_radius_m": 2500,
+  "walk_speed_mps": 1.2,
+  "threshold_min": 15
+ },
+ "assumptions": [
+  "A public footpath about 2.5 m wide, open at all hours, step-free and lit, following the straight line between the two street ends.",
+  "Where the line crosses a mapped drain or ditch, a small footbridge carries it.",
+  "Homes and destinations keep their current access points; no shop, clinic, school or stop opens or closes.",
+  "Walking at 1.2 m/s on the mapped network, as everywhere else in this study.",
+  "The population of each hexagon is the modelled 2020 census population; nobody moves."
+ ],
+ "site_checks": [
+  "Who owns the strip between the two street ends (road reserve, drainage reserve, open space or private lots)?",
+  "Is there a wall, fence, gate or guardhouse that OpenStreetMap does not show?",
+  "How wide and deep is any drain, and would a footbridge be needed?",
+  "Is there already an informal path (a desire line) worn across the strip?",
+  "Would the path be overlooked and lit, and how do residents on both streets feel about opening it?",
+  "Do the entrances on the sample routes (the clinic or shop door, the bus stop) match the mapped points?"
+ ],
+ "screening": {
+  "dead_ends_paired": 9893,
+  "rejected_by": {
+   "x_building": 1964,
+   "x_water": 21,
+   "x_barrier": 1408,
+   "x_site": 645,
+   "x_street": 4726,
+   "x_elevated": 501,
+   "x_not_public": 5786
+  },
+  "passed_desk_filters": 1488,
+  "with_any_gain": 594
+ },
+ "validation": {
+  "baseline_cells": 54095,
+  "baseline_max_abs_diff_m": 0.0004776556270371657,
+  "baseline_same_reach_15min": 1.0,
+  "routes_match_engine": true
+ },
+ "chosen": {
+  "a": {
+   "lon": 103.665939,
+   "lat": 1.476917,
+   "street": "Jalan Penglin"
+  },
+  "b": {
+   "lon": 103.665596,
+   "lat": 1.477503,
+   "street": "Jalan Bestari 10/1"
+  },
+  "mid": {
+   "lon": 103.665768,
+   "lat": 1.47721
+  },
+  "link_m": 75.3,
+  "walk_today_m": 1402.0,
+  "footbridge": false,
+  "unit_id": "JB-N.46",
+  "unit_name": "Perling",
+  "place": "Bukit Indah",
+  "metrics": {
+   "10min": {
+    "residents_gaining": 877.964151814316,
+    "newly_complete": 551.2798162555007,
+    "essentials_gained": 1980.5237843253176,
+    "gain_groceries": 408.35541944851906,
+    "gain_healthcare": 571.6975872279266,
+    "gain_education": 306.2665645863893,
+    "gain_green_space": 0.0,
+    "gain_transit": 571.6975872279266,
+    "gain_dining": 122.50662583455572
+   },
+   "15min": {
+    "residents_gaining": 2215.3281505082164,
+    "newly_complete": 2215.3281505082164,
+    "essentials_gained": 2460.3414021773274,
+    "gain_groceries": 122.50662583455572,
+    "gain_healthcare": 1919.2704714080396,
+    "gain_education": 296.05767910017636,
+    "gain_green_space": 0.0,
+    "gain_transit": 122.50662583455572,
+    "gain_dining": 0.0
+   },
+   "20min": {
+    "residents_gaining": 2276.581463425494,
+    "newly_complete": 2276.581463425494,
+    "essentials_gained": 2276.5814634254934,
+    "gain_groceries": 0.0,
+    "gain_healthcare": 2051.9859827288083,
+    "gain_education": 224.59548069668548,
+    "gain_green_space": 0.0,
+    "gain_transit": 0.0,
+    "gain_dining": 0.0
+   },
+   "15min_slow": {
+    "residents_gaining": 1582.3772503630114,
+    "newly_complete": 969.8441211902327,
+    "essentials_gained": 2725.772424818865,
+    "gain_groceries": 571.6975872279266,
+    "gain_healthcare": 877.964151814316,
+    "gain_education": 704.4130985486955,
+    "gain_green_space": 0.0,
+    "gain_transit": 571.6975872279266,
+    "gain_dining": 0.0
+   },
+   "15min_brisk": {
+    "residents_gaining": 2286.790348911707,
+    "newly_complete": 2286.790348911707,
+    "essentials_gained": 2286.790348911707,
+    "gain_groceries": 0.0,
+    "gain_healthcare": 2286.790348911707,
+    "gain_education": 0.0,
+    "gain_green_space": 0.0,
+    "gain_transit": 0.0,
+    "gain_dining": 0.0
+   }
+  },
+  "changes": {
+   "residents_considered": 41162.226280410716,
+   "residents_walk_5min_shorter": 2307.208119884133,
+   "by_essential": [
+    {
+     "essential": "groceries",
+     "residents_newly_within_15min": 122.50662583455572,
+     "median_minutes_before": 16.65810377192729,
+     "median_minutes_after": 4.460822872082573
+    },
+    {
+     "essential": "healthcare",
+     "residents_newly_within_15min": 1919.2704714080396,
+     "median_minutes_before": 19.97548254837591,
+     "median_minutes_after": 11.896517919547277
+    },
+    {
+     "essential": "education",
+     "residents_newly_within_15min": 296.05767910017636,
+     "median_minutes_before": 15.547349991602136,
+     "median_minutes_after": 14.228901933274413
+    },
+    {
+     "essential": "green_space",
+     "residents_newly_within_15min": 0.0,
+     "median_minutes_before": null,
+     "median_minutes_after": null
+    },
+    {
+     "essential": "transit",
+     "residents_newly_within_15min": 122.50662583455572,
+     "median_minutes_before": 15.52040532678861,
+     "median_minutes_after": 4.140669591724092
+    },
+    {
+     "essential": "dining",
+     "residents_newly_within_15min": 0.0,
+     "median_minutes_before": null,
+     "median_minutes_after": null
+    }
+   ],
+   "essentials_reached": {
+    "before": {
+     "0": 0.0,
+     "1": 806.5019534108252,
+     "2": 1510.9150519595205,
+     "3": 1786.554960087271,
+     "4": 9616.770128012624,
+     "5": 14149.515283891185,
+     "6": 13291.968903049295
+    },
+    "after": {
+     "0": 0.0,
+     "1": 806.5019534108252,
+     "2": 1510.9150519595205,
+     "3": 1664.0483342527154,
+     "4": 9616.770128012624,
+     "5": 12056.693759217525,
+     "6": 15507.297053557511
+    }
+   }
+  }
+ },
+ "alternatives": [
+  {
+   "a": {
+    "lon": 103.864428,
+    "lat": 1.509127,
+    "street": "Jalan Gunung 21"
+   },
+   "b": {
+    "lon": 103.864686,
+    "lat": 1.509226,
+    "street": "Persiaran Seri Alam"
+   },
+   "mid": {
+    "lon": 103.864557,
+    "lat": 1.509177
+   },
+   "link_m": 30.7,
+   "walk_today_m": 990.0,
+   "footbridge": false,
+   "unit_id": "JB-N.42",
+   "unit_name": "Johor Jaya",
+   "place": "Bina Park",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 333.2332883877821,
+     "newly_complete": 0.0,
+     "essentials_gained": 479.0228520574368,
+     "gain_groceries": 333.2332883877821,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 145.78956366965468
+    },
+    "15min": {
+     "residents_gaining": 1645.339361414674,
+     "newly_complete": 0.0,
+     "essentials_gained": 2176.429914782702,
+     "gain_groceries": 1645.339361414674,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 531.0905533680277,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "20min": {
+     "residents_gaining": 885.1509222800462,
+     "newly_complete": 426.9551507468458,
+     "essentials_gained": 885.1509222800462,
+     "gain_groceries": 301.99266760142757,
+     "gain_healthcare": 83.30832209694553,
+     "gain_education": 343.64682864990027,
+     "gain_green_space": 156.20310393177286,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_slow": {
+     "residents_gaining": 728.9478183482734,
+     "newly_complete": 0.0,
+     "essentials_gained": 874.7373820179281,
+     "gain_groceries": 728.9478183482734,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 145.78956366965468,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_brisk": {
+     "residents_gaining": 1176.7300496193557,
+     "newly_complete": 333.2332883877821,
+     "essentials_gained": 1655.7529016767924,
+     "gain_groceries": 1176.7300496193557,
+     "gain_healthcare": 0.0,
+     "gain_education": 333.2332883877821,
+     "gain_green_space": 145.78956366965468,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.649653,
+    "lat": 1.502494,
+    "street": "Jalan Makmur"
+   },
+   "b": {
+    "lon": 103.650083,
+    "lat": 1.502115,
+    "street": "Jalan Jati 11"
+   },
+   "mid": {
+    "lon": 103.649868,
+    "lat": 1.502305
+   },
+   "link_m": 63.6,
+   "walk_today_m": 1488.0,
+   "footbridge": false,
+   "unit_id": "JB-N.48",
+   "unit_name": "Skudai",
+   "place": "Taman Nusa Bestari Jaya",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 587.215617251644,
+     "newly_complete": 0.0,
+     "essentials_gained": 924.2577123289614,
+     "gain_groceries": 337.04209507731747,
+     "gain_healthcare": 0.0,
+     "gain_education": 587.215617251644,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min": {
+     "residents_gaining": 1628.7452478938014,
+     "newly_complete": 102.08885486212976,
+     "essentials_gained": 1833.07183165035,
+     "gain_groceries": 337.0420950773175,
+     "gain_healthcare": 0.0,
+     "gain_education": 1253.391918362131,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 242.63781821090168
+    },
+    "20min": {
+     "residents_gaining": 166.0153493021959,
+     "newly_complete": 0.0,
+     "essentials_gained": 166.0153493021959,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 76.6224689087058,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 89.39288039349009
+    },
+    "15min_slow": {
+     "residents_gaining": 696.9890501094876,
+     "newly_complete": 0.0,
+     "essentials_gained": 998.3558737471682,
+     "gain_groceries": 301.36682363768057,
+     "gain_healthcare": 0.0,
+     "gain_education": 696.9890501094876,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_brisk": {
+     "residents_gaining": 1667.391448920805,
+     "newly_complete": 214.3865952104725,
+     "essentials_gained": 1744.0139178295108,
+     "gain_groceries": 76.6224689087058,
+     "gain_healthcare": 0.0,
+     "gain_education": 926.7075828033159,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 740.6838661174893
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.813077,
+    "lat": 1.520363,
+    "street": "residential"
+   },
+   "b": {
+    "lon": 103.81304,
+    "lat": 1.52007,
+    "street": "Jalan Masai Jaya 2"
+   },
+   "mid": {
+    "lon": 103.813059,
+    "lat": 1.520217
+   },
+   "link_m": 32.7,
+   "walk_today_m": 1513.0,
+   "footbridge": false,
+   "unit_id": "JB-N.42",
+   "unit_name": "Johor Jaya",
+   "place": "Taman Perindustrian Plentong",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 551.9176338922641,
+     "newly_complete": 0.0,
+     "essentials_gained": 760.188439134628,
+     "gain_groceries": 551.9176338922641,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 0.0,
+     "gain_transit": 104.13540262118191,
+     "gain_dining": 104.13540262118191
+    },
+    "15min": {
+     "residents_gaining": 1614.0987406283195,
+     "newly_complete": 0.0,
+     "essentials_gained": 1614.0987406283198,
+     "gain_groceries": 1614.0987406283195,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "20min": {
+     "residents_gaining": 718.5342780861553,
+     "newly_complete": 0.0,
+     "essentials_gained": 718.5342780861552,
+     "gain_groceries": 124.96248314541829,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 593.5717949407369,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_slow": {
+     "residents_gaining": 1166.3165093572375,
+     "newly_complete": 0.0,
+     "essentials_gained": 1166.3165093572375,
+     "gain_groceries": 1166.3165093572375,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_brisk": {
+     "residents_gaining": 697.7071975619189,
+     "newly_complete": 0.0,
+     "essentials_gained": 697.7071975619189,
+     "gain_groceries": 426.95515074684585,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 270.75204681507296,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.686763,
+    "lat": 1.515754,
+    "street": "Jalan Mewah Ria 2/2"
+   },
+   "b": {
+    "lon": 103.686876,
+    "lat": 1.515291,
+    "street": "Jalan Mewah Ria 2"
+   },
+   "mid": {
+    "lon": 103.68682,
+    "lat": 1.515522
+   },
+   "link_m": 52.7,
+   "walk_today_m": 944.0,
+   "footbridge": false,
+   "unit_id": "JB-N.47",
+   "unit_name": "Kempas",
+   "place": "Taman Dato Penggawa Barat",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 736.1371987137163,
+     "newly_complete": 0.0,
+     "essentials_gained": 1321.0133291985867,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 60.50442729153832,
+     "gain_green_space": 0.0,
+     "gain_transit": 584.8761304848704,
+     "gain_dining": 675.6327714221779
+    },
+    "15min": {
+     "residents_gaining": 1507.5737923002243,
+     "newly_complete": 0.0,
+     "essentials_gained": 2092.4499227850947,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 862.1932345238156,
+     "gain_green_space": 0.0,
+     "gain_transit": 584.8761304848704,
+     "gain_dining": 645.3805577764088
+    },
+    "20min": {
+     "residents_gaining": 383.1947061797427,
+     "newly_complete": 0.0,
+     "essentials_gained": 645.3805577764088,
+     "gain_groceries": 70.5884985067947,
+     "gain_healthcare": 70.5884985067947,
+     "gain_education": 40.33628486102555,
+     "gain_green_space": 0.0,
+     "gain_transit": 191.59735308987135,
+     "gain_dining": 272.26992281192247
+    },
+    "15min_slow": {
+     "residents_gaining": 1421.8540413511503,
+     "newly_complete": 0.0,
+     "essentials_gained": 2198.3275249258922,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 544.5398456238449,
+     "gain_green_space": 0.0,
+     "gain_transit": 776.4734835747417,
+     "gain_dining": 877.3141957273056
+    },
+    "15min_brisk": {
+     "residents_gaining": 433.61506225602466,
+     "newly_complete": 0.0,
+     "essentials_gained": 584.8761304848704,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 40.33628486102555,
+     "gain_green_space": 0.0,
+     "gain_transit": 151.2610682288458,
+     "gain_dining": 393.2787773949991
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.800024,
+    "lat": 1.544599,
+    "street": "Jalan Bakawali 10"
+   },
+   "b": {
+    "lon": 103.800548,
+    "lat": 1.544985,
+    "street": "Jalan Dedap 4"
+   },
+   "mid": {
+    "lon": 103.800286,
+    "lat": 1.544792
+   },
+   "link_m": 72.3,
+   "walk_today_m": 1791.0,
+   "footbridge": false,
+   "unit_id": "JB-N.42",
+   "unit_name": "Johor Jaya",
+   "place": "Taman Johor Jaya",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 1041.354026211819,
+     "newly_complete": 0.0,
+     "essentials_gained": 1822.3695458706836,
+     "gain_groceries": 781.0155196588643,
+     "gain_healthcare": 0.0,
+     "gain_education": 145.78956366965468,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 895.5644625421645
+    },
+    "15min": {
+     "residents_gaining": 1489.1362574829013,
+     "newly_complete": 0.0,
+     "essentials_gained": 2238.9111563554115,
+     "gain_groceries": 1124.6623483087646,
+     "gain_healthcare": 781.0155196588643,
+     "gain_education": 135.37602340753648,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 197.85726498024565
+    },
+    "20min": {
+     "residents_gaining": 989.2863249012282,
+     "newly_complete": 0.0,
+     "essentials_gained": 989.2863249012282,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 989.2863249012282,
+     "gain_education": 0.0,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_slow": {
+     "residents_gaining": 1364.1737743374833,
+     "newly_complete": 0.0,
+     "essentials_gained": 2041.0538913751654,
+     "gain_groceries": 916.3915430664008,
+     "gain_healthcare": 0.0,
+     "gain_education": 145.78956366965468,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 978.87278463911
+    },
+    "15min_brisk": {
+     "residents_gaining": 1103.8352677845285,
+     "newly_complete": 0.0,
+     "essentials_gained": 1301.692532764774,
+     "gain_groceries": 291.57912733930937,
+     "gain_healthcare": 1010.1134054254646,
+     "gain_education": 0.0,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.651344,
+    "lat": 1.520688,
+    "street": "Jalan Jasa 51"
+   },
+   "b": {
+    "lon": 103.651595,
+    "lat": 1.520137,
+    "street": "Jalan Hang Jebat"
+   },
+   "mid": {
+    "lon": 103.65147,
+    "lat": 1.520412
+   },
+   "link_m": 67.1,
+   "walk_today_m": 902.0,
+   "footbridge": false,
+   "unit_id": "JB-N.49",
+   "unit_name": "Kota Iskandar",
+   "place": "Taman Skudai Baru",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 1388.8815824197509,
+     "newly_complete": 0.0,
+     "essentials_gained": 1388.8815824197509,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 676.831808693568,
+     "gain_green_space": 255.40822969568598,
+     "gain_transit": 0.0,
+     "gain_dining": 456.64154403049713
+    },
+    "15min": {
+     "residents_gaining": 1466.5384250456261,
+     "newly_complete": 498.04604790658766,
+     "essentials_gained": 1466.5384250456261,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 114.9337033630587,
+     "gain_green_space": 932.2400383892539,
+     "gain_transit": 0.0,
+     "gain_dining": 419.36468329331365
+    },
+    "20min": {
+     "residents_gaining": 1224.9349805518941,
+     "newly_complete": 842.8471579957638,
+     "essentials_gained": 1224.934980551894,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 842.8471579957638,
+     "gain_transit": 242.29959479169233,
+     "gain_dining": 139.78822776443786
+    },
+    "15min_slow": {
+     "residents_gaining": 890.8355345131632,
+     "newly_complete": 0.0,
+     "essentials_gained": 890.8355345131633,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 38.3112344543529,
+     "gain_green_space": 395.8827560283133,
+     "gain_transit": 0.0,
+     "gain_dining": 456.64154403049713
+    },
+    "15min_brisk": {
+     "residents_gaining": 1253.9269998219509,
+     "newly_complete": 881.1583924501165,
+     "essentials_gained": 1253.926999821951,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 0.0,
+     "gain_green_space": 881.1583924501165,
+     "gain_transit": 149.10744294873373,
+     "gain_dining": 223.66116442310062
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.763383,
+    "lat": 1.541066,
+    "street": "Jalan Daya"
+   },
+   "b": {
+    "lon": 103.764092,
+    "lat": 1.54097,
+    "street": "Jalan Bertam 23"
+   },
+   "mid": {
+    "lon": 103.763737,
+    "lat": 1.541018
+   },
+   "link_m": 79.7,
+   "walk_today_m": 926.0,
+   "footbridge": false,
+   "unit_id": "JB-N.41",
+   "unit_name": "Puteri Wangsa",
+   "place": "Kampung Ulu Pandan",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 216.83349761685702,
+     "newly_complete": 0.0,
+     "essentials_gained": 650.500492850571,
+     "gain_groceries": 216.83349761685702,
+     "gain_healthcare": 0.0,
+     "gain_education": 216.83349761685702,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 216.83349761685702
+    },
+    "15min": {
+     "residents_gaining": 1376.058734876208,
+     "newly_complete": 0.0,
+     "essentials_gained": 3269.1819640695367,
+     "gain_groceries": 1159.225237259351,
+     "gain_healthcare": 216.83349761685702,
+     "gain_education": 1159.225237259351,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 733.8979919339774
+    },
+    "20min": {
+     "residents_gaining": 533.7439941338018,
+     "newly_complete": 0.0,
+     "essentials_gained": 633.8209930338897,
+     "gain_groceries": 91.7372489917472,
+     "gain_healthcare": 467.0259948670766,
+     "gain_education": 66.71799926672523,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 8.339749908340654
+    },
+    "15min_slow": {
+     "residents_gaining": 642.1607429422304,
+     "newly_complete": 0.0,
+     "essentials_gained": 1701.3089813014933,
+     "gain_groceries": 416.98749541703273,
+     "gain_healthcare": 0.0,
+     "gain_education": 642.1607429422304,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 642.1607429422304
+    },
+    "15min_brisk": {
+     "residents_gaining": 1084.167488084285,
+     "newly_complete": 0.0,
+     "essentials_gained": 1943.1617286433725,
+     "gain_groceries": 600.461993400527,
+     "gain_healthcare": 583.7824935838457,
+     "gain_education": 608.8017433088678,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 150.11549835013176
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.875751,
+    "lat": 1.48872,
+    "street": "steps"
+   },
+   "b": {
+    "lon": 103.875803,
+    "lat": 1.488169,
+    "street": "Jalan Cendana 13"
+   },
+   "mid": {
+    "lon": 103.875777,
+    "lat": 1.488444
+   },
+   "link_m": 61.1,
+   "walk_today_m": 2704.0,
+   "footbridge": false,
+   "unit_id": "JB-N.43",
+   "unit_name": "Permas",
+   "place": "Taman Rinting",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 528.9675552640716,
+     "newly_complete": 0.0,
+     "essentials_gained": 561.0261949770456,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 40.073299641217545,
+     "gain_green_space": 208.38115813433126,
+     "gain_transit": 312.5717372014969,
+     "gain_dining": 0.0
+    },
+    "15min": {
+     "residents_gaining": 1327.9794913085643,
+     "newly_complete": 72.13193935419159,
+     "essentials_gained": 1600.4779288688435,
+     "gain_groceries": 208.38115813433126,
+     "gain_healthcare": 32.05863971297404,
+     "gain_education": 165.8538017132553,
+     "gain_green_space": 1106.0230700976044,
+     "gain_transit": 56.102619497704566,
+     "gain_dining": 32.05863971297404
+    },
+    "20min": {
+     "residents_gaining": 1715.1372246441108,
+     "newly_complete": 657.2021141159678,
+     "essentials_gained": 1803.2984838547898,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 200.36649820608773,
+     "gain_education": 0.0,
+     "gain_green_space": 1001.8324910304387,
+     "gain_transit": 0.0,
+     "gain_dining": 601.0994946182632
+    },
+    "15min_slow": {
+     "residents_gaining": 956.0882353488685,
+     "newly_complete": 0.0,
+     "essentials_gained": 988.1468750618426,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 114.5489428833001,
+     "gain_green_space": 512.9382354075846,
+     "gain_transit": 360.6596967709579,
+     "gain_dining": 0.0
+    },
+    "15min_brisk": {
+     "residents_gaining": 1437.023007489463,
+     "newly_complete": 520.9528953358281,
+     "essentials_gained": 1653.4188255520376,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 208.38115813433126,
+     "gain_education": 10.413540262118191,
+     "gain_green_space": 1065.949770456387,
+     "gain_transit": 0.0,
+     "gain_dining": 368.67435669920144
+    }
+   }
+  },
+  {
+   "a": {
+    "lon": 103.72409,
+    "lat": 1.512916,
+    "street": "Jalan Aliff Harmoni 6/9"
+   },
+   "b": {
+    "lon": 103.724411,
+    "lat": 1.512764,
+    "street": "Jalan Sri Bahagia 15"
+   },
+   "mid": {
+    "lon": 103.724251,
+    "lat": 1.51284
+   },
+   "link_m": 39.5,
+   "walk_today_m": 1768.0,
+   "footbridge": false,
+   "unit_id": "JB-N.47",
+   "unit_name": "Kempas",
+   "place": "Taman Sri Bahagia",
+   "metrics": {
+    "10min": {
+     "residents_gaining": 393.2787773949991,
+     "newly_complete": 0.0,
+     "essentials_gained": 393.2787773949991,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 393.2787773949991,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min": {
+     "residents_gaining": 1189.9204034002537,
+     "newly_complete": 0.0,
+     "essentials_gained": 1411.7699701358943,
+     "gain_groceries": 110.92478336782025,
+     "gain_healthcare": 0.0,
+     "gain_education": 1189.9204034002537,
+     "gain_green_space": 110.92478336782025,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "20min": {
+     "residents_gaining": 2032.7214261164831,
+     "newly_complete": 0.0,
+     "essentials_gained": 2547.009058094559,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 1740.283360874048,
+     "gain_green_space": 655.4646289916651,
+     "gain_transit": 151.2610682288458,
+     "gain_dining": 0.0
+    },
+    "15min_slow": {
+     "residents_gaining": 514.2876319780758,
+     "newly_complete": 0.0,
+     "essentials_gained": 514.2876319780758,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 514.2876319780758,
+     "gain_green_space": 0.0,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    },
+    "15min_brisk": {
+     "residents_gaining": 1972.9550729690054,
+     "newly_complete": 0.0,
+     "essentials_gained": 2214.972782135159,
+     "gain_groceries": 0.0,
+     "gain_healthcare": 0.0,
+     "gain_education": 1972.9550729690054,
+     "gain_green_space": 242.01770916615328,
+     "gain_transit": 0.0,
+     "gain_dining": 0.0
+    }
+   }
+  }
+ ],
+ "routes": [
+  {
+   "essential": "healthcare",
+   "home": {
+    "lon": 103.66598074179353,
+    "lat": 1.47699015708104
+   },
+   "residents": 122.5,
+   "unit_id": "JB-N.46",
+   "before": {
+    "xy": [
+     [
+      23.7,
+      -24.3
+     ],
+     [
+      19.1,
+      -32.4
+     ],
+     [
+      154.3,
+      -36.9
+     ],
+     [
+      153.0,
+      -102.4
+     ],
+     [
+      179.8,
+      -103.4
+     ],
+     [
+      289.7,
+      -106.8
+     ],
+     [
+      298.6,
+      -107.0
+     ],
+     [
+      297.6,
+      -143.1
+     ],
+     [
+      297.2,
+      -173.7
+     ],
+     [
+      295.7,
+      -208.4
+     ],
+     [
+      295.0,
+      -236.1
+     ],
+     [
+      294.9,
+      -239.8
+     ],
+     [
+      294.1,
+      -267.9
+     ],
+     [
+      294.0,
+      -272.4
+     ],
+     [
+      294.4,
+      -301.0
+     ],
+     [
+      293.6,
+      -336.7
+     ],
+     [
+      292.7,
+      -369.2
+     ],
+     [
+      291.7,
+      -400.3
+     ],
+     [
+      290.9,
+      -431.9
+     ],
+     [
+      285.0,
+      -435.7
+     ],
+     [
+      273.9,
+      -440.6
+     ],
+     [
+      234.9,
+      -439.6
+     ],
+     [
+      198.9,
+      -441.1
+     ],
+     [
+      170.9,
+      -444.3
+     ],
+     [
+      154.0,
+      -449.4
+     ],
+     [
+      134.8,
+      -450.7
+     ],
+     [
+      113.0,
+      -458.9
+     ],
+     [
+      100.0,
+      -463.8
+     ],
+     [
+      92.5,
+      -465.0
+     ],
+     [
+      85.4,
+      -464.3
+     ],
+     [
+      78.9,
+      -462.0
+     ],
+     [
+      73.3,
+      -458.2
+     ],
+     [
+      68.9,
+      -453.4
+     ],
+     [
+      65.6,
+      -447.4
+     ],
+     [
+      61.7,
+      -436.1
+     ],
+     [
+      46.7,
+      -389.3
+     ],
+     [
+      38.1,
+      -340.5
+     ],
+     [
+      1.8,
+      -118.7
+     ],
+     [
+      -17.5,
+      16.4
+     ],
+     [
+      -19.1,
+      32.4
+     ],
+     [
+      -30.5,
+      32.3
+     ],
+     [
+      -36.1,
+      85.7
+     ],
+     [
+      -54.2,
+      180.9
+     ],
+     [
+      -84.3,
+      175.4
+     ],
+     [
+      -94.3,
+      180.6
+     ]
+    ],
+    "length_m": 1622.0,
+    "uses_link": false,
+    "minutes": 22.5,
+    "destination": {
+     "name": "Famicare Medical Clinic",
+     "kind": "clinic"
+    }
+   },
+   "after": {
+    "xy": [
+     [
+      23.7,
+      -24.3
+     ],
+     [
+      19.1,
+      -32.4
+     ],
+     [
+      -19.1,
+      32.4
+     ],
+     [
+      -30.5,
+      32.3
+     ],
+     [
+      -36.1,
+      85.7
+     ],
+     [
+      -54.2,
+      180.9
+     ],
+     [
+      -84.3,
+      175.4
+     ],
+     [
+      -94.3,
+      180.6
+     ]
+    ],
+    "length_m": 295.0,
+    "uses_link": true,
+    "minutes": 4.1,
+    "destination": {
+     "name": "Famicare Medical Clinic",
+     "kind": "clinic"
+    }
+   }
+  },
+  {
+   "essential": "healthcare",
+   "home": {
+    "lon": 103.67028675321465,
+    "lat": 1.4755536817630392
+   },
+   "residents": 214.4,
+   "unit_id": "JB-N.46",
+   "before": {
+    "xy": [
+     [
+      502.7,
+      -183.4
+     ],
+     [
+      508.0,
+      -178.6
+     ],
+     [
+      493.0,
+      -178.1
+     ],
+     [
+      492.1,
+      -209.6
+     ],
+     [
+      491.2,
+      -242.8
+     ],
+     [
+      490.3,
+      -274.1
+     ],
+     [
+      489.5,
+      -303.5
+     ],
+     [
+      487.7,
+      -307.2
+     ],
+     [
+      486.9,
+      -338.6
+     ],
+     [
+      486.7,
+      -348.0
+     ],
+     [
+      486.1,
+      -371.3
+     ],
+     [
+      485.3,
+      -403.3
+     ],
+     [
+      469.8,
+      -402.9
+     ],
+     [
+      469.4,
+      -415.4
+     ],
+     [
+      468.0,
+      -417.8
+     ],
+     [
+      464.9,
+      -418.6
+     ],
+     [
+      450.7,
+      -418.3
+     ],
+     [
+      446.1,
+      -419.6
+     ],
+     [
+      444.2,
+      -421.7
+     ],
+     [
+      443.7,
+      -435.6
+     ],
+     [
+      380.4,
+      -434.1
+     ],
+     [
+      349.0,
+      -432.9
+     ],
+     [
+      308.2,
+      -432.1
+     ],
+     [
+      290.9,
+      -431.9
+     ],
+     [
+      285.0,
+      -435.7
+     ],
+     [
+      273.9,
+      -440.6
+     ],
+     [
+      234.9,
+      -439.6
+     ],
+     [
+      198.9,
+      -441.1
+     ],
+     [
+      170.9,
+      -444.3
+     ],
+     [
+      154.0,
+      -449.4
+     ],
+     [
+      134.8,
+      -450.7
+     ],
+     [
+      113.0,
+      -458.9
+     ],
+     [
+      100.0,
+      -463.8
+     ],
+     [
+      92.5,
+      -465.0
+     ],
+     [
+      85.4,
+      -464.3
+     ],
+     [
+      78.9,
+      -462.0
+     ],
+     [
+      73.3,
+      -458.2
+     ],
+     [
+      68.9,
+      -453.4
+     ],
+     [
+      65.6,
+      -447.4
+     ],
+     [
+      61.7,
+      -436.1
+     ],
+     [
+      46.7,
+      -389.3
+     ],
+     [
+      38.1,
+      -340.5
+     ],
+     [
+      1.8,
+      -118.7
+     ],
+     [
+      -17.5,
+      16.4
+     ],
+     [
+      -19.1,
+      32.4
+     ],
+     [
+      -30.5,
+      32.3
+     ],
+     [
+      -36.1,
+      85.7
+     ],
+     [
+      -54.2,
+      180.9
+     ],
+     [
+      -84.3,
+      175.4
+     ],
+     [
+      -94.3,
+      180.6
+     ]
+    ],
+    "length_m": 1411.0,
+    "uses_link": false,
+    "minutes": 19.6,
+    "destination": {
+     "name": "Famicare Medical Clinic",
+     "kind": "clinic"
+    }
+   },
+   "after": {
+    "xy": [
+     [
+      502.7,
+      -183.4
+     ],
+     [
+      508.0,
+      -178.6
+     ],
+     [
+      493.0,
+      -178.1
+     ],
+     [
+      494.9,
+      -113.0
+     ],
+     [
+      487.0,
+      -112.8
+     ],
+     [
+      459.5,
+      -112.2
+     ],
+     [
+      298.6,
+      -107.0
+     ],
+     [
+      289.7,
+      -106.8
+     ],
+     [
+      179.8,
+      -103.4
+     ],
+     [
+      153.0,
+      -102.4
+     ],
+     [
+      154.3,
+      -36.9
+     ],
+     [
+      19.1,
+      -32.4
+     ],
+     [
+      -19.1,
+      32.4
+     ],
+     [
+      -30.5,
+      32.3
+     ],
+     [
+      -36.1,
+      85.7
+     ],
+     [
+      -54.2,
+      180.9
+     ],
+     [
+      -84.3,
+      175.4
+     ],
+     [
+      -94.3,
+      180.6
+     ]
+    ],
+    "length_m": 916.0,
+    "uses_link": true,
+    "minutes": 12.7,
+    "destination": {
+     "name": "Famicare Medical Clinic",
+     "kind": "clinic"
+    }
+   }
+  },
+  {
+   "essential": "healthcare",
+   "home": {
+    "lon": 103.66776512336403,
+    "lat": 1.4757512813827884
+   },
+   "residents": 153.1,
+   "unit_id": "JB-N.46",
+   "before": {
+    "xy": [
+     [
+      222.2,
+      -161.4
+     ],
+     [
+      222.5,
+      -171.7
+     ],
+     [
+      281.8,
+      -173.2
+     ],
+     [
+      297.2,
+      -173.7
+     ],
+     [
+      295.7,
+      -208.4
+     ],
+     [
+      295.0,
+      -236.1
+     ],
+     [
+      294.9,
+      -239.8
+     ],
+     [
+      294.1,
+      -267.9
+     ],
+     [
+      294.0,
+      -272.4
+     ],
+     [
+      294.4,
+      -301.0
+     ],
+     [
+      293.6,
+      -336.7
+     ],
+     [
+      292.7,
+      -369.2
+     ],
+     [
+      291.7,
+      -400.3
+     ],
+     [
+      290.9,
+      -431.9
+     ],
+     [
+      285.0,
+      -435.7
+     ],
+     [
+      273.9,
+      -440.6
+     ],
+     [
+      234.9,
+      -439.6
+     ],
+     [
+      198.9,
+      -441.1
+     ],
+     [
+      170.9,
+      -444.3
+     ],
+     [
+      154.0,
+      -449.4
+     ],
+     [
+      134.8,
+      -450.7
+     ],
+     [
+      113.0,
+      -458.9
+     ],
+     [
+      100.0,
+      -463.8
+     ],
+     [
+      92.5,
+      -465.0
+     ],
+     [
+      85.4,
+      -464.3
+     ],
+     [
+      78.9,
+      -462.0
+     ],
+     [
+      73.3,
+      -458.2
+     ],
+     [
+      68.9,
+      -453.4
+     ],
+     [
+      65.6,
+      -447.4
+     ],
+     [
+      61.7,
+      -436.1
+     ],
+     [
+      46.7,
+      -389.3
+     ],
+     [
+      38.1,
+      -340.5
+     ],
+     [
+      1.8,
+      -118.7
+     ],
+     [
+      -17.5,
+      16.4
+     ],
+     [
+      -19.1,
+      32.4
+     ],
+     [
+      -30.5,
+      32.3
+     ],
+     [
+      -36.1,
+      85.7
+     ],
+     [
+      -54.2,
+      180.9
+     ],
+     [
+      -84.3,
+      175.4
+     ],
+     [
+      -94.3,
+      180.6
+     ]
+    ],
+    "length_m": 1285.0,
+    "uses_link": false,
+    "minutes": 17.8,
+    "destination": {
+     "name": "Famicare Medical Clinic",
+     "kind": "clinic"
+    }
+   },
+   "after": {
+    "xy": [
+     [
+      222.2,
+      -161.4
+     ],
+     [
+      222.5,
+      -171.7
+     ],
+     [
+      281.8,
+      -173.2
+     ],
+     [
+      297.2,
+      -173.7
+     ],
+     [
+      297.6,
+      -143.1
+     ],
+     [
+      298.6,
+      -107.0
+     ],
+     [
+      289.7,
+      -106.8
+     ],
+     [
+      179.8,
+      -103.4
+     ],
+     [
+      153.0,
+      -102.4
+     ],
+     [
+      154.3,
+      -36.9
+     ],
+     [
+      19.1,
+      -32.4
+     ],
+     [
+      -19.1,
+      32.4
+     ],
+     [
+      -30.5,
+      32.3
+     ],
+     [
+      -36.1,
+      85.7
+     ],
+     [
+      -54.2,
+      180.9
+     ],
+     [
+      -84.3,
+      175.4
+     ],
+     [
+      -94.3,
+      180.6
+     ]
+    ],
+    "length_m": 785.0,
+    "uses_link": true,
+    "minutes": 10.9,
+    "destination": {
+     "name": "Famicare Medical Clinic",
+     "kind": "clinic"
+    }
+   }
+  }
+ ]
+}

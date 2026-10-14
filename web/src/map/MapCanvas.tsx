@@ -5,8 +5,10 @@ import type { Layer, PickingInfo } from "@deck.gl/core";
 import { addProtocol, Map as MLMap, NavigationControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { hasWebGL } from "../lib/webgl";
 import { basemapStyle } from "./basemapStyle";
+import "./fallback.css";
 
 let protocolRegistered = false;
 function ensureProtocol() {
@@ -39,64 +41,111 @@ interface Props {
   className?: string;
   showControls?: boolean;
   onLoad?: () => void;
+  /** called once when the map cannot be shown: no WebGL, a failed start or a lost context */
+  onFail?: (reason: string) => void;
+  /**
+   * Collapse the attribution to its (i) button this long after the map loads. MapLibre
+   * collapses it on the first drag; a map nobody drags (the Story's) would otherwise
+   * keep it open over the text that scrolls past.
+   */
+  collapseAttributionMs?: number;
 }
 
-/** MapLibre basemap with a deck.gl overlay interleaved into its WebGL context. */
+/** Basemap label layers; area fills from deck.gl are drawn beneath them so names stay readable. */
+const LABEL_LAYER = "places";
+const UNDER_LABELS = new Set(["H3HexagonLayer", "GeoJsonLayer", "PolygonLayer", "SolidPolygonLayer"]);
+
+function underLabels(l: Layer): Layer {
+  const name = (l.constructor as { layerName?: string }).layerName ?? "";
+  // beforeId is read by the interleaved MapboxOverlay; it is not part of the base layer props type
+  const placed = (l.props as { beforeId?: string }).beforeId !== undefined;
+  return UNDER_LABELS.has(name) && !placed ? l.clone({ beforeId: LABEL_LAYER } as never) : l;
+}
+
+/**
+ * MapLibre basemap with a deck.gl overlay interleaved into its WebGL context.
+ * When the map cannot start, it renders nothing and reports why through onFail.
+ */
 export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
-  { initialView, layers, interactive = true, onClick, onHover, getCursor, className, showControls = true, onLoad },
+  { initialView, layers, interactive = true, onClick, onHover, getCursor, className, showControls = true, onLoad, onFail, collapseAttributionMs },
   ref,
 ) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
-  const handlers = useRef({ onClick, onHover, onLoad });
-  handlers.current = { onClick, onHover, onLoad };
+  const [failed, setFailed] = useState(false);
+  const handlers = useRef({ onClick, onHover, onLoad, onFail });
+  handlers.current = { onClick, onHover, onLoad, onFail };
 
   useEffect(() => {
-    ensureProtocol();
     if (!el.current) return;
+    const fail = (reason: string) => {
+      console.warn(`Map not shown: ${reason}`);
+      setFailed(true);
+      handlers.current.onFail?.(reason);
+    };
+    if (!hasWebGL()) {
+      fail("WebGL is not available");
+      return;
+    }
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const map = new MLMap({
-      container: el.current,
-      style: basemapStyle(),
-      center: initialView.center,
-      zoom: initialView.zoom,
-      pitch: initialView.pitch ?? 0,
-      bearing: initialView.bearing ?? 0,
-      interactive,
-      attributionControl: { compact: true },
-      maxBounds: [
-        [102.9, 0.9],
-        [104.7, 2.05],
-      ],
-      minZoom: 8,
-      maxZoom: 17.5,
-      fadeDuration: reduced ? 0 : 300,
-    });
-    if (showControls && interactive) map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
-    const overlay = new MapboxOverlay({
-      interleaved: true,
-      layers: [],
-      onHover: (info) => handlers.current.onHover?.(info),
-      onError: (e) => console.error("deck.gl:", e),
-      getCursor: getCursor ?? (({ isDragging, isHovering }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "crosshair")),
-    });
-    map.addControl(overlay);
-    // Clicks come from MapLibre (robust to slow GPU picking and touch); deck.gl only picks.
-    map.on("click", (e) => {
-      const info = overlay.pickObject({ x: e.point.x, y: e.point.y, radius: 3 }) ?? ({ picked: false } as PickingInfo);
-      const ll: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      (window as unknown as { __lastClick?: unknown }).__lastClick = { picked: info.picked, layer: info.layer?.id, ll };
-      handlers.current.onClick?.(info, ll);
-    });
-    map.on("load", () => handlers.current.onLoad?.());
-    mapRef.current = map;
-    overlayRef.current = overlay;
-    // exposed for end-to-end tests and debugging
-    (window as unknown as { __map?: MLMap; __overlay?: MapboxOverlay }).__map = map;
-    (window as unknown as { __overlay?: MapboxOverlay }).__overlay = overlay;
+    let map: MLMap | null = null;
+    try {
+      ensureProtocol();
+      map = new MLMap({
+        container: el.current,
+        style: basemapStyle(),
+        center: initialView.center,
+        zoom: initialView.zoom,
+        pitch: initialView.pitch ?? 0,
+        bearing: initialView.bearing ?? 0,
+        interactive,
+        attributionControl: { compact: true },
+        maxBounds: [
+          [102.9, 0.9],
+          [104.7, 2.05],
+        ],
+        minZoom: 8,
+        maxZoom: 17.5,
+        fadeDuration: reduced ? 0 : 300,
+      });
+      if (showControls && interactive) map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
+      const overlay = new MapboxOverlay({
+        interleaved: true,
+        layers: [],
+        onHover: (info) => handlers.current.onHover?.(info),
+        onError: (e) => console.error("deck.gl:", e),
+        getCursor: getCursor ?? (({ isDragging, isHovering }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "crosshair")),
+      });
+      map.addControl(overlay);
+      // Clicks come from MapLibre (robust to slow GPU picking and touch); deck.gl only picks.
+      map.on("click", (e) => {
+        const info = overlay.pickObject({ x: e.point.x, y: e.point.y, radius: 3 }) ?? ({ picked: false } as PickingInfo);
+        const ll: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+        (window as unknown as { __lastClick?: unknown }).__lastClick = { picked: info.picked, layer: info.layer?.id, ll };
+        handlers.current.onClick?.(info, ll);
+      });
+      map.on("load", () => handlers.current.onLoad?.());
+      if (collapseAttributionMs !== undefined) {
+        const box = map.getContainer();
+        map.once("load", () =>
+          window.setTimeout(() => box.querySelector(".maplibregl-ctrl-attrib.maplibregl-compact-show")?.classList.remove("maplibregl-compact-show"), collapseAttributionMs),
+        );
+      }
+      // a lost context cannot be recovered in place, so the map counts as failed
+      map.on("webglcontextlost", () => fail("the WebGL context was lost"));
+      mapRef.current = map;
+      overlayRef.current = overlay;
+      // exposed for end-to-end tests and debugging
+      (window as unknown as { __map?: MLMap; __overlay?: MapboxOverlay }).__map = map;
+      (window as unknown as { __overlay?: MapboxOverlay }).__overlay = overlay;
+    } catch (e) {
+      map?.remove();
+      fail(e instanceof Error ? e.message : String(e));
+      return;
+    }
     return () => {
-      map.remove();
+      map?.remove();
       mapRef.current = null;
       overlayRef.current = null;
     };
@@ -104,7 +153,7 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
   }, []);
 
   useEffect(() => {
-    overlayRef.current?.setProps({ layers });
+    overlayRef.current?.setProps({ layers: layers.map(underLabels) });
   }, [layers]);
 
   useImperativeHandle(ref, () => ({
@@ -118,5 +167,23 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
     },
   }));
 
+  if (failed) return null;
   return <div ref={el} className={className} style={{ position: "absolute", inset: 0 }} />;
 });
+
+/** Stands in for an interactive map when WebGL is off or the map failed. */
+export function WebGLNotice({ fixed = false, detail }: { fixed?: boolean; detail?: string }) {
+  const [closed, setClosed] = useState(false);
+  if (closed) return null;
+  return (
+    <div className={fixed ? "webgl-notice fixed" : "webgl-notice"} role="note">
+      <p>Interactive maps need WebGL, which is turned off in this browser. The text, charts and data below are unaffected.</p>
+      {detail ? <p className="notice-detail">{detail}</p> : null}
+      {fixed ? (
+        <button type="button" className="notice-close" aria-label="Dismiss this notice" onClick={() => setClosed(true)}>
+          ×
+        </button>
+      ) : null}
+    </div>
+  );
+}
