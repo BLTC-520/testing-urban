@@ -70,6 +70,19 @@ export function viewFromParams(p: URLSearchParams): ExplorerView {
   return v;
 }
 
+/** The map (the default) or the neighbourhood table, which the URL writes as view=table. */
+export type ExplorerLayout = "map" | "table";
+
+export function layoutFromParams(p: URLSearchParams): ExplorerLayout {
+  return p.get("view") === "table" ? "table" : "map";
+}
+
+/** Adds view=table to a query string; the map is the default and is not written. */
+export function withLayout(p: URLSearchParams, layout: ExplorerLayout): URLSearchParams {
+  if (layout === "table") p.set("view", "table");
+  return p;
+}
+
 export function paramsFromView(v: ExplorerView): URLSearchParams {
   const p = new URLSearchParams();
   if (v.metric !== DEFAULT_VIEW.metric) p.set("metric", v.metric);

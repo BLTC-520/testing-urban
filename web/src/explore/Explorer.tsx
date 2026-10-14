@@ -1,19 +1,22 @@
 import type { PickingInfo } from "@deck.gl/core";
 import { cellToParent, latLngToCell } from "h3-js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { Header } from "../components/Header";
 import { loadMeta, loadNeighbourhoods, loadPois, loadSummary, peekMeta, peekNeighbourhoods, peekSummary, type Pois } from "../lib/data";
-import { paramsFromView, viewFromParams } from "../lib/explorerUrl";
+import { layoutFromParams, paramsFromView, viewFromParams, withLayout, type ExplorerLayout } from "../lib/explorerUrl";
 import { bbox } from "../lib/geo";
 import { replaceParams } from "../lib/router";
 import { useExplorer } from "../lib/store";
 import type { CityId, Meta, Summary } from "../lib/types";
+import { hasWebGL } from "../lib/webgl";
 import { hexLayer, isochroneLayer, markerLayer, poiLayer, unitsLayer } from "../map/layers";
-import { MapCanvas, type MapHandle } from "../map/MapCanvas";
+import { MapCanvas, WebGLNotice, type MapHandle } from "../map/MapCanvas";
 import { ControlPanel } from "./ControlPanel";
 import "./explorer.css";
 import { Inspector } from "./Inspector";
 import { Legend } from "./Legend";
+import { NeighbourhoodTable } from "./NeighbourhoodTable";
 import { useIsochrone } from "./useIsochrone";
 import { resolutionForZoom, useHexData, useSurfaces, type SurfaceParams } from "./useSurface";
 
@@ -26,6 +29,11 @@ export function Explorer({ params }: { params: URLSearchParams }) {
   const [hover, setHover] = useState<{ x: number; y: number; unit?: GeoJSON.Feature; poi?: number; city?: CityId } | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const mapRef = useRef<MapHandle>(null);
+  // the map or the table; view=table in the URL asks for the table
+  const [layout, setLayout] = useState<ExplorerLayout>(() => layoutFromParams(params));
+  // without WebGL, or once the map has failed, the table is the only view
+  const [mapDown, setMapDown] = useState<string | null>(() => (hasWebGL() ? null : "WebGL is turned off in this browser"));
+  const view: ExplorerLayout = mapDown ? "table" : layout;
 
   useEffect(() => {
     loadMeta().then(setMeta);
@@ -39,30 +47,33 @@ export function Explorer({ params }: { params: URLSearchParams }) {
   const [mapReady, setMapReady] = useState(false);
   const arrived = useRef(false);
   const paramKey = params.toString();
+  // the query string for everything on this page: the analysis, the neighbourhood in focus, the layout
+  const urlParams = () => {
+    const p = paramsFromView(useExplorer.getState());
+    if (unitFocus && !useExplorer.getState().selection) p.set("unit", unitFocus);
+    return withLayout(p, layout);
+  };
   useEffect(() => {
-    const current = paramsFromView(useExplorer.getState());
-    if (unitFocus && !useExplorer.getState().selection) current.set("unit", unitFocus);
+    const current = urlParams();
     if (paramKey !== current.toString() && (paramKey || arrived.current)) {
       s.set(viewFromParams(params));
       setUnitFocus(params.get("unit"));
+      setLayout(layoutFromParams(params));
     }
     arrived.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paramKey]);
   // … and afterwards every change is written back to it, so any view can be shared
   useEffect(() => {
-    const now = useExplorer.getState();
-    const p = paramsFromView(now);
-    if (unitFocus && !now.selection) p.set("unit", unitFocus);
-    replaceParams(p);
-  }, [s.metric, s.threshold, s.speed, s.people, s.taxonomy, s.network, s.poiSource, s.scenario, s.selection, unitFocus]); // eslint-disable-line react-hooks/exhaustive-deps
+    replaceParams(urlParams());
+  }, [s.metric, s.threshold, s.speed, s.people, s.taxonomy, s.network, s.poiSource, s.scenario, s.selection, unitFocus, layout]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ?unit=BD: frame that neighbourhood once its outline is known
+  // ?unit=BD: frame that neighbourhood once its outline is known (while the map is on screen)
   useEffect(() => {
-    if (!unitFocus || !units) return;
+    if (!unitFocus || !units || view !== "map") return;
     const f = units.features.find((x) => x.properties?.unit_id === unitFocus);
     if (f) mapRef.current?.fitBounds(bbox(f), 40, 0);
-  }, [unitFocus, units, mapReady]);
+  }, [unitFocus, units, mapReady, view]);
 
   useEffect(() => {
     if (s.showPois && s.zoom >= 12.5) {
@@ -155,27 +166,51 @@ export function Explorer({ params }: { params: URLSearchParams }) {
   return (
     <div className="explorer">
       <Header path="/explore" />
-      <div className="explorer-map">
-        <MapCanvas
-          ref={mapRef}
-          initialView={initial}
-          layers={layers}
-          onClick={onClick}
-          onHover={onHover}
-          onLoad={() => {
-            setMapReady(true);
-            const m = mapRef.current?.map();
-            if (m) {
-              s.set({ zoom: m.getZoom() });
-              m.on("zoomend", () => s.set({ zoom: m.getZoom() }));
-            }
-          }}
-        />
-        {hover && (hover.poi !== undefined || (hover.unit && !s.selection)) ? <HoverCard hover={hover} pois={pois} summary={summary} /> : null}
+      {/* the map stays mounted while the table is shown, so returning to it keeps its view */}
+      <div className="explorer-map" hidden={view !== "map"}>
+        <ErrorBoundary fallback={() => null} onError={(e) => setMapDown(e.message || "the map failed")}>
+          <MapCanvas
+            ref={mapRef}
+            initialView={initial}
+            layers={layers}
+            onClick={onClick}
+            onHover={onHover}
+            onFail={(reason) => setMapDown(reason)}
+            onLoad={() => {
+              setMapReady(true);
+              const m = mapRef.current?.map();
+              if (m) {
+                s.set({ zoom: m.getZoom() });
+                m.on("zoomend", () => s.set({ zoom: m.getZoom() }));
+              }
+            }}
+          />
+        </ErrorBoundary>
+        {view === "map" && hover && (hover.poi !== undefined || (hover.unit && !s.selection)) ? (
+          <HoverCard hover={hover} pois={pois} summary={summary} />
+        ) : null}
       </div>
-      <button className="panel-toggle" onClick={() => setPanelOpen((o) => !o)} aria-expanded={panelOpen} aria-controls="explorer-panel">
-        {panelOpen ? "Hide controls" : "Controls"}
-      </button>
+      <div className="explorer-tools" data-panel={panelOpen ? "open" : "closed"} data-view={view}>
+        <button className="panel-toggle" onClick={() => setPanelOpen((o) => !o)} aria-expanded={panelOpen} aria-controls="explorer-panel">
+          {panelOpen ? "Hide controls" : "Controls"}
+        </button>
+        <div className="segmented sm view-toggle" role="radiogroup" aria-label="View">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={view === "map"}
+            className={view === "map" ? "on" : ""}
+            disabled={!!mapDown}
+            title={mapDown ? "The map needs WebGL" : undefined}
+            onClick={() => setLayout("map")}
+          >
+            Map
+          </button>
+          <button type="button" role="radio" aria-checked={view === "table"} className={view === "table" ? "on" : ""} onClick={() => setLayout("table")}>
+            Table
+          </button>
+        </div>
+      </div>
       {meta ? (
         <aside id="explorer-panel" className={`explorer-panel${panelOpen ? "" : " closed"}`} aria-label="Explorer controls">
           <ControlPanel
@@ -184,12 +219,29 @@ export function Explorer({ params }: { params: URLSearchParams }) {
             surfaces={surfaces}
             onFly={(c, z, id) => {
               setUnitFocus(id ?? null);
+              // a jump is a map action, so it brings the map back when there is one
+              if (!mapDown) setLayout("map");
               mapRef.current?.flyTo({ center: c, zoom: z, duration: 1800 });
             }}
           />
         </aside>
       ) : null}
-      {meta ? <Legend meta={meta} kind={kind} metric={s.metric} threshold={s.threshold} iso={!!iso.iso} speed={speed} /> : null}
+      {meta && view === "map" ? <Legend meta={meta} kind={kind} metric={s.metric} threshold={s.threshold} iso={!!iso.iso} speed={speed} /> : null}
+      {view === "table" ? (
+        <NeighbourhoodTable
+          summary={summary}
+          meta={meta}
+          unitIds={unitIds}
+          surfaces={surfaces}
+          metric={s.metric}
+          threshold={s.threshold}
+          people={s.people}
+          speed={speed}
+          panelOpen={panelOpen}
+          inspecting={!!s.selection}
+          notice={mapDown ? <WebGLNotice /> : null}
+        />
+      ) : null}
       {s.selection ? (
         <Inspector
           meta={meta}
@@ -201,11 +253,11 @@ export function Explorer({ params }: { params: URLSearchParams }) {
           surfaces={surfaces}
           unitIds={unitIds}
         />
-      ) : (
+      ) : view === "map" ? (
         <div className="explorer-hint" aria-live="polite">
           <span className="pulse-dot" aria-hidden /> Click anywhere on land to walk the street network from that spot
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

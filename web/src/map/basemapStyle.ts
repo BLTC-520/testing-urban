@@ -143,9 +143,9 @@ export function basemapStyle(): StyleSpecification {
           "text-padding": 6,
         },
         paint: {
-          "text-color": "#8c9099",
-          "text-halo-color": "#0b0e12",
-          "text-halo-width": 1.4,
+          "text-color": "#a3a9b3",
+          "text-halo-color": "#07090c",
+          "text-halo-width": 1.8,
         },
       },
       {
@@ -162,9 +162,9 @@ export function basemapStyle(): StyleSpecification {
           "text-letter-spacing": 0.3,
         },
         paint: {
-          "text-color": "#c9c3b8",
-          "text-halo-color": "#0b0e12",
-          "text-halo-width": 1.6,
+          "text-color": "#e6e1d6",
+          "text-halo-color": "#07090c",
+          "text-halo-width": 2,
         },
       },
     ],

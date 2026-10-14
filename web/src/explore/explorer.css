@@ -231,11 +231,22 @@
   margin: 0;
 }
 
-.panel-toggle {
+/* the controls toggle and the Map | Table toggle, side by side above the map */
+.explorer-tools {
   position: absolute;
   z-index: 12;
   top: calc(var(--header-h) + 12px);
   left: 364px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.explorer-tools[data-panel="closed"] {
+  left: 12px;
+}
+
+.panel-toggle {
   border: 1px solid var(--line);
   background: var(--glass);
   backdrop-filter: blur(10px);
@@ -245,11 +256,29 @@
   padding: 6px 12px;
   font-size: var(--step--2);
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.explorer-panel.closed ~ .panel-toggle,
-.panel-toggle[aria-expanded="false"] {
-  left: 12px;
+.explorer .view-toggle {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 999px;
+}
+
+.explorer .view-toggle button {
+  flex: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.explorer .view-toggle button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.explorer-map[hidden] {
+  display: none;
 }
 
 /* ---------------------------------------------------------------- legend */
@@ -269,7 +298,7 @@
   min-width: 240px;
 }
 
-.panel-toggle[aria-expanded="false"] ~ .legend {
+.explorer-tools[data-panel="closed"] ~ .legend {
   left: 12px;
 }
 
@@ -549,6 +578,172 @@
   line-height: 1.4;
 }
 
+/* ------------------------------------------------------- neighbourhood table */
+.neighbourhood-view {
+  position: absolute;
+  inset: var(--header-h) 0 0 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 58px 20px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+.neighbourhood-view.panel-open {
+  padding-left: 364px;
+}
+
+.neighbourhood-view.inspecting {
+  padding-right: 364px;
+}
+
+.neighbourhood-view .webgl-notice {
+  max-width: 60ch;
+  margin-bottom: 16px;
+}
+
+.city-inline {
+  display: none;
+}
+
+.table-intro {
+  max-width: 64ch;
+  margin: 0 0 16px;
+  font-size: var(--step--1);
+  color: var(--paper-1);
+}
+
+.neighbourhood-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+}
+
+.neighbourhood-table th,
+.neighbourhood-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+  font-weight: 400;
+}
+
+.neighbourhood-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ink-1);
+  border-bottom-color: var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+.neighbourhood-table tbody th {
+  color: var(--paper-0);
+}
+
+.neighbourhood-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.neighbourhood-table .num {
+  text-align: right;
+}
+
+.neighbourhood-table .city-name {
+  white-space: nowrap;
+  color: var(--paper-1);
+}
+
+.neighbourhood-table .city-name.sg {
+  color: var(--paper-1);
+}
+
+.neighbourhood-table .city-name::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: currentColor;
+}
+
+.neighbourhood-table .city-name.sg::before {
+  background: var(--sg);
+}
+
+.neighbourhood-table .city-name.jb::before {
+  background: var(--jb);
+}
+
+.sort-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sort-btn:hover {
+  color: var(--paper-0);
+}
+
+.sort-mark {
+  display: inline-block;
+  width: 1em;
+  margin-left: 4px;
+  text-align: center;
+  color: var(--paper-3);
+}
+
+.neighbourhood-table th[aria-sort]:not([aria-sort="none"]) .sort-mark {
+  color: var(--paper-0);
+}
+
+.share-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.share-bar {
+  display: inline-block;
+  width: 120px;
+  height: 6px;
+  margin-right: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.share-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ramp-4);
+  transition: width 0.4s var(--ease-out);
+}
+
+.share-value {
+  display: inline-block;
+  min-width: 3.2em;
+  text-align: right;
+  vertical-align: middle;
+  font-weight: 600;
+  color: var(--paper-0);
+}
+
 /* ---------------------------------------------------------------- mobile */
 @media (max-width: 760px) {
   .explorer-panel {
@@ -559,18 +754,20 @@
     width: auto;
     max-height: 52vh;
     border-radius: var(--radius-3) var(--radius-3) 0 0;
+    /* opaque on a phone: the sheet can sit over a table or a map full of text and shapes */
+    background: var(--ink-1);
   }
   .explorer-panel.closed {
     transform: translateY(calc(100% + 24px));
   }
-  .panel-toggle,
-  .panel-toggle[aria-expanded="false"] {
+  .explorer-tools,
+  .explorer-tools[data-panel="closed"] {
     left: auto;
     right: 12px;
     top: auto;
     bottom: calc(52vh + 10px);
   }
-  .panel-toggle[aria-expanded="false"] {
+  .explorer-tools[data-panel="closed"] {
     bottom: 24px;
   }
   .legend {
@@ -581,8 +778,52 @@
     min-width: 0;
     max-width: calc(100vw - 24px);
   }
-  .panel-toggle[aria-expanded="false"] ~ .legend {
+  .explorer-tools[data-panel="closed"] ~ .legend {
     left: 12px;
+  }
+  .neighbourhood-view,
+  .neighbourhood-view.panel-open,
+  .neighbourhood-view.inspecting {
+    padding: 58px 12px 72px;
+  }
+  /* the controls sheet and the inspector both sit over the bottom of the page */
+  .neighbourhood-view.panel-open {
+    padding-bottom: 54vh;
+  }
+  .neighbourhood-view.inspecting {
+    padding-bottom: 62vh;
+  }
+  /* on a phone the Map | Table row moves to the top, where it cannot cover the rows */
+  .explorer-tools[data-view="table"],
+  .explorer-tools[data-view="table"][data-panel="closed"] {
+    top: calc(var(--header-h) + 10px);
+    right: auto;
+    bottom: auto;
+    left: 12px;
+  }
+  .city-col {
+    display: none;
+  }
+  .city-inline {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--step--2);
+    color: var(--paper-2);
+  }
+  .neighbourhood-table thead th {
+    position: static;
+  }
+  /* a narrow phone scrolls the table sideways rather than squeezing its columns */
+  .table-wrap {
+    overflow-x: auto;
+  }
+  .neighbourhood-table th,
+  .neighbourhood-table td {
+    padding: 8px;
+  }
+  .share-bar {
+    width: 48px;
+    margin-right: 8px;
   }
   .inspector {
     left: 0;

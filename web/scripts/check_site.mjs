@@ -5,6 +5,7 @@
 // 1. what a crawler or AI reader gets without JavaScript (raw HTML, Markdown, llms.txt, …)
 // 2. the app taking over in a browser: no errors, real URLs, old #/ links, Explorer URL state
 // 3. the agent tools, through window.sgjb and through a WebMCP-style navigator.modelContext
+// 4. a browser without WebGL (text, still images and the neighbourhood table), and phone widths
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { dirname, resolve } from "node:path";
@@ -43,6 +44,7 @@ const textOf = (html) =>
     .replace(/&nbsp;|&#160;/g, " ")
     .replace(/\s+/g, " ");
 
+let noGl = null;
 try {
   console.log("Without JavaScript (what crawlers and AI readers fetch)");
   await check("story HTML carries the findings", async () => {
@@ -249,7 +251,87 @@ try {
     assert.equal(await page.evaluate(() => window.__explorer.getState().metric), "green_space");
   });
   await check("no errors in the browser session", async () => assert.deepEqual(errors, []));
+
+  console.log("Without WebGL (a browser with it switched off)");
+  // no swiftshader flags here: WebGL has to stay off
+  noGl = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ["--disable-webgl", "--disable-webgl2", "--disable-3d-apis"] });
+  const bare = await noGl.newContext({ viewport: { width: 1280, height: 860 }, reducedMotion: "reduce" });
+  const bareErrors = [];
+  const watch = (p) => {
+    p.on("pageerror", (e) => bareErrors.push(e.message));
+    p.on("console", (m) => m.type() === "error" && !/WebGL|GPU|swiftshader/i.test(m.text()) && bareErrors.push(m.text()));
+    return p;
+  };
+  const bp = watch(await bare.newPage());
+
+  await check("this browser really has no WebGL", async () => {
+    await bp.goto(origin + "/", { waitUntil: "domcontentloaded" });
+    const gl = await bp.evaluate(() => (document.createElement("canvas").getContext("webgl2") || document.createElement("canvas").getContext("webgl") ? "available" : null));
+    assert.equal(gl, null, "WebGL is still available");
+  });
+  await check("the story keeps its text, a still image and the notice; no map is drawn", async () => {
+    await bp.goto(origin + "/", { waitUntil: "networkidle" });
+    await bp.waitForFunction(() => !document.getElementById("root").hasAttribute("data-prerendered"), null, { timeout: 30000 });
+    assert.match(await bp.locator(".story .hero h1").innerText(), /Fifteen minutes/);
+    assert.ok((await bp.locator(".step-card").count()) >= 5, "the step cards are missing");
+    assert.equal(await bp.locator(".story canvas").count(), 0, "a map was drawn without WebGL");
+    assert.ok(await bp.locator(".webgl-notice").isVisible(), "no WebGL notice");
+    assert.ok((await bp.locator(".story-still img").count()) >= 1, "no still image");
+  });
+  await check("the still follows the scene: walk-jb has its picture, walk-sg has none", async () => {
+    await bp.evaluate(() => document.querySelector('[data-scene="walk-jb"]').scrollIntoView());
+    await bp.waitForFunction(() => document.querySelector(".story-still img")?.getAttribute("src")?.endsWith("/img/walk-jb.jpg"), null, { timeout: 10000 });
+    await bp.evaluate(() => document.querySelector('[data-scene="walk-sg"]').scrollIntoView());
+    await bp.waitForFunction(() => document.querySelectorAll(".story-still img").length === 0, null, { timeout: 10000 });
+  });
+  // the explorer opens in its own tab: leaving the story while its walk scene is still loading
+  // the street graph would abort those fetches, which a browser reports as page errors
+  const ep = watch(await bare.newPage());
+  await check("the explorer shows the table: 50 neighbourhoods, Map switched off", async () => {
+    await ep.goto(origin + "/explore/", { waitUntil: "networkidle" });
+    await ep.waitForSelector(".neighbourhood-table tbody tr", { timeout: 30000 });
+    assert.equal(await ep.locator(".neighbourhood-table tbody tr").count(), 50);
+    assert.ok(await ep.getByRole("radio", { name: "Map", exact: true }).isDisabled(), "the Map option is not disabled");
+    assert.equal(await ep.getByRole("radio", { name: "Table", exact: true }).getAttribute("aria-checked"), "true");
+    assert.ok(await ep.locator(".webgl-notice").isVisible(), "no WebGL notice");
+  });
+  await check("the 10 min option changes at least one share", async () => {
+    const shares = () => ep.$$eval(".neighbourhood-table tbody tr", (rows) => rows.map((r) => [r.querySelector("th").textContent, r.querySelector(".share-value").textContent]));
+    const before = await shares();
+    await ep.click('[role="radiogroup"][aria-label="Time threshold"] >> text=10 min');
+    await ep.waitForFunction(() => location.search.includes("minutes=10"), null, { timeout: 10000 });
+    const after = await shares();
+    const changed = after.filter(([name, value]) => before.find(([n]) => n === name)?.[1] !== value);
+    assert.ok(changed.length > 0, "no share changed");
+  });
+  await check("the agent tools still answer without WebGL", async () => {
+    const r = await ep.evaluate(() => window.sgjb.call("get_city_summary"));
+    assert.equal(r.cities.length, 2);
+    assert.equal(r.cities[0].percent_with_all_six_essentials_within_15_min, 80.4);
+  });
+  await check("no page errors without WebGL", async () => assert.deepEqual(bareErrors, []));
+
+  console.log("On a phone (390 px wide, WebGL on)");
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+  const pp = await phone.newPage();
+  try {
+    for (const [path, ready] of [
+      ["/", ".story .hero h1"],
+      ["/explore/", "#explorer-panel"],
+      ["/methods/", "#architecture"],
+    ]) {
+      await check(`${path} does not scroll sideways`, async () => {
+        await pp.goto(origin + path, { waitUntil: "networkidle" });
+        await pp.waitForSelector(ready, { timeout: 30000 });
+        const width = await pp.evaluate(() => document.documentElement.scrollWidth);
+        assert.ok(width <= 390, `scrollWidth is ${width}`);
+      });
+    }
+  } finally {
+    await phone.close();
+  }
 } finally {
+  await noGl?.close();
   await browser.close();
   await new Promise((r) => server.httpServer.close(r));
 }

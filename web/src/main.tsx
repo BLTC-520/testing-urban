@@ -7,7 +7,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { registerAgentTools } from "./agent/tools";
 import App from "./App";
+import { ErrorBoundary, PageFallback } from "./components/ErrorBoundary";
 import { loadMeta, loadNeighbourhoods, loadSummary } from "./lib/data";
+import "./map/fallback.css";
 import "./styles/global.css";
 
 const root = document.getElementById("root")!;
@@ -22,7 +24,9 @@ const ready = root.hasAttribute("data-prerendered")
 ready.then(() => {
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <ErrorBoundary fallback={() => <PageFallback />}>
+        <App />
+      </ErrorBoundary>
     </StrictMode>,
   );
   root.removeAttribute("data-prerendered");

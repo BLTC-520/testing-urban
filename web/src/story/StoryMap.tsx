@@ -1,7 +1,9 @@
 import type { Layer } from "@deck.gl/core";
 import { Marker } from "maplibre-gl";
-import { useEffect, useRef, useState } from "react";
-import { MapCanvas, type MapHandle } from "../map/MapCanvas";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { Mode } from "../lib/crossborder";
+import { hasWebGL } from "../lib/webgl";
+import { MapCanvas, WebGLNotice, type MapHandle } from "../map/MapCanvas";
 import type { Scene } from "./scenes";
 
 export interface MapLabel {
@@ -23,10 +25,24 @@ function cameraPadding(scene: Scene, mobile: boolean) {
 }
 
 /** The story's single, fixed, non-interactive map: flies to each scene's camera. */
-export function StoryMap({ scene, layers, labels, mobile }: { scene: Scene; layers: Layer[]; labels: MapLabel[]; mobile: boolean }) {
+export function StoryMap({
+  scene,
+  layers,
+  labels,
+  mobile,
+  fallback,
+}: {
+  scene: Scene;
+  layers: Layer[];
+  labels: MapLabel[];
+  mobile: boolean;
+  /** shown instead of the map when WebGL is off or the map fails to start */
+  fallback: ReactNode;
+}) {
   const ref = useRef<MapHandle>(null);
   const markers = useRef<Marker[]>([]);
   const [initial] = useState(() => scene.camera(mobile));
+  const [down, setDown] = useState(() => !hasWebGL());
 
   const first = useRef(true);
   useEffect(() => {
@@ -78,9 +94,96 @@ export function StoryMap({ scene, layers, labels, mobile }: { scene: Scene; laye
     }
   }, [labels]);
 
+  if (down) return <>{fallback}</>;
   return (
     <div className="story-map" aria-hidden="true">
-      <MapCanvas ref={ref} initialView={initial} layers={layers} interactive={false} showControls={false} />
+      <MapCanvas ref={ref} initialView={initial} layers={layers} interactive={false} showControls={false} onFail={() => setDown(true)} />
     </div>
+  );
+}
+
+interface Still {
+  src: string;
+  alt: string;
+  caption: string;
+  /** which part of the picture to keep when cropped to a phone's shape */
+  position: string;
+}
+
+const still = (file: string, alt: string, caption: string, position: string): Still => ({
+  src: `${import.meta.env.BASE_URL}img/${file}`,
+  alt,
+  caption,
+  position,
+});
+
+const HERO = still(
+  "story-hero.jpg",
+  "Singapore and Johor Bahru as hexagon columns: height shows residents, colour shows how many of six essentials are within a 15-minute walk",
+  "Still image: both cities as hexagon columns",
+  "70% 50%",
+);
+const WALK_JB = still(
+  "walk-jb.jpg",
+  "A walk-shed from Taman Johor Jaya on the street network inside its 1.08 km circle",
+  "Still image: a 15-minute walk from Taman Johor Jaya",
+  "70% 50%",
+);
+const BORDER_AV = still(
+  "border-av.jpg",
+  "Minutes from Johor Bahru homes to the first Singapore MRT platform with the RTS Link and an autonomous feeder",
+  "Still image: minutes to the Singapore MRT with a shared autonomous feeder",
+  "60% 50%",
+);
+const PARKING_SG = still(
+  "parking-sg.jpg",
+  "Cells newly reaching all six essentials when 25 car parks become neighbourhood hubs in Singapore",
+  "Still image: 25 car parks converted to neighbourhood hubs",
+  "60% 50%",
+);
+
+/**
+ * The still that depicts a scene as it is now. Some scenes have controls (the
+ * border lab, the hub count), so a still is only used while it matches them;
+ * otherwise the scene has no still and shows a plain dark background.
+ */
+function stillFor(scene: Scene, border: Mode | null, hubs: number, after: boolean): Still | null {
+  switch (scene.id) {
+    case "hero":
+    case "surface-both":
+    case "surface-sg":
+    case "surface-jb":
+    case "gaps":
+    case "end":
+      return HERO;
+    case "walk-jb":
+      return WALK_JB;
+    case "border-av":
+      return BORDER_AV;
+    case "border-lab":
+      return border === "rts_av" ? BORDER_AV : null;
+    case "parking-sg":
+      return hubs === 25 && after ? PARKING_SG : null;
+    default:
+      return null;
+  }
+}
+
+/** The scene as a still image: stands in for the live map when WebGL is off or the map failed. */
+export function StoryStill({ scene, border, hubs, after }: { scene: Scene; border: Mode | null; hubs: number; after: boolean }) {
+  const img = stillFor(scene, border, hubs, after);
+  return (
+    <>
+      <div className="story-map story-still">
+        {img ? (
+          <figure className="still-figure">
+            <img className="still-img" src={img.src} alt={img.alt} style={{ objectPosition: img.position }} decoding="async" />
+            <div className="still-shade" aria-hidden="true" />
+            <figcaption className="still-caption">{img.caption}</figcaption>
+          </figure>
+        ) : null}
+      </div>
+      <WebGLNotice fixed />
+    </>
   );
 }

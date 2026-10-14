@@ -1,6 +1,7 @@
 import type { Layer } from "@deck.gl/core";
 import { GeoJsonLayer } from "@deck.gl/layers";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { Header } from "../components/Header";
 import { useIsochrone } from "../explore/useIsochrone";
 import { useHexData, useSurfaces, type SurfaceParams } from "../explore/useSurface";
@@ -13,7 +14,7 @@ import { MapKey } from "./MapKey";
 import { SCENES } from "./scenes";
 import { Chapters, type StoryState } from "./sections";
 import "./story.css";
-import { StoryMap, type MapLabel } from "./StoryMap";
+import { StoryMap, StoryStill, type MapLabel } from "./StoryMap";
 import { circleLayer, gainHexLayer, hubsLayer, regionalHexLayer, sitesLayer, type SitePoint } from "./storyLayers";
 import { useActiveStep } from "./useActiveStep";
 
@@ -247,10 +248,14 @@ export function Story() {
     return [];
   }, [scene, meta, units, summary, weakest]);
 
+  // what stands in for the live map when WebGL is off, or when the map fails
+  const stillScene = <StoryStill scene={scene} border={borderMode} hubs={state.hubs} after={state.after} />;
   return (
     <div className="story" ref={root}>
       <Header path="/" overlay />
-      <StoryMap scene={scene} layers={layers} labels={labels} mobile={mobile} />
+      <ErrorBoundary fallback={() => stillScene}>
+        <StoryMap scene={scene} layers={layers} labels={labels} mobile={mobile} fallback={stillScene} />
+      </ErrorBoundary>
       {scene.key && active.scene !== "hold" && !(mobile && scene.id === "hero") ? (
         <MapKey kind={scene.key} k={k} borderMode={borderMode} hubs={state.hubs} after={state.after} extruded={scene.surface === "extruded"} />
       ) : null}
