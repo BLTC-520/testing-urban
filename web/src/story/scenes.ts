@@ -29,10 +29,13 @@ export interface Scene {
   key?: "essentials" | "walk" | "border" | "parking" | null;
 }
 
-/** Fixed demonstration points (dense residential cells in each city). */
+/**
+ * Demonstration points: the OpenStreetMap place nodes of two comparable
+ * neighbourhoods (place=suburb), so the examples are not hand-picked spots.
+ */
 export const WALK_POINTS = {
-  sg: { lon: 103.8519, lat: 1.3342, city: "sg" as CityId, label: "Toa Payoh, Singapore" },
-  jb: { lon: 103.8139, lat: 1.528, city: "jb" as CityId, label: "Johor Jaya, Johor Bahru" },
+  sg: { lon: 103.8481, lat: 1.3356, city: "sg" as CityId, label: "Toa Payoh, Singapore" },
+  jb: { lon: 103.8024, lat: 1.5428, city: "jb" as CityId, label: "Taman Johor Jaya, Johor Bahru" },
 };
 
 const both = (m: boolean): Camera => ({ center: [103.79, 1.43], zoom: m ? 9.05 : 10.0, pitch: 0, bearing: 0 });

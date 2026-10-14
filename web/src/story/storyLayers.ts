@@ -55,7 +55,7 @@ export function gainHexLayer(id: string, data: (Aggregate & { gain: number })[],
     getFillColor: (d) => {
       if (d.gain > 0.05) return [GAIN[0], GAIN[1], GAIN[2], Math.round(120 + 135 * Math.min(1, d.gain * 1.6))];
       const c = RAMP[Math.max(0, Math.min(6, Math.round(d.value)))];
-      return [c[0], c[1], c[2], 70];
+      return [c[0], c[1], c[2], 42];
     },
     coverage: 1,
     stroked: false,

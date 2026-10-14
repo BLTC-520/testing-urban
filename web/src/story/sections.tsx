@@ -247,19 +247,19 @@ function WalkSteps({ meta, summary, iso, scene }: Props & { meta: Meta; summary:
         <Kicker n="02">Method</Kicker>
         <h3>A circle is not a neighbourhood</h3>
         <p>
-          Most 15-minute-city maps draw a circle: 1.08 km at walking pace. People don't walk in circles. This is the walk-shed from a home in <strong>Toa Payoh</strong>, routed along
-          mapped footpaths, crossings and covered linkways.
+          Most 15-minute-city maps draw a circle: 1.08 km at walking pace. People don't walk in circles. This is the walk-shed from the centre of <strong>Toa Payoh</strong>, a
+          1960s public-housing town, routed along mapped footpaths, crossings and covered linkways.
         </p>
         <ReachList meta={meta} iso={iso} active={scene.id === "walk-sg"} />
         <p className="small muted">
-          Nearest of each essential from this point <Badge kind="calculated" />
+          Nearest of each essential from this point. Points are the OpenStreetMap centres of each neighbourhood. <Badge kind="calculated" />
         </p>
       </Step>
       <Step scene="walk-jb">
         <h3>Same fifteen minutes, different streets</h3>
         <p>
-          A home in <strong>Johor Jaya</strong>, one of Johor Bahru's established housing estates. The walk follows streets built for cars, many without a mapped footway, and
-          the destinations are spread thinner.
+          The centre of <strong>Taman Johor Jaya</strong>, an established estate of terrace houses on a regular grid. Its shopping streets serve it well; what the walk does not
+          reach is a park of at least half a hectare. Away from estate centres like this one, the essentials thin out quickly.
         </p>
         <ReachList meta={meta} iso={iso} active={scene.id === "walk-jb"} />
         {f ? (
@@ -374,13 +374,14 @@ function GapEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
   return (
     <Essay id="gaps">
       <Kicker n="05">How wide is the gap?</Kicker>
-      <h2>Not an absence of services, but an absence of all of them together</h2>
+      <h2>In Singapore the question is which essential is missing. In Johor Bahru, it is how many.</h2>
       <div className="grid-2">
         <div>
           <h4 className="chart-title">Residents by number of essentials within a 15-minute walk</h4>
           <CompletenessStack hist={{ sg: sg.categories_histogram, jb: jb.categories_histogram }} caption="Share of residents by number of essentials reachable within 15 minutes" />
           <p className="small">
-            Most Johor Bahru residents are not cut off from everything: the median resident reaches {jb.median_categories} of 6. What is rare is the full set within one walk.
+            {pct(sg.categories_histogram[5])} of Singapore residents are one essential short; almost nobody lacks more. Johor Bahru's residents spread across the whole range:{" "}
+            {pct(jb.categories_histogram[0])} reach none of the six within 15 minutes, and the median resident reaches {jb.median_categories}.
           </p>
         </div>
         <div>
@@ -446,8 +447,15 @@ function FormEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
       <Kicker n="07">Why</Kicker>
       <h2>The street network decides before the shops do</h2>
       <p className="lede">
-        Destinations matter, but so does the fabric that connects them. Singapore's housing towns are threaded with short blocks and dedicated footpaths; Johor Bahru's estates
-        hang off arterial roads, with more dead ends and long stretches where no footway is mapped.
+        Destinations matter, but so does the fabric that connects them.{" "}
+        {f ? (
+          <>
+            Singapore's housing towns have {(f.sg.intersections_per_km2 / f.jb.intersections_per_km2).toFixed(1)} times as many street junctions per square kilometre as Johor
+            Bahru's estates, and {(f.sg.pedestrian_way_share / f.jb.pedestrian_way_share).toFixed(1)} times the share of dedicated footpaths. Shorter blocks mean more direct
+            walks: from a typical home, a 15-minute walk reaches {pct(f.sg.pedestrian_shed_ratio_median)} of the neighbours inside its circle in Singapore and{" "}
+            {pct(f.jb.pedestrian_shed_ratio_median)} in Johor Bahru.
+          </>
+        ) : null}
       </p>
       {f ? (
         <PairedMetrics
@@ -456,15 +464,23 @@ function FormEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
             { label: "Street intersections", unit: "per km²", sg: f.sg.intersections_per_km2, jb: f.jb.intersections_per_km2 },
             { label: "Dead ends", unit: "share of nodes", sg: f.sg.dead_end_share, jb: f.jb.dead_end_share, fmt: (v) => pct(v) },
             { label: "Footpaths & pedestrian ways", unit: "share of walkable length", sg: f.sg.pedestrian_way_share, jb: f.jb.pedestrian_way_share, fmt: (v) => pct(v) },
-            { label: "Arterial roads with no mapped footway", unit: "share of arterial length", sg: f.sg.arterial_no_sidewalk_share, jb: f.jb.arterial_no_sidewalk_share, fmt: (v) => pct(v) },
+            { label: "Walking along arterials with no mapped footway", unit: "share of walkable length", sg: f.sg.arterial_no_sidewalk_share, jb: f.jb.arterial_no_sidewalk_share, fmt: (v) => pct(v, 1) },
+            { label: "Roads with a sidewalk tagged", unit: "share of road length", sg: f.sg.sidewalk_tagged_share_of_roads, jb: f.jb.sidewalk_tagged_share_of_roads, fmt: (v) => pct(v, 1) },
             { label: "Neighbours in the circle reached on foot", unit: "median, 15 min", sg: f.sg.pedestrian_shed_ratio_median, jb: f.jb.pedestrian_shed_ratio_median, fmt: (v) => pct(v) },
-            { label: "Mapped car-park land", unit: "m² per resident", sg: f.sg.parking_m2_per_resident, jb: f.jb.parking_m2_per_resident, fmt: (v) => v.toFixed(1) },
           ]}
         />
       ) : null}
       <p className="small muted">
-        Each indicator on its own scale. <Badge kind="calculated" /> from <Badge kind="observed">OSM</Badge>. Footway mapping is itself uneven, which the next chapter tests.
+        Each indicator on its own scale, populated areas only. <Badge kind="calculated" /> from <Badge kind="observed">OSM</Badge>
       </p>
+      {f ? (
+        <p>
+          Part of the contrast is how the cities are mapped. Singapore records its pavements as separate footpaths ({pct(f.sg.pedestrian_way_share)} of walkable length) and tags
+          sidewalks on {pct(f.sg.sidewalk_tagged_share_of_roads)} of road length; in Johor Bahru footpaths are {pct(f.jb.pedestrian_way_share)} of walkable length and{" "}
+          {pct(f.jb.sidewalk_tagged_share_of_roads, 1)} of roads carry a sidewalk tag. Where the map is silent, the baseline assumes people can walk along the road; a stricter
+          network that forbids walking on trunk and primary roads without a mapped footway is part of the sensitivity analysis.
+        </p>
+      ) : null}
       <div className="split">
         <div>
           <h3>Slower walkers</h3>
@@ -502,7 +518,10 @@ function AuditEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
     overture: Number(r.overture_per_10k),
   }));
   sourceRows.sort((x, y) => (x.label === y.label ? (x.city === "sg" ? -1 : 1) : x.label.localeCompare(y.label)));
-  const overtureMore = sourceRows.filter((r) => r.city === "jb" && r.overture > 1.2 * r.osm).map((r) => r.label.toLowerCase());
+  const NOUN: Record<string, string> = { groceries: "food shops", healthcare: "clinics and pharmacies", education: "schools and childcare centres", dining: "eateries" };
+  const overtureMore = a.poi_cross_source
+    .filter((r) => r.city === "jb" && Number(r.overture_per_10k) > 1.2 * Number(r.osm_per_10k))
+    .map((r) => NOUN[String(r.category)] ?? String(r.category));
   return (
     <Essay id="audit">
       <Kicker n="08">Is it the city, or the map?</Kicker>
@@ -548,8 +567,10 @@ function AuditEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
           <p>
             {overtureMore.length ? (
               <>
-                Overture Places lists more {overtureMore.join(", ")} per resident in Johor Bahru than OpenStreetMap does, so we re-ran the whole analysis with Overture for shops,
-                clinics, schools and eateries.{" "}
+                Overture Places lists more {overtureMore.slice(0, -1).join(", ")}
+                {overtureMore.length > 1 ? " and " : ""}
+                {overtureMore[overtureMore.length - 1]} per resident in Johor Bahru than OpenStreetMap does, so we re-ran the whole analysis with Overture for those four
+                essentials.{" "}
               </>
             ) : (
               <>We re-ran the whole analysis with Overture Places for shops, clinics, schools and eateries. </>
@@ -781,7 +802,8 @@ function ParkingSteps({ meta, summary, state, setState, sites }: Props & { meta:
         <h4 className="city-h sg-ink">Singapore</h4>
         {nums("sg")}
         <p className="small muted">
-          Where the network already delivers, new destinations add little; where streets are disconnected, a hub only helps the homes its walk-shed can reach. <Badge kind="calculated" />
+          Where streets are disconnected, a hub only helps the homes its walk-shed can reach. Where OpenStreetMap misses existing clinics (see chapter 08), the gain is overstated:
+          read the numbers as where land could matter, not as a forecast. <Badge kind="calculated" />
         </p>
       </Step>
     </>
@@ -819,8 +841,13 @@ function FuturesEssay({ summary, sites }: Props & { meta: Meta; summary: Summary
       title: "Make the network continuous before making it smart",
       body: (
         <>
-          {f ? <>{pct(f.jb.arterial_no_sidewalk_share)} of Johor Bahru's arterial length has no mapped footway. </> : null}Sidewalk delivery robots, wheelchairs and pedestrians need
-          the same thing: an unbroken, mapped path. Sensors cannot route around a missing footway.
+          {f ? (
+            <>
+              Only {pct(f.jb.pedestrian_way_share)} of Johor Bahru's walkable network is dedicated footpath (Singapore: {pct(f.sg.pedestrian_way_share)}), and the map rarely says
+              whether a road has a pavement.{" "}
+            </>
+          ) : null}
+          Sidewalk delivery robots, wheelchairs and pedestrians need the same thing: an unbroken, mapped path. Sensors cannot route around a missing footway.
         </>
       ),
     },

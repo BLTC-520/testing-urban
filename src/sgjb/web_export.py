@@ -187,7 +187,19 @@ def export_neighbourhoods(nb_stats: pd.DataFrame) -> dict[str, int]:
         if nb[c].dtype.kind == "f":
             nb[c] = nb[c].round(4)
     (OUT / "neighbourhoods.geojson").write_text(nb.to_json(drop_id=True))
+    export_study_mask(nb)
     return dict(zip(nb["unit_id"], nb["idx"]))
+
+
+def export_study_mask(nb: gpd.GeoDataFrame) -> None:
+    """Everything outside the two study areas, so the map can dim the context
+    (and the edges of the data extract) without hiding it."""
+    metric = config.load("study_area")["crs_metric"]
+    area = nb.to_crs(metric).geometry.buffer(400).union_all().buffer(-200).simplify(80)
+    area = gpd.GeoSeries([area], crs=metric).to_crs("EPSG:4326").iloc[0]
+    world = shapely.box(100.0, -1.0, 108.0, 4.0)
+    mask = gpd.GeoDataFrame({"kind": ["outside"]}, geometry=[world.difference(area)], crs="EPSG:4326")
+    (OUT / "study_mask.geojson").write_text(mask.to_json(drop_id=True))
 
 
 def export_parking_sites() -> None:

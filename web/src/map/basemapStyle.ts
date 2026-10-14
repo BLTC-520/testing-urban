@@ -45,6 +45,8 @@ export function basemapStyle(): StyleSpecification {
         url: "pmtiles://" + asset("tiles/basemap.pmtiles"),
         attribution: ATTRIBUTION,
       },
+      // everything outside the two study areas (dimmed, so the analysed cities lead)
+      mask: { type: "geojson", data: asset("data/study_mask.geojson") },
     },
     layers: [
       { id: "land", type: "background", paint: { "background-color": "#0e1115" } },
@@ -102,6 +104,15 @@ export function basemapStyle(): StyleSpecification {
           "line-color": "#3d4757",
           "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 16, 2.2],
           "line-dasharray": [3, 2],
+        },
+      },
+      {
+        id: "outside-study-area",
+        type: "fill",
+        source: "mask",
+        paint: {
+          "fill-color": "#07090c",
+          "fill-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.8, 12, 0.66, 15, 0.5],
         },
       },
       {
