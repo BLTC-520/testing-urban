@@ -55,6 +55,16 @@ try {
     const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
     assert.ok(ld["@graph"].some((n) => n["@type"] === "Dataset"));
   });
+  await check("story and methods HTML include the footpath scenario, its still map and alternatives", async () => {
+    const fp = JSON.parse(await get("/data/footpath.json"));
+    const html = await get("/");
+    assert.ok(textOf(html).includes(`A ${Math.round(fp.chosen.link_m)}-metre path in ${fp.chosen.place}`), "footpath heading missing");
+    assert.match(html, /<svg[^>]*class="fp-map"/);
+    assert.ok(!html.includes("data-loading"), "a lazy section was captured while loading");
+    const methods = await get("/methods/");
+    assert.ok(methods.includes('id="footpath"'));
+    for (const alt of fp.alternatives.slice(0, 3)) assert.ok(textOf(methods).includes(alt.unit_name), alt.unit_name);
+  });
   await check("methods HTML has its own title, sections and formulas (MathML + TeX)", async () => {
     const html = await get("/methods/");
     const t = textOf(html);
@@ -104,7 +114,7 @@ try {
     const llms = await get("/llms.txt");
     assert.match(llms, /^# Singapore \/ Johor Bahru 15-Minute City Explorer$/m);
     assert.match(llms, /Singapore 80\.4% of 4,044,340 residents .*, Johor Bahru 12\.0% of 1,753,284 people/);
-    for (const t of ["get_city_summary", "find_neighbourhoods", "walk_from", "open_explorer"]) assert.ok(llms.includes(`\`${t}\``), t);
+    for (const t of ["get_city_summary", "find_neighbourhoods", "walk_from", "get_footpath_scenario", "open_explorer"]) assert.ok(llms.includes(`\`${t}\``), t);
     const full = await get("/llms-full.txt");
     assert.ok(full.length > 40000 && full.includes("## Metrics") && full.includes("# Fifteen minutes from home"));
     const robots = await get("/robots.txt");
@@ -126,8 +136,12 @@ try {
   });
   const page = await ctx.newPage();
   const errors = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => m.type() === "error" && !/WebGL|GPU|swiftshader/i.test(m.text()) && errors.push(m.text()));
+  page.on("pageerror", (e) => errors.push(`${new URL(page.url()).pathname}: ${e.message} ${(e.stack ?? "").split("\n")[1]?.trim() ?? ""}`));
+  page.on("console", (m) => {
+    if (m.type() !== "error" || /WebGL|GPU|swiftshader/i.test(m.text())) return;
+    const at = m.location();
+    errors.push(`${new URL(page.url()).pathname}: ${m.text()} (${at.url ? `${at.url.split("/").pop()}:${at.lineNumber}` : "no location"})`);
+  });
 
   await check("story boots over the prerendered page without errors", async () => {
     await page.goto(origin + "/", { waitUntil: "networkidle" });
@@ -185,7 +199,7 @@ try {
   await page.goto(origin + "/", { waitUntil: "networkidle" });
   await check("registered with navigator.modelContext", async () => {
     const names = await page.evaluate(() => [...window.__webmcp.keys()]);
-    assert.deepEqual(names, ["get_city_summary", "find_neighbourhoods", "walk_from", "open_explorer"]);
+    assert.deepEqual(names, ["get_city_summary", "find_neighbourhoods", "walk_from", "get_footpath_scenario", "open_explorer"]);
     const out = await page.evaluate(() => window.__webmcp.get("get_city_summary").execute({ city: "jb" }));
     const r = JSON.parse(out.content[0].text);
     assert.equal(r.cities[0].percent_with_all_six_essentials_within_15_min, 12);
@@ -221,6 +235,12 @@ try {
     assert.equal(sg.walking_speed_mps, 0.9);
     const sea = await page.evaluate(() => window.sgjb.call("walk_from", { lon: 104.2, lat: 1.2 }));
     assert.ok(sea.error, "a point at sea should be rejected");
+  });
+  await check("get_footpath_scenario reports the chosen link and site checks", async () => {
+    const r = await page.evaluate(() => window.sgjb.call("get_footpath_scenario"));
+    assert.ok(r.chosen.link_m > 0 && r.chosen.link_m <= 80);
+    assert.ok(r.chosen.residents_gaining_an_essential_within_15_min > 0);
+    assert.ok(r.site_checks.length >= 3 && r.alternatives.length >= 3);
   });
   await check("open_explorer navigates and returns a shareable URL", async () => {
     const r = await page.evaluate(() => window.sgjb.call("open_explorer", { metric: "green_space", minutes: 10, unit: "BD" }));

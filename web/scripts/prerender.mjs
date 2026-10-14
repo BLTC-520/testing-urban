@@ -51,15 +51,20 @@ const browser = await chromium.launch({
 });
 
 const results = [];
-try {
-  for (const page of PAGES) {
-    const tab = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
-    const errors = [];
-    tab.on("pageerror", (e) => errors.push(e.message));
+
+/** Load one page, let every section finish loading, and snapshot it. */
+async function render(page) {
+  const tab = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+  const errors = [];
+  tab.on("pageerror", (e) => errors.push(e.message));
+  let stage = "load";
+  try {
     await tab.goto(origin + BASE.replace(/\/$/, "") + page.path, { waitUntil: "networkidle", timeout: 120_000 });
+    stage = `wait for ${page.ready}`;
     await tab.waitForSelector(page.ready, { timeout: 60_000 });
     if (page.scroll) {
       // later chapters load their data as the reader approaches; walk down the page once
+      stage = "scroll";
       await tab.evaluate(async () => {
         const step = window.innerHeight * 0.6;
         for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
@@ -73,13 +78,33 @@ try {
       await tab.waitForTimeout(300);
     }
     // sections that load their data lazily mark their placeholder with data-loading
+    stage = "wait for lazy sections";
     await tab.waitForFunction(() => !document.querySelector("[data-loading]"), null, { timeout: 60_000 });
+    stage = "snapshot";
     const snap = await tab.evaluate(snapshot, SITE_URL);
-    if (errors.length) throw new Error(`${page.path}: page errors:\n${errors.join("\n")}`);
-    if (snap.text.length < 500) throw new Error(`${page.path}: only ${snap.text.length} characters of text — data did not load?`);
+    if (errors.length) throw new Error(`page errors:\n${errors.join("\n")}`);
+    if (snap.text.length < 500) throw new Error(`only ${snap.text.length} characters of text — data did not load?`);
+    return snap;
+  } catch (e) {
+    const pending = await tab.evaluate(() => [...document.querySelectorAll("[data-loading]")].map((n) => n.textContent.trim())).catch(() => []);
+    throw new Error(`${page.path} (${stage}): ${e.message}${pending.length ? `\nstill loading: ${pending.join(" | ")}` : ""}`);
+  } finally {
+    await tab.close();
+  }
+}
+
+try {
+  for (const page of PAGES) {
+    let snap;
+    try {
+      snap = await render(page);
+    } catch (e) {
+      // a slow CI runner can miss a timeout once; a second failure is real
+      console.warn(`retrying ${page.path}: ${e.message}`);
+      snap = await render(page);
+    }
     results.push({ ...page, ...snap });
     console.log(`prerendered ${page.path.padEnd(10)} ${String(snap.text.length).padStart(6)} chars of text, ${snap.markdown.length} chars of markdown`);
-    await tab.close();
   }
 } finally {
   await browser.close();

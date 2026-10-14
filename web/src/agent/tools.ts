@@ -15,6 +15,7 @@ import { reachedPois, streetGraph } from "../explore/useIsochrone";
 import { EXPLORER_PARAMS, METRICS, THRESHOLDS, paramsFromView, viewFromParams } from "../lib/explorerUrl";
 import { loadCells, loadMeta, loadNeighbourhoods, loadPois, loadSummary } from "../lib/data";
 import { unitAt } from "../lib/geo";
+import { loadFootpath, type FootpathSite } from "../lib/footpath";
 import { href, navigate } from "../lib/router";
 import type { CityId, NeighbourhoodStats } from "../lib/types";
 
@@ -198,6 +199,42 @@ async function openExplorer(input: Json) {
   return { url: window.location.href, applied: Object.fromEntries(out) };
 }
 
+async function footpathScenario() {
+  const [fp, labels] = await Promise.all([loadFootpath(), categoryLabels()]);
+  const site = (s: FootpathSite) => ({
+    place: s.place,
+    neighbourhood: s.unit_name,
+    between: [s.a.street, s.b.street],
+    ends: [
+      { lon: s.a.lon, lat: s.a.lat },
+      { lon: s.b.lon, lat: s.b.lat },
+    ],
+    link_m: s.link_m,
+    walk_today_m: s.walk_today_m,
+    needs_footbridge: s.footbridge,
+    residents_gaining_an_essential_within_15_min: Math.round(s.metrics["15min"].residents_gaining),
+    residents_newly_reaching_all_six: Math.round(s.metrics["15min"].newly_complete),
+  });
+  const c = fp.chosen;
+  return {
+    question: fp.question,
+    status: "scenario (desk study): every link must be checked on site before anyone builds it",
+    chosen: {
+      ...site(c),
+      sensitivity: Object.fromEntries(Object.entries(c.metrics).map(([k, m]) => [k, Math.round(m.residents_gaining)])),
+      by_essential: c.changes.by_essential
+        .filter((r) => r.residents_newly_within_15min > 0)
+        .map((r) => ({ essential: labels[r.essential] ?? r.essential, residents_newly_within_15_min: Math.round(r.residents_newly_within_15min), median_minutes_before: round(r.median_minutes_before ?? NaN), median_minutes_after: round(r.median_minutes_after ?? NaN) })),
+      sample_routes: fp.routes.map((r) => ({ essential: labels[r.essential] ?? r.essential, destination: r.after.destination.name, minutes_today: r.before.minutes, minutes_with_path: r.after.minutes })),
+    },
+    alternatives: fp.alternatives.map(site),
+    assumptions: fp.assumptions,
+    site_checks: fp.site_checks,
+    screening: fp.screening,
+    method: abs(href("/methods", undefined, "footpath")),
+  };
+}
+
 export const TOOLS: AgentTool[] = [
   {
     name: "get_city_summary",
@@ -239,6 +276,14 @@ export const TOOLS: AgentTool[] = [
     },
     annotations: { readOnlyHint: true },
     run: walkFrom,
+  },
+  {
+    name: "get_footpath_scenario",
+    description:
+      "The one-footpath scenario: the single short public footpath in Johor Bahru that would bring the most residents an extra everyday essential within a 15-minute walk, with its effect, sample routes, sensitivity, ranked alternatives, assumptions and the checks to make on site.",
+    inputSchema: { type: "object", properties: {} },
+    annotations: { readOnlyHint: true },
+    run: footpathScenario,
   },
   {
     name: "open_explorer",
