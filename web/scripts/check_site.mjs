@@ -278,11 +278,14 @@ try {
     assert.ok(await bp.locator(".webgl-notice").isVisible(), "no WebGL notice");
     assert.ok((await bp.locator(".story-still img").count()) >= 1, "no still image");
   });
-  await check("the still follows the scene: walk-jb has its picture, walk-sg has none", async () => {
-    await bp.evaluate(() => document.querySelector('[data-scene="walk-jb"]').scrollIntoView());
-    await bp.waitForFunction(() => document.querySelector(".story-still img")?.getAttribute("src")?.endsWith("/img/walk-jb.jpg"), null, { timeout: 10000 });
-    await bp.evaluate(() => document.querySelector('[data-scene="walk-sg"]').scrollIntoView());
-    await bp.waitForFunction(() => document.querySelectorAll(".story-still img").length === 0, null, { timeout: 10000 });
+  await check("the still follows the scene, and the notice says what it shows", async () => {
+    for (const scene of ["walk-jb", "walk-sg", "border-av"]) {
+      await bp.evaluate((sc) => document.querySelector(`[data-scene="${sc}"]`).scrollIntoView(), scene);
+      await bp.waitForFunction((sc) => document.querySelector(".story-still img")?.getAttribute("src")?.endsWith(`/img/story/${sc}.jpg`), scene, { timeout: 10000 });
+    }
+    assert.match(await bp.locator(".webgl-notice").innerText(), /still image of .*OpenStreetMap/);
+    const r = await fetch(origin + "/img/story/hero.jpg");
+    assert.equal(r.status, 200);
   });
   // the explorer opens in its own tab: leaving the story while its walk scene is still loading
   // the street graph would abort those fetches, which a browser reports as page errors

@@ -43,6 +43,23 @@ interface Props {
   onLoad?: () => void;
   /** called once when the map cannot be shown: no WebGL, a failed start or a lost context */
   onFail?: (reason: string) => void;
+  /**
+   * Collapse the attribution to its (i) button this long after the map loads. MapLibre
+   * collapses it on the first drag; a map nobody drags (the Story's) would otherwise
+   * keep it open over the text that scrolls past.
+   */
+  collapseAttributionMs?: number;
+}
+
+/** Basemap label layers; area fills from deck.gl are drawn beneath them so names stay readable. */
+const LABEL_LAYER = "places";
+const UNDER_LABELS = new Set(["H3HexagonLayer", "GeoJsonLayer", "PolygonLayer", "SolidPolygonLayer"]);
+
+function underLabels(l: Layer): Layer {
+  const name = (l.constructor as { layerName?: string }).layerName ?? "";
+  // beforeId is read by the interleaved MapboxOverlay; it is not part of the base layer props type
+  const placed = (l.props as { beforeId?: string }).beforeId !== undefined;
+  return UNDER_LABELS.has(name) && !placed ? l.clone({ beforeId: LABEL_LAYER } as never) : l;
 }
 
 /**
@@ -50,7 +67,7 @@ interface Props {
  * When the map cannot start, it renders nothing and reports why through onFail.
  */
 export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
-  { initialView, layers, interactive = true, onClick, onHover, getCursor, className, showControls = true, onLoad, onFail },
+  { initialView, layers, interactive = true, onClick, onHover, getCursor, className, showControls = true, onLoad, onFail, collapseAttributionMs },
   ref,
 ) {
   const el = useRef<HTMLDivElement>(null);
@@ -109,6 +126,12 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
         handlers.current.onClick?.(info, ll);
       });
       map.on("load", () => handlers.current.onLoad?.());
+      if (collapseAttributionMs !== undefined) {
+        const box = map.getContainer();
+        map.once("load", () =>
+          window.setTimeout(() => box.querySelector(".maplibregl-ctrl-attrib.maplibregl-compact-show")?.classList.remove("maplibregl-compact-show"), collapseAttributionMs),
+        );
+      }
       // a lost context cannot be recovered in place, so the map counts as failed
       map.on("webglcontextlost", () => fail("the WebGL context was lost"));
       mapRef.current = map;
@@ -130,7 +153,7 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
   }, []);
 
   useEffect(() => {
-    overlayRef.current?.setProps({ layers });
+    overlayRef.current?.setProps({ layers: layers.map(underLabels) });
   }, [layers]);
 
   useImperativeHandle(ref, () => ({
@@ -149,10 +172,18 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
 });
 
 /** Stands in for an interactive map when WebGL is off or the map failed. */
-export function WebGLNotice({ fixed = false }: { fixed?: boolean }) {
+export function WebGLNotice({ fixed = false, detail }: { fixed?: boolean; detail?: string }) {
+  const [closed, setClosed] = useState(false);
+  if (closed) return null;
   return (
-    <p className={fixed ? "webgl-notice fixed" : "webgl-notice"} role="note">
-      Interactive maps need WebGL, which is turned off in this browser. The text, charts and data below are unaffected.
-    </p>
+    <div className={fixed ? "webgl-notice fixed" : "webgl-notice"} role="note">
+      <p>Interactive maps need WebGL, which is turned off in this browser. The text, charts and data below are unaffected.</p>
+      {detail ? <p className="notice-detail">{detail}</p> : null}
+      {fixed ? (
+        <button type="button" className="notice-close" aria-label="Dismiss this notice" onClick={() => setClosed(true)}>
+          ×
+        </button>
+      ) : null}
+    </div>
   );
 }

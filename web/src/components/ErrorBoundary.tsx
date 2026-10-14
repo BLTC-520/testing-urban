@@ -54,6 +54,9 @@ export function PageFallback() {
             <a href={href("/methods")}>Methods</a>
           </li>
           <li>
+            <a href={href("/about")}>About</a>
+          </li>
+          <li>
             <a href={`${import.meta.env.BASE_URL}llms.txt`}>llms.txt, a plain-text guide for AI readers</a>
           </li>
         </ul>

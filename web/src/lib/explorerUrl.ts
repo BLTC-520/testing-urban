@@ -44,6 +44,7 @@ export const EXPLORER_PARAMS: Record<string, string> = {
   lat: "latitude of a point to walk from (with lon)",
   city: "sg | jb (optional; inferred from lon/lat)",
   unit: "neighbourhood id to zoom to, e.g. BD (Bedok) or JB-N.46 (Perling); ids and names are in /data/summary.json",
+  view: "table (a sortable table of all 50 neighbourhoods for the current settings, instead of the map; works without WebGL)",
 };
 
 const pick = <T extends string | number>(v: string | null, allowed: readonly T[]): T | undefined =>

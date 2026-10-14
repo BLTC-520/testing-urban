@@ -12,7 +12,7 @@
  */
 import { latLngToCell, cellToParent } from "h3-js";
 import { reachedPois, streetGraph } from "../explore/useIsochrone";
-import { EXPLORER_PARAMS, METRICS, THRESHOLDS, paramsFromView, viewFromParams } from "../lib/explorerUrl";
+import { EXPLORER_PARAMS, METRICS, THRESHOLDS, layoutFromParams, paramsFromView, viewFromParams, withLayout } from "../lib/explorerUrl";
 import { loadCells, loadMeta, loadNeighbourhoods, loadPois, loadSummary } from "../lib/data";
 import { unitAt } from "../lib/geo";
 import { loadFootpath, type FootpathSite } from "../lib/footpath";
@@ -195,6 +195,7 @@ async function openExplorer(input: Json) {
   const view = viewFromParams(p);
   const out = paramsFromView(view);
   if (p.get("unit") && !view.selection) out.set("unit", p.get("unit")!);
+  withLayout(out, layoutFromParams(p));
   navigate("/explore", out);
   return { url: window.location.href, applied: Object.fromEntries(out) };
 }
@@ -288,7 +289,7 @@ export const TOOLS: AgentTool[] = [
   {
     name: "open_explorer",
     description:
-      "Show a view in the interactive Explorer map: choose the essential, time budget, walking speed, population group, an alternative assumption, a car-park-to-hub scenario, a point to walk from, or a neighbourhood. Navigates this page and returns the shareable URL.",
+      "Show a view in the interactive Explorer map: choose the essential, time budget, walking speed, population group, an alternative assumption, a car-park-to-hub scenario, a point to walk from, or a neighbourhood, shown as the map or as a table of neighbourhoods. Navigates this page and returns the shareable URL.",
     inputSchema: {
       type: "object",
       properties: {
@@ -303,6 +304,7 @@ export const TOOLS: AgentTool[] = [
         lon: { type: "number" },
         lat: { type: "number" },
         unit: { type: "string", description: "Neighbourhood id from find_neighbourhoods" },
+        view: { type: "string", enum: ["map", "table"], description: "table: a sortable table of all neighbourhoods instead of the map" },
       },
     },
     run: openExplorer,

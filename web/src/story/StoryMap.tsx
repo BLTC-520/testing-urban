@@ -97,7 +97,7 @@ export function StoryMap({
   if (down) return <>{fallback}</>;
   return (
     <div className="story-map" aria-hidden="true">
-      <MapCanvas ref={ref} initialView={initial} layers={layers} interactive={false} showControls={false} onFail={() => setDown(true)} />
+      <MapCanvas ref={ref} initialView={initial} layers={layers} interactive={false} showControls={false} onFail={() => setDown(true)} collapseAttributionMs={6000} />
     </div>
   );
 }
@@ -106,67 +106,42 @@ interface Still {
   src: string;
   alt: string;
   caption: string;
-  /** which part of the picture to keep when cropped to a phone's shape */
-  position: string;
 }
 
-const still = (file: string, alt: string, caption: string, position: string): Still => ({
-  src: `${import.meta.env.BASE_URL}img/${file}`,
-  alt,
-  caption,
-  position,
-});
+/**
+ * One still per scene, rendered from the live map by scripts/stills.mjs (map only:
+ * no text, header or legend), so a browser without WebGL sees what the scene shows.
+ */
+const STILLS: Record<string, [alt: string, caption: string]> = {
+  hero: ["Singapore and Johor Bahru as hexagon columns: height shows residents, colour shows how many of six essentials are within a 15-minute walk", "both cities as hexagon columns"],
+  "walk-sg": ["A 15-minute walk from the centre of Toa Payoh on the street network, inside its 1.08 km circle", "a 15-minute walk from Toa Payoh"],
+  "walk-jb": ["A 15-minute walk from Taman Johor Jaya on the street network, inside its 1.08 km circle", "a 15-minute walk from Taman Johor Jaya"],
+  "surface-sg": ["Singapore's hexagons coloured by how many of six essentials are within a 15-minute walk", "Singapore, essentials within 15 minutes"],
+  "surface-jb": ["Johor Bahru's hexagons coloured by how many of six essentials are within a 15-minute walk", "Johor Bahru, essentials within 15 minutes"],
+  gaps: ["The populous neighbourhoods with the lowest share of residents reaching all six essentials, outlined", "the neighbourhoods with the largest gaps"],
+  "border-hubs": ["Johor Bahru's border hubs and the RTS Link's Woodlands North terminus", "the border hubs"],
+  "border-baseline": ["Minutes from Johor Bahru homes to the first Singapore MRT platform by bus or KTM shuttle today, central border assumptions", "minutes to the Singapore MRT today"],
+  "border-rts": ["Minutes from Johor Bahru homes to the first Singapore MRT platform with the RTS Link, central border assumptions", "minutes to the Singapore MRT with the RTS Link"],
+  "border-av": ["Minutes from Johor Bahru homes to the first Singapore MRT platform with the RTS Link and a shared autonomous feeder, central border assumptions", "minutes to the Singapore MRT with an autonomous feeder"],
+  "parking-jb": ["Johor Bahru cells newly reaching all six essentials when 25 car parks become neighbourhood hubs", "25 car parks converted to hubs in Johor Bahru"],
+  "parking-sg": ["Singapore cells newly reaching all six essentials when 25 car parks become neighbourhood hubs", "25 car parks converted to hubs in Singapore"],
+  end: ["Both cities coloured by how many of six essentials are within a 15-minute walk", "both cities, essentials within 15 minutes"],
+};
 
-const HERO = still(
-  "story-hero.jpg",
-  "Singapore and Johor Bahru as hexagon columns: height shows residents, colour shows how many of six essentials are within a 15-minute walk",
-  "Still image: both cities as hexagon columns",
-  "70% 50%",
-);
-const WALK_JB = still(
-  "walk-jb.jpg",
-  "A walk-shed from Taman Johor Jaya on the street network inside its 1.08 km circle",
-  "Still image: a 15-minute walk from Taman Johor Jaya",
-  "70% 50%",
-);
-const BORDER_AV = still(
-  "border-av.jpg",
-  "Minutes from Johor Bahru homes to the first Singapore MRT platform with the RTS Link and an autonomous feeder",
-  "Still image: minutes to the Singapore MRT with a shared autonomous feeder",
-  "60% 50%",
-);
-const PARKING_SG = still(
-  "parking-sg.jpg",
-  "Cells newly reaching all six essentials when 25 car parks become neighbourhood hubs in Singapore",
-  "Still image: 25 car parks converted to neighbourhood hubs",
-  "60% 50%",
-);
+const BORDER_STILL: Record<Mode, string> = { baseline: "border-baseline", rts: "border-rts", rts_av: "border-av" };
 
 /**
- * The still that depicts a scene as it is now. Some scenes have controls (the
- * border lab, the hub count), so a still is only used while it matches them;
- * otherwise the scene has no still and shows a plain dark background.
+ * The still that depicts a scene as it is now. The border lab shows the still of
+ * the selected mode (at central border assumptions, as captioned); the hub
+ * scenes only while the hub controls are at the pictured 25 hubs, "after".
  */
 function stillFor(scene: Scene, border: Mode | null, hubs: number, after: boolean): Still | null {
-  switch (scene.id) {
-    case "hero":
-    case "surface-both":
-    case "surface-sg":
-    case "surface-jb":
-    case "gaps":
-    case "end":
-      return HERO;
-    case "walk-jb":
-      return WALK_JB;
-    case "border-av":
-      return BORDER_AV;
-    case "border-lab":
-      return border === "rts_av" ? BORDER_AV : null;
-    case "parking-sg":
-      return hubs === 25 && after ? PARKING_SG : null;
-    default:
-      return null;
-  }
+  let id = scene.id;
+  if (id === "surface-both") id = "end";
+  if (id === "border-lab") id = border ? BORDER_STILL[border] : "";
+  if ((id === "parking-sg" || id === "parking-jb") && !(hubs === 25 && after)) return null;
+  const s = STILLS[id];
+  return s ? { src: `${import.meta.env.BASE_URL}img/story/${id}.jpg`, alt: s[0], caption: s[1] } : null;
 }
 
 /** The scene as a still image: stands in for the live map when WebGL is off or the map failed. */
@@ -177,13 +152,12 @@ export function StoryStill({ scene, border, hubs, after }: { scene: Scene; borde
       <div className="story-map story-still">
         {img ? (
           <figure className="still-figure">
-            <img className="still-img" src={img.src} alt={img.alt} style={{ objectPosition: img.position }} decoding="async" />
+            <img className="still-img" src={img.src} alt={img.alt} decoding="async" />
             <div className="still-shade" aria-hidden="true" />
-            <figcaption className="still-caption">{img.caption}</figcaption>
           </figure>
         ) : null}
       </div>
-      <WebGLNotice fixed />
+      <WebGLNotice fixed detail={img ? `Behind the text: a still image of ${img.caption}. Map data © OpenStreetMap contributors.` : undefined} />
     </>
   );
 }
