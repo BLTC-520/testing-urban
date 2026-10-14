@@ -9,8 +9,8 @@ the conversion of car-park land into neighbourhood hubs.
 
 **Three views of one dataset:** a scrollytelling **Story**, an interactive **Explorer** (change any
 assumption, click anywhere to walk the network) and a **Methods** page generated from the data.
-Run it locally with `make dev` (see below). The static build deploys to any host; `.github/workflows/pages.yml`
-publishes it with GitHub Pages from `main` once Pages is enabled for the repository.
+**Live:** <https://sgjburbansideprojects.brianhar.site/> · run it locally with `make dev` (see below). `.github/workflows/pages.yml` publishes
+`main` with GitHub Pages to that custom domain (a Cloudflare CNAME to `bltc-520.github.io`).
 
 ## What it found
 
