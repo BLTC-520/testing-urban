@@ -179,3 +179,36 @@ p {
 .maplibregl-ctrl-icon {
   filter: invert(0.9);
 }
+
+.not-found main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: calc(var(--header-h) + 18vh) 1.25rem 4rem;
+}
+
+.not-found h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.05;
+  margin: 0 0 1rem;
+}
+
+/* shown on the prerendered pages when JavaScript is off */
+.noscript-note {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 60;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--ink-3);
+  color: var(--paper-1);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}

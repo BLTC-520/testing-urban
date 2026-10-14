@@ -9,7 +9,9 @@
     "test": "vitest run",
     "lint": "oxlint",
     "preview": "vite preview",
-    "shots": "node scripts/shot_story.mjs"
+    "shots": "node scripts/shot_story.mjs",
+    "build:site": "npm run build && node scripts/prerender.mjs",
+    "check:site": "node scripts/check_site.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { href } from "../lib/router";
 import "./header.css";
 
 const LINKS = [
-  { href: "#/", label: "Story", path: "/" },
-  { href: "#/explore", label: "Explore", path: "/explore" },
-  { href: "#/methods", label: "Methods", path: "/methods" },
+  { href: href("/"), label: "Story", path: "/" },
+  { href: href("/explore"), label: "Explore", path: "/explore" },
+  { href: href("/methods"), label: "Methods", path: "/methods" },
 ];
 
 export function Header({ path, overlay = false }: { path: string; overlay?: boolean }) {
@@ -19,7 +20,7 @@ export function Header({ path, overlay = false }: { path: string; overlay?: bool
   }, [overlay]);
   return (
     <header className={`site-header${overlay && top ? " overlay" : ""}`}>
-      <a className="wordmark" href="#/" aria-label="Singapore / Johor Bahru 15-Minute City Explorer — home">
+      <a className="wordmark" href={href("/")} aria-label="Singapore / Johor Bahru 15-Minute City Explorer — home">
         <span className="wm-mark" aria-hidden>
           <svg viewBox="0 0 32 32" width="22" height="22">
             <path d="M3 21 C 11 17, 21 17, 29 21" fill="none" stroke="var(--jb)" strokeWidth="2" strokeLinecap="round" />

@@ -13,7 +13,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
 page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
 page.on("pageerror", (e) => errors.push(e.message));
-await page.goto(url + "#/explore", { waitUntil: "networkidle" });
+await page.goto(url + "explore/", { waitUntil: "networkidle" });
 await page.waitForTimeout(4000);
 const cases = [
   ["baseline", {}],

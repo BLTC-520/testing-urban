@@ -84,6 +84,28 @@ delta-encoded edge geometry simplified with Douglas–Peucker at 2.5 m. Cross-la
 The RTS Link scenario is recombined in the browser (`src/lib/crossborder.ts`, mirroring
 `crossborder.compose`) so readers can set their own border assumptions.
 
+**URLs.** Pages live at real paths — `/`, `/explore/`, `/methods/` — handled by a small history
+router (`src/lib/router.ts`); old `#/…` links are rewritten on load. Every Explorer setting is
+mirrored in the query string (`src/lib/explorerUrl.ts`), e.g.
+`/explore/?metric=healthcare&minutes=10&speed=slow&lon=103.7646&lat=1.4630`, so any view can be
+linked, bookmarked or opened by an agent.
+
+**Prerendering.** `npm run build:site` builds the app and then runs `scripts/prerender.mjs`, which
+loads each page in headless Chromium, waits for the data-driven text, and writes that DOM (without
+the map canvases) into `dist/<page>/index.html` with the page's own title, description, canonical
+URL and schema.org JSON-LD. Readers without JavaScript — search crawlers, link previews, AI
+assistants that fetch a URL — get the full text, tables and formulas (KaTeX HTML + MathML with the
+TeX source). In a browser, `main.tsx` fetches the summary data first, then React replaces the
+prerendered DOM with an identical first render and adds the maps.
+
+**For agents.** From the same rendered DOM the prerender step writes Markdown copies of the pages
+(`/index.md`, `/methods.md`, `/explore.md`, linked from each page with `rel="alternate"`),
+`/llms.txt` and `/llms-full.txt`, `/robots.txt`, `/sitemap.xml` and a data catalogue
+(`/data/index.json`). In the page, `src/agent/tools.ts` offers four tools — `get_city_summary`,
+`find_neighbourhoods`, `walk_from` (runs the same street-network search as the Explorer) and
+`open_explorer` — registered with WebMCP (`navigator.modelContext`) when the browser supports it
+and always available as `window.sgjb.call(name, input)`.
+
 **Rendering.** MapLibre GL 5 draws the basemap from a self-hosted PMTiles archive; deck.gl 9
 (`MapboxOverlay`, interleaved) draws hexagons, walk-sheds and markers in the same WebGL context, so
 labels and analysis layers depth-sort together. H3 cells are aggregated to resolutions 8–9 at low
@@ -94,4 +116,8 @@ zoom to keep the number of drawn polygons bounded.
 * `pytest`: graph kernels against brute force, OSM parsing fixtures, metrics, export format.
 * `vitest`: binary decoding, Dijkstra, client-side metrics, street-graph tiles (against fixtures
   written by the Python tests), cross-border composition.
+* `scripts/check_site.mjs` (`npm run check:site`, after `build:site`): end-to-end checks of the
+  built site — the raw HTML, Markdown, llms.txt, robots and sitemap a crawler would fetch; the app
+  taking over without errors; real and legacy URLs; Explorer state in the URL; and every agent tool,
+  including registration through a WebMCP-style `navigator.modelContext`.
 * Playwright scripts (`web/scripts/shot*.mjs`) render the pages headlessly for visual review.

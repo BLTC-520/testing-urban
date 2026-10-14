@@ -2,7 +2,10 @@ import type { PickingInfo } from "@deck.gl/core";
 import { cellToParent, latLngToCell } from "h3-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "../components/Header";
-import { loadMeta, loadNeighbourhoods, loadPois, loadSummary, type Pois } from "../lib/data";
+import { loadMeta, loadNeighbourhoods, loadPois, loadSummary, peekMeta, peekNeighbourhoods, peekSummary, type Pois } from "../lib/data";
+import { paramsFromView, viewFromParams } from "../lib/explorerUrl";
+import { bbox } from "../lib/geo";
+import { replaceParams } from "../lib/router";
 import { useExplorer } from "../lib/store";
 import type { CityId, Meta, Summary } from "../lib/types";
 import { hexLayer, isochroneLayer, markerLayer, poiLayer, unitsLayer } from "../map/layers";
@@ -16,9 +19,9 @@ import { resolutionForZoom, useHexData, useSurfaces, type SurfaceParams } from "
 
 export function Explorer({ params }: { params: URLSearchParams }) {
   const s = useExplorer();
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [units, setUnits] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [meta, setMeta] = useState<Meta | null>(peekMeta);
+  const [summary, setSummary] = useState<Summary | null>(peekSummary);
+  const [units, setUnits] = useState<GeoJSON.FeatureCollection | null>(peekNeighbourhoods);
   const [pois, setPois] = useState<Partial<Record<CityId, Pois>>>({});
   const [hover, setHover] = useState<{ x: number; y: number; unit?: GeoJSON.Feature; poi?: number; city?: CityId } | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
@@ -30,18 +33,36 @@ export function Explorer({ params }: { params: URLSearchParams }) {
     loadNeighbourhoods().then(setUnits);
   }, []);
 
-  // deep-link: #/explore?city=jb or ?lon=..&lat=..
+  // the URL is the source of truth on arrival (and on back/forward or agent navigation) …
+  // (a bare /explore/ keeps whatever was set earlier in this visit)
+  const [unitFocus, setUnitFocus] = useState<string | null>(() => params.get("unit"));
+  const [mapReady, setMapReady] = useState(false);
+  const arrived = useRef(false);
+  const paramKey = params.toString();
   useEffect(() => {
-    const lon = Number(params.get("lon"));
-    const lat = Number(params.get("lat"));
-    const city = params.get("city") as CityId | null;
-    if (Number.isFinite(lon) && Number.isFinite(lat) && lon && lat) {
-      s.set({ selection: { lon, lat, city: city ?? null } });
+    const current = paramsFromView(useExplorer.getState());
+    if (unitFocus && !useExplorer.getState().selection) current.set("unit", unitFocus);
+    if (paramKey !== current.toString() && (paramKey || arrived.current)) {
+      s.set(viewFromParams(params));
+      setUnitFocus(params.get("unit"));
     }
-    const m = params.get("metric");
-    if (m) s.set({ metric: m as never });
+    arrived.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [paramKey]);
+  // … and afterwards every change is written back to it, so any view can be shared
+  useEffect(() => {
+    const now = useExplorer.getState();
+    const p = paramsFromView(now);
+    if (unitFocus && !now.selection) p.set("unit", unitFocus);
+    replaceParams(p);
+  }, [s.metric, s.threshold, s.speed, s.people, s.taxonomy, s.network, s.poiSource, s.scenario, s.selection, unitFocus]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ?unit=BD: frame that neighbourhood once its outline is known
+  useEffect(() => {
+    if (!unitFocus || !units) return;
+    const f = units.features.find((x) => x.properties?.unit_id === unitFocus);
+    if (f) mapRef.current?.fitBounds(bbox(f), 40, 0);
+  }, [unitFocus, units, mapReady]);
 
   useEffect(() => {
     if (s.showPois && s.zoom >= 12.5) {
@@ -99,6 +120,15 @@ export function Explorer({ params }: { params: URLSearchParams }) {
     return out;
   }, [surfaces.sg?.cells, surfaces.jb?.cells]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // a point from the URL may come without its city: infer it once the cells are loaded
+  useEffect(() => {
+    const sel = s.selection;
+    if (!sel || sel.city || !cityParents.sg || !cityParents.jb) return;
+    const p = latLngToCell(sel.lat, sel.lon, 8);
+    const city = cityParents.sg.has(p) ? "sg" : cityParents.jb.has(p) ? "jb" : null;
+    if (city) s.set({ selection: { ...sel, city } });
+  }, [s.selection, cityParents]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const onClick = (info: PickingInfo, ll: [number, number]) => {
     const unit = info.layer?.id === "units" ? (info.object as GeoJSON.Feature) : undefined;
     let city = (unit?.properties?.city as CityId | undefined) ?? null;
@@ -106,6 +136,7 @@ export function Explorer({ params }: { params: URLSearchParams }) {
       const p = latLngToCell(ll[1], ll[0], 8);
       city = cityParents.sg?.has(p) ? "sg" : cityParents.jb?.has(p) ? "jb" : null;
     }
+    setUnitFocus(null);
     s.set({ selection: { lon: ll[0], lat: ll[1], city } });
   };
 
@@ -115,7 +146,11 @@ export function Explorer({ params }: { params: URLSearchParams }) {
     else if (info.layer?.id.startsWith("pois-")) setHover({ x: info.x, y: info.y, poi: info.object as number, city: info.layer.id.slice(5) as CityId });
   };
 
-  const initial = useMemo(() => ({ center: [103.76, 1.43] as [number, number], zoom: window.innerWidth < 700 ? 9.4 : 10.2 }), []);
+  const initial = useMemo(() => {
+    const sel = useExplorer.getState().selection;
+    if (sel) return { center: [sel.lon, sel.lat] as [number, number], zoom: 13.6 };
+    return { center: [103.76, 1.43] as [number, number], zoom: window.innerWidth < 700 ? 9.4 : 10.2 };
+  }, []);
 
   return (
     <div className="explorer">
@@ -128,6 +163,7 @@ export function Explorer({ params }: { params: URLSearchParams }) {
           onClick={onClick}
           onHover={onHover}
           onLoad={() => {
+            setMapReady(true);
             const m = mapRef.current?.map();
             if (m) {
               s.set({ zoom: m.getZoom() });
@@ -142,7 +178,15 @@ export function Explorer({ params }: { params: URLSearchParams }) {
       </button>
       {meta ? (
         <aside id="explorer-panel" className={`explorer-panel${panelOpen ? "" : " closed"}`} aria-label="Explorer controls">
-          <ControlPanel meta={meta} summary={summary} surfaces={surfaces} onFly={(c, z) => mapRef.current?.flyTo({ center: c, zoom: z, duration: 1800 })} />
+          <ControlPanel
+            meta={meta}
+            summary={summary}
+            surfaces={surfaces}
+            onFly={(c, z, id) => {
+              setUnitFocus(id ?? null);
+              mapRef.current?.flyTo({ center: c, zoom: z, duration: 1800 });
+            }}
+          />
         </aside>
       ) : null}
       {meta ? <Legend meta={meta} kind={kind} metric={s.metric} threshold={s.threshold} iso={!!iso.iso} speed={speed} /> : null}

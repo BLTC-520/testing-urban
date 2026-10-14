@@ -4,14 +4,15 @@
 #   make osm       OpenStreetMap extract: streams the dated planet (≈95 GB read, nothing stored)
 #                  or: make osm OSM_FROM=path/to/malaysia-singapore-brunei-latest.osm.pbf
 #   make pipeline  all analysis stages → data/derived + web/public/data + web/public/tiles
-#   make web       static site → web/dist
+#   make web       static site → web/dist (prerendered)
+#   make check     end-to-end checks of the built site
 #   make test      Python and TypeScript tests
 #   make dev       local development server on http://localhost:5173
 
 PY ?= .venv/bin/python
 NPM ?= npm
 
-.PHONY: setup data osm pipeline web test dev serve clean
+.PHONY: setup data osm pipeline web check test dev serve clean
 
 setup:
 	python3 -m venv .venv
@@ -33,7 +34,10 @@ pipeline:
 	$(PY) -m sgjb.pipeline all
 
 web:
-	cd web && $(NPM) run build
+	cd web && $(NPM) run build:site
+
+check:
+	cd web && $(NPM) run check:site
 
 test:
 	$(PY) -m pytest
