@@ -1,10 +1,9 @@
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import type { Layer, PickingInfo } from "@deck.gl/core";
-import { addProtocol, Map as MLMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
+// MapLibre 5.x: deck.gl 9.4's interleaved overlay reads map.transform, which
+// MapLibre 6 no longer exposes.
+import { addProtocol, Map as MLMap, NavigationControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-// MapLibre 6 locates its worker relative to its own module URL, which bundlers
-// rewrite; pointing it at the emitted asset works in dev and production builds.
-import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { Protocol } from "pmtiles";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { basemapStyle } from "./basemapStyle";
@@ -12,7 +11,6 @@ import { basemapStyle } from "./basemapStyle";
 let protocolRegistered = false;
 function ensureProtocol() {
   if (protocolRegistered) return;
-  setWorkerUrl(workerUrl);
   const protocol = new Protocol();
   addProtocol("pmtiles", protocol.tile);
   protocolRegistered = true;
@@ -79,17 +77,24 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
     const overlay = new MapboxOverlay({
       interleaved: true,
       layers: [],
-      onClick: (info) => {
-        const ll = info.coordinate as [number, number] | undefined;
-        if (ll) handlers.current.onClick?.(info, ll);
-      },
       onHover: (info) => handlers.current.onHover?.(info),
+      onError: (e) => console.error("deck.gl:", e),
       getCursor: getCursor ?? (({ isDragging, isHovering }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "crosshair")),
     });
     map.addControl(overlay);
+    // Clicks come from MapLibre (robust to slow GPU picking and touch); deck.gl only picks.
+    map.on("click", (e) => {
+      const info = overlay.pickObject({ x: e.point.x, y: e.point.y, radius: 3 }) ?? ({ picked: false } as PickingInfo);
+      const ll: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      (window as unknown as { __lastClick?: unknown }).__lastClick = { picked: info.picked, layer: info.layer?.id, ll };
+      handlers.current.onClick?.(info, ll);
+    });
     map.on("load", () => handlers.current.onLoad?.());
     mapRef.current = map;
     overlayRef.current = overlay;
+    // exposed for end-to-end tests and debugging
+    (window as unknown as { __map?: MLMap; __overlay?: MapboxOverlay }).__map = map;
+    (window as unknown as { __overlay?: MapboxOverlay }).__overlay = overlay;
     return () => {
       map.remove();
       mapRef.current = null;

@@ -48,3 +48,21 @@ def test_roundtrip_numpy():
     col = {c["name"]: c for c in header["columns"]}
     pop = np.frombuffer(b, dtype="<f4", count=5, offset=start + col["pop"]["offset"])
     assert pop.tolist() == [1.5, 0.0, 1234.25, 7.0, 0.5]
+
+
+def test_graph_tiles_fixture(tmp_path, monkeypatch):
+    """Export tiles for the toy network; web/src/lib/streetGraph.test.ts reads them back."""
+    from sgjb import web_export
+    from test_graph import toy_network
+
+    out = FIXTURE.parent / "graphdata"
+    monkeypatch.setattr(web_export, "OUT", out)
+    net = toy_network().drop_small_components(3)
+    idx = web_export.export_graph_tiles(net, tile_deg=0.001)
+    assert idx["nodes"] == net.n_nodes
+    assert len(idx["tiles"]) >= 2          # edges span several tiles
+    # expected distance from node 1 (A) to node 4 (D), for the TypeScript test
+    (out / "expected.json").write_text(json.dumps({
+        "a": [103.800, 1.300], "d_osm_node_index": int(np.flatnonzero(net.node_id == 4)[0]),
+        "path_m": float(net.edge_len.sum()),
+    }))

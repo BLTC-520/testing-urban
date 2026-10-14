@@ -1,6 +1,6 @@
 import { useEffect } from "react";
+import { Explorer } from "./explore/Explorer";
 import { useRoute } from "./lib/router";
-import { MapPreview } from "./pages/MapPreview";
 
 export default function App() {
   const route = useRoute();
@@ -8,7 +8,9 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [route.path]);
   switch (route.path) {
+    case "/explore":
+      return <Explorer params={route.params} />;
     default:
-      return <MapPreview />;
+      return <Explorer params={route.params} />;
   }
 }

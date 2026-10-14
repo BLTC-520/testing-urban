@@ -9,7 +9,7 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1 });
 const logs = [];
 page.on("console", (m) => logs.push(`[${m.type()}] ${m.text()}`));
-page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}`));
+page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}\n${(e.stack || "").split("\n").slice(0, 8).join("\n")}`));
 await page.goto(url, { waitUntil: "networkidle" });
 if (+scrollY) await page.evaluate((y) => window.scrollTo(0, y), +scrollY);
 await page.waitForTimeout(+wait);

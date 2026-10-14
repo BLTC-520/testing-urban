@@ -22,18 +22,29 @@
   --paper-2: #a8a49b;
   --paper-3: #77746d;
 
-  --sg: #ff6a4d;
-  --sg-soft: rgba(255, 106, 77, 0.14);
-  --jb: #4f9dff;
-  --jb-soft: rgba(79, 157, 255, 0.14);
+  /* categorical — validated (dataviz validate_palette.js, dark mode, surface #11151b) */
+  --sg: #e75438;
+  --sg-soft: rgba(231, 84, 56, 0.16);
+  --jb: #3b89e9;
+  --jb-soft: rgba(59, 137, 233, 0.16);
+  --neutral-series: #8a8f98;
 
-  --ramp-0: #22193d;
-  --ramp-1: #36296b;
-  --ramp-2: #2f4c91;
-  --ramp-3: #1f7a9e;
-  --ramp-4: #2aa79a;
-  --ramp-5: #84d18b;
-  --ramp-6: #f4f1b8;
+  /* ordinal ramp: analogous blue → cyan → mint, OKLCH L 0.30 → 0.91 (monotone, ΔL ≈ 0.10) */
+  --ramp-0: #222a51;
+  --ramp-1: #22477d;
+  --ramp-2: #10699f;
+  --ramp-3: #0b8eaf;
+  --ramp-4: #1cb4b6;
+  --ramp-5: #6ad5b6;
+  --ramp-6: #b6f4ca;
+
+  /* essentials — validated as an adjacent set in list order */
+  --cat-groceries: #be8609;
+  --cat-healthcare: #dc4b6e;
+  --cat-education: #5f8adf;
+  --cat-green_space: #2da962;
+  --cat-transit: #9c70d0;
+  --cat-dining: #d3772e;
 
   --gain: #b6f36b;
   --loss: #ff4fa3;

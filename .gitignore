@@ -13,3 +13,7 @@ web/test-results/
 web/playwright-report/
 .DS_Store
 *.part
+
+# web artifacts are committed only from a full real-data run (see Makefile)
+web/public/data/
+web/public/tiles/
