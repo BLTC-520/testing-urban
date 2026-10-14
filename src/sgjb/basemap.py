@@ -16,6 +16,8 @@ gives full control over cartography.
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -27,7 +29,8 @@ from shapely.geometry import mapping, shape
 
 from . import config
 
-TIPPECANOE = Path("/home/user/tools/tippecanoe/tippecanoe")
+# tippecanoe (felt/tippecanoe) must be on PATH, or set TIPPECANOE=/path/to/tippecanoe
+TIPPECANOE = Path(os.environ.get("TIPPECANOE") or shutil.which("tippecanoe") or "/home/user/tools/tippecanoe/tippecanoe")
 WATER, TREE, MANGROVE, BUILT = 80, 10, 95, 50
 
 

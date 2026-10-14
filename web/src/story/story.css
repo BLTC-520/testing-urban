@@ -172,7 +172,7 @@
 
 /* the card sits near the top of its step, so it is entering the viewport
    when the step crosses the reading line (55 %) and the map changes */
-.step {
+.story-step {
   min-height: 110vh;
   display: flex;
   align-items: flex-start;
@@ -195,7 +195,7 @@
     transform 0.5s var(--ease-out);
 }
 
-.step.is-active .step-card {
+.story-step.is-active .step-card {
   opacity: 1;
   transform: none;
 }
@@ -608,7 +608,7 @@
   white-space: nowrap;
 }
 
-.verdict {
+.finding-verdict {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -618,7 +618,7 @@
   text-transform: uppercase;
 }
 
-.verdict::before {
+.finding-verdict::before {
   content: "";
   width: 8px;
   height: 8px;
@@ -626,23 +626,23 @@
   border: 1.5px solid currentColor;
 }
 
-.verdict.robust {
+.finding-verdict.robust {
   color: var(--paper-0);
 }
 
-.verdict.robust::before {
+.finding-verdict.robust::before {
   background: currentColor;
 }
 
-.verdict.conditional {
+.finding-verdict.conditional {
   color: var(--paper-1);
 }
 
-.verdict.conditional::before {
+.finding-verdict.conditional::before {
   background: linear-gradient(90deg, currentColor 50%, transparent 50%);
 }
 
-.verdict.fragile {
+.finding-verdict.fragile {
   color: var(--paper-3);
 }
 
@@ -906,7 +906,7 @@
   .hero-figures {
     gap: var(--space-4);
   }
-  .step {
+  .story-step {
     align-items: flex-start;
     padding: 32vh 12px 10vh;
     min-height: 130vh;
@@ -927,7 +927,9 @@
   .reach {
     grid-template-columns: 1fr;
   }
+  /* on phones the key sits under the text layers, which scroll over it */
   .map-key {
+    z-index: 1;
     top: calc(var(--header-h) + 8px);
     bottom: auto;
     right: 8px;

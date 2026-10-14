@@ -1,6 +1,6 @@
 import type { Layer } from "@deck.gl/core";
 import { Marker } from "maplibre-gl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapCanvas, type MapHandle } from "../map/MapCanvas";
 import type { Scene } from "./scenes";
 
@@ -26,7 +26,7 @@ function cameraPadding(scene: Scene, mobile: boolean) {
 export function StoryMap({ scene, layers, labels, mobile }: { scene: Scene; layers: Layer[]; labels: MapLabel[]; mobile: boolean }) {
   const ref = useRef<MapHandle>(null);
   const markers = useRef<Marker[]>([]);
-  const initial = useRef(scene.camera(mobile));
+  const [initial] = useState(() => scene.camera(mobile));
 
   const first = useRef(true);
   useEffect(() => {
@@ -80,7 +80,7 @@ export function StoryMap({ scene, layers, labels, mobile }: { scene: Scene; laye
 
   return (
     <div className="story-map" aria-hidden="true">
-      <MapCanvas ref={ref} initialView={initial.current} layers={layers} interactive={false} showControls={false} />
+      <MapCanvas ref={ref} initialView={initial} layers={layers} interactive={false} showControls={false} />
     </div>
   );
 }

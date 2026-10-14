@@ -55,7 +55,7 @@ const MIN_UNIT_POP = 20000;
 
 function Step({ scene, children, wide = false }: { scene: string; children: ReactNode; wide?: boolean }) {
   return (
-    <div className="step" data-scene={scene}>
+    <div className="story-step" data-scene={scene}>
       <div className={`step-card${wide ? " wide" : ""}`}>{children}</div>
     </div>
   );
@@ -919,7 +919,7 @@ function RobustEssay({ summary }: { meta: Meta; summary: Summary }) {
               <td>{fd.statement}</td>
               <td className="num">{pct(fd.share_of_runs)}</td>
               <td>
-                <span className={`verdict ${fd.label.toLowerCase()}`}>{fd.label.toLowerCase()}</span>
+                <span className={`finding-verdict ${fd.label.toLowerCase()}`}>{fd.label.toLowerCase()}</span>
               </td>
             </tr>
           ))}
@@ -934,7 +934,7 @@ function RobustEssay({ summary }: { meta: Meta; summary: Summary }) {
 function Ending({ meta }: { meta: Meta }) {
   return (
     <>
-      <section className="step end-step" data-scene="end">
+      <section className="story-step end-step" data-scene="end">
         <div className="end-card">
           <Kicker>Your turn</Kicker>
           <h2>Walk any street in either city</h2>

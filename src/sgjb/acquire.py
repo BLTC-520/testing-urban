@@ -119,6 +119,9 @@ def fetch_osm(src: dict, bbox: list[float], dest: Path) -> Path:
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--osm", action="store_true", help="also build the OSM extract (streams the planet)")
+    ap.add_argument("--osm-from", type=Path, metavar="PBF",
+                    help="cut the study bbox from a local regional extract (e.g. Geofabrik "
+                         "malaysia-singapore-brunei-latest.osm.pbf) instead of streaming the planet")
     args = ap.parse_args(argv)
     config.ensure_dirs()
     bbox = config.load("study_area")["acquisition_bbox"]
@@ -160,7 +163,13 @@ def main(argv: list[str] | None = None) -> None:
 
     # --- OpenStreetMap
     osm_dest = config.raw("osm", "sgjb-261005.osm.pbf")
-    if args.osm or osm_dest.exists():
+    if args.osm_from:
+        b = ",".join(str(x) for x in bbox)
+        subprocess.run(["osmium", "extract", "-b", b, "-s", "complete_ways", str(args.osm_from), "-o", str(osm_dest),
+                        "--overwrite"], check=True)
+        record("osm", osm_dest, str(args.osm_from), {"bbox": bbox, "note": "cut from a local regional extract; "
+                                                       "results differ from the published run if its date differs"})
+    elif args.osm or osm_dest.exists():
         p = fetch_osm(sources["osm"], bbox, osm_dest)
         record("osm", p, sources["osm"]["fetch"]["https"], {"planet_md5": sources["osm"]["fetch"]["md5"], "bbox": bbox})
     else:

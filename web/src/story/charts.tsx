@@ -5,8 +5,9 @@
  * every multi-series chart, sparing direct labels, text in text colours (never
  * the series colour), hover tooltips, and a data table for every chart.
  */
+import { scaleLinear } from "d3-scale";
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { cssRGB, JB, NEUTRAL, RAMP, SG, type RGB } from "../lib/colors";
+import { cssRGB, JB, RAMP, SG, type RGB } from "../lib/colors";
 import { pct } from "../lib/format";
 import "./charts.css";
 
@@ -27,8 +28,7 @@ function useWidth(min = 280, fallback = 560): [React.RefObject<HTMLElement | nul
   return [ref, w];
 }
 
-export const CITY_COLOR: Record<"sg" | "jb", RGB> = { sg: SG, jb: JB };
-export const CITY_NAME: Record<"sg" | "jb", string> = { sg: "Singapore", jb: "Johor Bahru" };
+import { CITY_COLOR, CITY_NAME } from "./cities";
 
 /** Bar with a 4px rounded data end and a square baseline, as an SVG path. */
 function barPath(x0: number, x1: number, y: number, h: number, r = 4): string {
@@ -379,10 +379,13 @@ export function GainCurve({ series, caption }: { series: { key: "sg" | "jb"; poi
   const H = 220;
   const m = { l: 56, r: 16, t: 12, b: 30 };
   const xMax = Math.max(...series.flatMap((s) => s.points.map((p) => p[0])), 1);
-  const yMax = Math.max(...series.flatMap((s) => s.points.map((p) => p[1])), 1) * 1.1;
+  const yScale = scaleLinear()
+    .domain([0, Math.max(...series.flatMap((s) => s.points.map((p) => p[1])), 1000)])
+    .nice(4);
+  const yMax = yScale.domain()[1];
   const sx = (v: number) => m.l + (v / xMax) * (W - m.l - m.r);
   const sy = (v: number) => H - m.b - (v / yMax) * (H - m.t - m.b);
-  const ticks = [0, yMax / 3, (2 * yMax) / 3, yMax].map((v) => Math.round(v / 1000) * 1000);
+  const ticks = yScale.ticks(4);
   return (
     <figure className="viz" ref={ref}>
       <Legend items={series.map((s) => ({ label: CITY_NAME[s.key], color: CITY_COLOR[s.key], kind: "line" as const }))} />
@@ -425,7 +428,7 @@ export function GainCurve({ series, caption }: { series: { key: "sg" | "jb"; poi
   );
 }
 
-export const NEUTRAL_RGB = NEUTRAL;
+
 
 // --------------------------------------------------------------------------- threshold line chart
 

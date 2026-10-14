@@ -102,7 +102,7 @@ export function Methods() {
             <p>
               <strong>Study area.</strong> Singapore: the 55 planning areas (URA Master Plan 2019), residents from the Census of Population 2020 by subzone. Johor Bahru: the ten state
               constituencies N.40–N.49 (Tiram, Puteri Wangsa, Johor Jaya, Permas, Larkin, Stulang, Perling, Kempas, Skudai, Kota Iskandar), covering Johor Bahru, Iskandar Puteri
-              and Pasir Gudang, population from the Malaysian Population and Housing Census 2020. Analysis grid: H3 resolution 10 hexagons (≈0.015 km², ≈ 76 m edge).
+              and Pasir Gudang, population from the Malaysian Population and Housing Census 2020. Analysis grid: H3 resolution 10 hexagons (≈0.015 km², ≈66 m edge).
             </p>
             <p>
               <strong>Not in scope.</strong> Travel by car, cycling, quality or price of services, opening hours, heat and shade, perceived safety, and trips across the border inside

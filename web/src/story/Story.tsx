@@ -10,7 +10,7 @@ import { loadCrossBorder, loadNeighbourhoods, loadParkingSites, loadScenario, lo
 import type { CityId, Meta, Summary } from "../lib/types";
 import { hexLayer, isochroneLayer, markerLayer } from "../map/layers";
 import { MapKey } from "./MapKey";
-import { SCENES, type Scene } from "./scenes";
+import { SCENES } from "./scenes";
 import { Chapters, type StoryState } from "./sections";
 import "./story.css";
 import { StoryMap, type MapLabel } from "./StoryMap";
@@ -70,9 +70,8 @@ export function Story() {
   }, []);
 
   const active = useActiveStep(root, [summary !== null]);
-  const lastScene = useRef<Scene>(SCENES.hero);
-  const scene = active.scene === "hold" ? lastScene.current : (SCENES[active.scene] ?? SCENES.hero);
-  lastScene.current = scene;
+  // essays ("hold") cover the map: it keeps showing the last real scene underneath
+  const scene = SCENES[active.held] ?? SCENES.hero;
 
   // lazy data for the later chapters (fetched once the reader gets close)
   const wantBorder = active.scene.startsWith("border") || active.index >= 8;
@@ -146,7 +145,7 @@ export function Story() {
     const g = aggregate(sfc.cells.h3, state.after ? gain : new Float32Array(sfc.cells.n), sfc.weights, 9);
     const gm = new Map(g.map((x) => [x.hex, x.value]));
     return base.map((b) => ({ ...b, gain: gm.get(b.hex) ?? 0 }));
-  }, [parkingCity, meta, surfaces, scenario, state.hubs, state.after, speed, k]);
+  }, [parkingCity, meta, surfaces, scenario, state, speed, k]);
 
   const sitePoints: SitePoint[] = useMemo(() => {
     if (!sites || !parkingCity) return [];
@@ -252,7 +251,7 @@ export function Story() {
     <div className="story" ref={root}>
       <Header path="/" overlay />
       <StoryMap scene={scene} layers={layers} labels={labels} mobile={mobile} />
-      {scene.key && active.scene !== "hold" ? (
+      {scene.key && active.scene !== "hold" && !(mobile && scene.id === "hero") ? (
         <MapKey kind={scene.key} k={k} borderMode={borderMode} hubs={state.hubs} after={state.after} extruded={scene.surface === "extruded"} />
       ) : null}
       <Chapters

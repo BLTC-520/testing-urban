@@ -6,8 +6,16 @@ import { useEffect, useState } from "react";
  * rather than intersection ratios keeps the answer stable for tall steps and
  * fast scrolling, and works the same with keyboard and touch scrolling.
  */
-export function useActiveStep(root: React.RefObject<HTMLElement | null>, deps: unknown[] = []): { scene: string; index: number } {
-  const [active, setActive] = useState({ scene: "hero", index: 0 });
+export interface ActiveStep {
+  /** scene of the step under the reading line ("hold" for essays) */
+  scene: string;
+  index: number;
+  /** the nearest map scene at or above it: what the map shows while an essay covers it */
+  held: string;
+}
+
+export function useActiveStep(root: React.RefObject<HTMLElement | null>, deps: unknown[] = []): ActiveStep {
+  const [active, setActive] = useState<ActiveStep>({ scene: "hero", index: 0, held: "hero" });
   useEffect(() => {
     const el = root.current;
     if (!el) return;
@@ -23,7 +31,15 @@ export function useActiveStep(root: React.RefObject<HTMLElement | null>, deps: u
         else break;
       }
       const scene = list[best]?.dataset.scene ?? "hero";
-      setActive((prev) => (prev.index === best && prev.scene === scene ? prev : { scene, index: best }));
+      let held = "hero";
+      for (let i = best; i >= 0; i--) {
+        const sc = list[i].dataset.scene;
+        if (sc && sc !== "hold") {
+          held = sc;
+          break;
+        }
+      }
+      setActive((prev) => (prev.index === best && prev.scene === scene && prev.held === held ? prev : { scene, index: best, held }));
       list.forEach((s, i) => s.classList.toggle("is-active", i === best));
     };
     const on = () => {
