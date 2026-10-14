@@ -54,6 +54,14 @@ and four in-page tools — `get_city_summary`, `find_neighbourhoods`, `walk_from
 exposed through WebMCP where the browser supports it and as `window.sgjb`. Every Explorer view has
 its own URL, e.g. [healthcare within 10 minutes for slower walkers](https://sgjburbansideprojects.brianhar.site/explore/?metric=healthcare&minutes=10&speed=slow).
 
+## My contribution
+
+**[Brian Har](https://brianhar.site)**. Role: concept and brief, research questions, choice of cities and scenarios, design direction, and review of the results. Built with
+Claude Code, an AI coding assistant, which wrote the pipeline and the site under my direction.
+
+Dates: October 2026 (OpenStreetMap snapshot 5 October 2026; first public release 14 October 2026). The
+[About page](https://sgjburbansideprojects.brianhar.site/about/) explains how it was made, the three decisions behind the method and how the results were checked.
+
 ## Portfolio summary
 
 1. **Problem.** Most 15-minute-city maps draw circles and count shops. This project measures real

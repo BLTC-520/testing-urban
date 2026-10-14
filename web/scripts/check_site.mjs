@@ -71,6 +71,17 @@ try {
     assert.match(html, /<title>Explorer — /);
     assert.ok(textOf(html).includes("What can people reach on foot?"));
   });
+  await check("about HTML names the author, the AI assistance and the three decisions", async () => {
+    const html = await get("/about/");
+    const t = textOf(html);
+    assert.match(html, /<title>About — /);
+    for (const s of ["Brian Har", "Claude Code", "Measure walks on the street network, not circles", "Place people with census totals and a settlement map", "A static site that computes in the browser"]) {
+      assert.ok(t.includes(s), `missing "${s}"`);
+    }
+  });
+  await check("about.md exists", async () => {
+    assert.match(await get("/about.md"), /^# Who made this, and how$/m);
+  });
   await check("every page advertises its Markdown copy and llms.txt", async () => {
     for (const [p, md] of [["/", "/index.md"], ["/methods/", "/methods.md"], ["/explore/", "/explore.md"]]) {
       const html = await get(p);
@@ -100,7 +111,7 @@ try {
     assert.match(robots, /^Allow: \/$/m);
     assert.match(robots, /^Sitemap: https:\/\/sgjburbansideprojects\.brianhar\.site\/sitemap\.xml$/m);
     const sitemap = await get("/sitemap.xml");
-    assert.equal((sitemap.match(/<loc>/g) ?? []).length, 3);
+    assert.equal((sitemap.match(/<loc>/g) ?? []).length, 4);
     const cat = JSON.parse(await get("/data/index.json"));
     assert.ok(cat.files.length >= 5 && cat.files.every((f) => f.bytes > 0));
   });

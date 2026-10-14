@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 
 /**
  * Minimal history router. Pages live at real paths ("/", "/explore/",
- * "/methods/") so each one is its own prerendered HTML file that crawlers
- * and agents can fetch; query strings carry Explorer state. Old hash links
- * ("#/explore?city=jb") are rewritten to their path form on load.
+ * "/methods/", "/about/") so each one is its own prerendered HTML file that
+ * crawlers and agents can fetch; query strings carry Explorer state. Old hash
+ * links ("#/explore?city=jb") are rewritten to their path form on load.
  */
 export interface Route {
   path: string;
   params: URLSearchParams;
 }
 
-export const PAGES = ["/", "/explore", "/methods"] as const;
+export const PAGES = ["/", "/explore", "/methods", "/about"] as const;
 export type PagePath = (typeof PAGES)[number];
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");

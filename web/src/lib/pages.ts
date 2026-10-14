@@ -19,6 +19,11 @@ export const PAGE_META: Record<PagePath, { title: string; description: string }>
     description:
       "Data sources, street-network model, accessibility formulas, population model, validation, sensitivity analysis and limitations of the Singapore / Johor Bahru 15-minute city study.",
   },
+  "/about": {
+    title: `About — ${SITE}`,
+    description:
+      "Who made the Singapore / Johor Bahru 15-Minute City Explorer, how it was built with an AI coding assistant, the three main decisions behind the method and how its results were checked.",
+  },
 };
 
 export function applyPageMeta(path: string): void {

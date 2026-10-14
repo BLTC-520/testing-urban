@@ -1,0 +1,188 @@
+/*
+ * About page: the Methods page's type scale, spacing and surfaces, with a
+ * contents column beside one reading column. Scoped under .about so the
+ * lazy-loaded page does not restyle anything else.
+ */
+.about {
+  min-height: 100vh;
+  background: var(--ink-1);
+}
+
+.about-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--space-7);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: calc(var(--header-h) + var(--space-7)) clamp(16px, 4vw, 48px) var(--space-9);
+}
+
+.about-layout > * {
+  min-width: 0; /* long lines wrap inside the column rather than widening the page */
+}
+
+.about-toc {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-6));
+  align-self: start;
+}
+
+.about-toc ol {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
+  border-left: 1px solid var(--line);
+}
+
+.about-toc a {
+  display: block;
+  padding: 5px 0 5px 14px;
+  margin-left: -1px;
+  border-left: 1px solid transparent;
+  font-size: var(--step--1);
+  color: var(--paper-2);
+  text-decoration: none;
+}
+
+.about-toc a:hover {
+  color: var(--paper-0);
+  border-left-color: var(--paper-2);
+}
+
+.about-body {
+  max-width: 780px;
+}
+
+.about-head h1 {
+  font-size: var(--step-4);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.about-head .lede {
+  font-size: var(--step-1);
+  color: var(--paper-1);
+}
+
+.about-section {
+  padding-top: var(--space-7);
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--line);
+  scroll-margin-top: calc(var(--header-h) + 12px);
+}
+
+.about-section h2 {
+  font-size: var(--step-3);
+  margin-bottom: var(--space-4);
+}
+
+.about-section p,
+.about-section li {
+  color: var(--paper-1);
+}
+
+.about-section strong {
+  color: var(--paper-0);
+  font-weight: 500;
+}
+
+.about-section code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--ink-3);
+  color: var(--paper-0);
+}
+
+/* credit block: the name in the display face, then labelled lines */
+.credit {
+  padding: var(--space-5);
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+}
+
+.credit p:last-child {
+  margin-bottom: 0;
+}
+
+.credit-name {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
+}
+
+.credit-name a {
+  color: var(--paper-0);
+}
+
+.about-steps {
+  padding-left: 1.4em;
+}
+
+.about-steps li {
+  margin-bottom: var(--space-3);
+}
+
+.about-steps li::marker {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--paper-2);
+}
+
+.about-list {
+  padding-left: 1.1em;
+}
+
+.about-list li {
+  margin-bottom: var(--space-3);
+}
+
+/* one card per decision: what was decided, the alternatives, why, the trade-off */
+.decision {
+  margin: var(--space-5) 0;
+  padding: var(--space-5);
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-1);
+}
+
+.decision h3 {
+  font-size: var(--step-2);
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
+  color: var(--paper-0);
+}
+
+.decision p:last-child {
+  margin-bottom: 0;
+}
+
+.about-loading {
+  padding: calc(var(--header-h) + var(--space-9)) clamp(16px, 4vw, 48px);
+  color: var(--paper-2);
+}
+
+@media (max-width: 860px) {
+  .about-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .about-toc {
+    position: static;
+  }
+  .about-toc ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    border-left: none;
+  }
+  .about-toc a {
+    padding: 4px 8px;
+    border-left: none;
+    border-radius: 999px;
+    background: var(--ink-2);
+  }
+}

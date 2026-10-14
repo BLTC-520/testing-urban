@@ -26,6 +26,7 @@ const PAGES = [
   { path: "/", out: "index.html", md: "index.md", ready: ".story .hero h1, .story h1", scroll: true },
   { path: "/explore/", out: "explore/index.html", md: "explore.md", ready: "#explorer-panel" },
   { path: "/methods/", out: "methods/index.html", md: "methods.md", ready: "#architecture .katex, #architecture" },
+  { path: "/about/", out: "about/index.html", md: "about.md", ready: ".about h1" },
 ];
 
 const DATA = [
@@ -123,6 +124,7 @@ writeFileSync(
 const story = results.find((r) => r.path === "/");
 const methods = results.find((r) => r.path === "/methods/");
 const explore = results.find((r) => r.path === "/explore/");
+const about = results.find((r) => r.path === "/about/");
 
 const exploreMd = [
   `# Explorer — interactive map`,
@@ -155,6 +157,7 @@ const exploreMd = [
 
 writeFileSync(join(DIST, story.md), story.markdown);
 writeFileSync(join(DIST, methods.md), methods.markdown);
+writeFileSync(join(DIST, about.md), about.markdown);
 writeFileSync(join(DIST, explore.md), exploreMd);
 
 const catalogue = {
@@ -190,7 +193,8 @@ const llms = [
   `- [Story](${pageUrl("/")}): the findings as a scrolling narrative ([Markdown](${pageUrl("/" + story.md)}))`,
   `- [Explorer](${pageUrl("/explore/")}): interactive map; every view has a URL ([Markdown with URL parameters](${pageUrl("/" + explore.md)}))`,
   `- [Methods](${pageUrl("/methods/")}): data, formulas, validation, sensitivity, limitations ([Markdown](${pageUrl("/" + methods.md)}))`,
-  `- [Full text](${pageUrl("/llms-full.txt")}): Story and Methods in one file`,
+  `- [About](${pageUrl("/about/")}): who made the study, how it was built, three key decisions and how the results were checked ([Markdown](${pageUrl("/" + about.md)}))`,
+  `- [Full text](${pageUrl("/llms-full.txt")}): Story, About, Methods and Explorer in one file`,
   ``,
   `## Data`,
   ``,
@@ -212,7 +216,7 @@ const llms = [
   ``,
 ].join("\n");
 writeFileSync(join(DIST, "llms.txt"), llms);
-writeFileSync(join(DIST, "llms-full.txt"), [llms, "\n---\n", story.markdown, "\n---\n", methods.markdown, "\n---\n", exploreMd].join("\n"));
+writeFileSync(join(DIST, "llms-full.txt"), [llms, "\n---\n", story.markdown, "\n---\n", about.markdown, "\n---\n", methods.markdown, "\n---\n", exploreMd].join("\n"));
 
 writeFileSync(
   join(DIST, "robots.txt"),
