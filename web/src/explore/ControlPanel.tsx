@@ -3,6 +3,7 @@ import { Badge, Field, Segmented, Switch } from "../components/Controls";
 import { CATEGORY_COLOR, cssRGB } from "../lib/colors";
 import { loadNeighbourhoods } from "../lib/data";
 import { pct } from "../lib/format";
+import { href } from "../lib/router";
 import { isNonBaseline, useExplorer, type MetricId, type ScenarioId } from "../lib/store";
 import type { CityId, Meta, Summary } from "../lib/types";
 import type { Surface } from "./useSurface";
@@ -15,7 +16,7 @@ export function ControlPanel({
   meta: Meta;
   summary: Summary | null;
   surfaces: Partial<Record<CityId, Surface>>;
-  onFly: (center: [number, number], zoom: number) => void;
+  onFly: (center: [number, number], zoom: number, unitId?: string) => void;
 }) {
   const s = useExplorer();
   const [units, setUnits] = useState<{ id: string; name: string; city: CityId; center: [number, number] }[]>([]);
@@ -198,7 +199,7 @@ export function ControlPanel({
             </Field>
             <p className="small muted">
               One assumption is varied at a time against the baseline. The full grid of {""}
-              combinations is summarised in the robustness table on the <a href="#/methods">Methods</a> page.
+              combinations is summarised in the robustness table on the <a href={href("/methods", undefined, "sensitivity")}>Methods</a> page.
             </p>
           </div>
         ) : null}
@@ -230,10 +231,11 @@ export function ControlPanel({
       <Field label="Jump to">
         <select
           className="select"
+          aria-label="Jump to a neighbourhood"
           defaultValue=""
           onChange={(e) => {
             const u = units.find((x) => x.id === e.target.value);
-            if (u) onFly(u.center, 13);
+            if (u) onFly(u.center, 13, u.id);
           }}
         >
           <option value="" disabled>
@@ -255,7 +257,7 @@ export function ControlPanel({
 
       <p className="panel-foot small muted">
         OpenStreetMap snapshot {meta.osm_snapshot} · Census 2020 (SingStat, DOSM) · HRSL population ·{" "}
-        <a href="#/methods">how this is calculated</a>
+        <a href={href("/methods")}>how this is calculated</a>
       </p>
     </div>
   );

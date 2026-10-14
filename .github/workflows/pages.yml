@@ -30,7 +30,9 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
-      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:site
+      - run: npm run check:site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Badge, type Evidence } from "../components/Controls";
 import { Header } from "../components/Header";
 import { Tex } from "../components/Tex";
-import { loadMeta, loadSummary } from "../lib/data";
+import { loadMeta, loadSummary, peekMeta, peekSummary } from "../lib/data";
 import { int, pct } from "../lib/format";
 import type { Meta, Summary } from "../lib/types";
 import "./methods.css";
@@ -42,13 +42,20 @@ function Formula({ tex, note }: { tex: string; note?: ReactNode }) {
 }
 
 export function Methods() {
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [summary, setSummary] = useState<Summary | null>(null);
+  const [meta, setMeta] = useState<Meta | null>(peekMeta);
+  const [summary, setSummary] = useState<Summary | null>(peekSummary);
   const [active, setActive] = useState<string>("question");
   useEffect(() => {
     loadMeta().then(setMeta);
     loadSummary().then(setSummary);
   }, []);
+  // a deep link to a section (/methods/#metrics) lands there once the data-driven content is in place
+  const ready = meta !== null && summary !== null;
+  useEffect(() => {
+    if (!ready || !window.location.hash) return;
+    const el = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    if (el) requestAnimationFrame(() => el.scrollIntoView());
+  }, [ready]);
   useEffect(() => {
     const on = () => {
       let cur: string = TOC[0][0];
@@ -73,7 +80,7 @@ export function Methods() {
           <ol>
             {TOC.map(([id, label]) => (
               <li key={id}>
-                <a href={`#/methods`} onClick={(e) => (e.preventDefault(), document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }))} aria-current={active === id ? "true" : undefined}>
+                <a href={`#${id}`} onClick={(e) => (e.preventDefault(), history.replaceState(null, "", `#${id}`), document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }))} aria-current={active === id ? "true" : undefined}>
                   {label}
                 </a>
               </li>

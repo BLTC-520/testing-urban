@@ -6,7 +6,7 @@ import { useIsochrone } from "../explore/useIsochrone";
 import { useHexData, useSurfaces, type SurfaceParams } from "../explore/useSurface";
 import { aggregate, categoriesReached, NO_DATA, type Aggregate } from "../lib/access";
 import { doorToPlatform, type Mode } from "../lib/crossborder";
-import { loadCrossBorder, loadNeighbourhoods, loadParkingSites, loadScenario, loadMeta, loadSummary, type CrossBorder } from "../lib/data";
+import { loadCrossBorder, loadNeighbourhoods, loadParkingSites, loadScenario, loadMeta, loadSummary, peekMeta, peekNeighbourhoods, peekSummary, type CrossBorder } from "../lib/data";
 import type { CityId, Meta, Summary } from "../lib/types";
 import { hexLayer, isochroneLayer, markerLayer } from "../map/layers";
 import { MapKey } from "./MapKey";
@@ -43,9 +43,9 @@ function useMedia(q: string): boolean {
 export function Story() {
   const root = useRef<HTMLDivElement>(null);
   const mobile = useMedia("(max-width: 760px)");
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [units, setUnits] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [meta, setMeta] = useState<Meta | null>(peekMeta);
+  const [summary, setSummary] = useState<Summary | null>(peekSummary);
+  const [units, setUnits] = useState<GeoJSON.FeatureCollection | null>(peekNeighbourhoods);
   const [cb, setCb] = useState<CrossBorder | null>(null);
   const [scenario, setScenario] = useState<Partial<Record<CityId, Record<string, Float32Array>>>>({});
   const [sites, setSites] = useState<GeoJSON.FeatureCollection | null>(null);

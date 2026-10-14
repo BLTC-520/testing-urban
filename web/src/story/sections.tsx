@@ -10,6 +10,7 @@ import { CATEGORY_COLOR, cssRGB, GAIN, JB, NEUTRAL, SG } from "../lib/colors";
 import { shareWithin, sortedByMinutes, weightedMedian, type Mode } from "../lib/crossborder";
 import type { CrossBorder } from "../lib/data";
 import { int, people, pct } from "../lib/format";
+import { href } from "../lib/router";
 import type { CategoryId, CityId, Meta, Summary } from "../lib/types";
 import type { IsoState } from "../explore/useIsochrone";
 import {
@@ -971,10 +972,10 @@ function Ending({ meta }: { meta: Meta }) {
           <h2>Walk any street in either city</h2>
           <p>Click anywhere on the map to see your own walk-shed, change the definitions, slow the walker down, or switch on the Parking-to-Proximity scenario.</p>
           <div className="cta-row">
-            <a className="cta primary" href="#/explore">
+            <a className="cta primary" href={href("/explore")}>
               Open the explorer
             </a>
-            <a className="cta" href="#/methods">
+            <a className="cta" href={href("/methods")}>
               Read the methods
             </a>
           </div>
@@ -1002,7 +1003,7 @@ function Ending({ meta }: { meta: Meta }) {
                   </li>
                 ))}
               </ul>
-              <a className="small" href="#/methods">
+              <a className="small" href={href("/methods")}>
                 Full data register and licences →
               </a>
             </div>

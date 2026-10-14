@@ -1,9 +1,10 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// Relative base so the static build works from any path (GitHub Pages, Netlify, a local folder).
+// Pages are served at real paths (/, /explore/, /methods/), so assets need an absolute base.
+// Deploying under a sub-path (e.g. username.github.io/repo/) → BASE_PATH=/repo/ npm run build:site
 export default defineConfig({
-  base: "./",
+  base: process.env.BASE_PATH ?? "/",
   plugins: [react()],
   build: {
     target: "es2022",

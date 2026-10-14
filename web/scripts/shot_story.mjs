@@ -13,7 +13,7 @@ const page = await browser.newPage({ viewport: { width: +w, height: +h }, device
 const logs = [];
 page.on("console", (m) => m.type() !== "log" && logs.push(`[${m.type()}] ${m.text()}`));
 page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}`));
-await page.goto(base + "#/", { waitUntil: "networkidle" });
+await page.goto(base, { waitUntil: "networkidle" });
 await page.waitForTimeout(+wait);
 const n = await page.evaluate(() => document.querySelectorAll("[data-scene]").length);
 for (let i = 0; i < n; i++) {

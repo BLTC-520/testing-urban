@@ -5,12 +5,12 @@ const BASE = import.meta.env.BASE_URL;
 const url = (p: string) => `${BASE}data/${p}`;
 
 const cache = new Map<string, Promise<unknown>>();
+const resolved = new Map<string, unknown>();
 
 function once<T>(key: string, load: () => Promise<T>): Promise<T> {
   if (!cache.has(key)) {
     const p = load();
-    // let a failed request be retried later
-    p.catch(() => cache.delete(key));
+    p.then((v) => resolved.set(key, v)).catch(() => cache.delete(key)); // let a failed request be retried later
     cache.set(key, p);
   }
   return cache.get(key) as Promise<T>;
@@ -32,6 +32,11 @@ export const loadMeta = () => once("meta", () => json<Meta>("meta.json"));
 export const loadSummary = () => once("summary", () => json<Summary>("summary.json"));
 export const loadNeighbourhoods = () => once("nb", () => json<GeoJSON.FeatureCollection>("neighbourhoods.geojson"));
 export const loadParkingSites = () => once("parking", () => json<GeoJSON.FeatureCollection>("parking_sites.geojson"));
+
+/** Already-loaded data, for a first render that matches the prerendered page (null until loaded). */
+export const peekMeta = () => (resolved.get("meta") as Meta | undefined) ?? null;
+export const peekSummary = () => (resolved.get("summary") as Summary | undefined) ?? null;
+export const peekNeighbourhoods = () => (resolved.get("nb") as GeoJSON.FeatureCollection | undefined) ?? null;
 
 /** Per-cell data for one city, decoded into convenient typed arrays. */
 export interface Cells {

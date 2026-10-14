@@ -44,6 +44,16 @@ at least 0.5 ha, public transport, everyday food. Walking on the mapped street n
 |---|---|---|
 | ![A walk-shed from Taman Johor Jaya on the street network inside its 1.08 km circle](docs/img/walk-jb.jpg) | ![Minutes from Johor Bahru homes to the first Singapore MRT platform with the RTS Link and an autonomous feeder](docs/img/border-av.jpg) | ![Cells newly reaching all six essentials when 25 car parks become neighbourhood hubs in Singapore](docs/img/parking-sg.jpg) |
 
+## Readable by people, search engines and AI agents
+
+Every page is prerendered to static HTML at build time, so the text, tables and formulas are there
+without JavaScript; the maps load on top. For agents the site also publishes
+[`/llms.txt`](https://sgjburbansideprojects.brianhar.site/llms.txt) (a guide with the key numbers),
+Markdown copies of each page, a [data catalogue](https://sgjburbansideprojects.brianhar.site/data/index.json),
+and four in-page tools — `get_city_summary`, `find_neighbourhoods`, `walk_from`, `open_explorer` —
+exposed through WebMCP where the browser supports it and as `window.sgjb`. Every Explorer view has
+its own URL, e.g. [healthcare within 10 minutes for slower walkers](https://sgjburbansideprojects.brianhar.site/explore/?metric=healthcare&minutes=10&speed=slow).
+
 ## Portfolio summary
 
 1. **Problem.** Most 15-minute-city maps draw circles and count shops. This project measures real
@@ -77,7 +87,8 @@ make osm                   # OSM extract by streaming the dated planet, or:
 make osm OSM_FROM=malaysia-singapore-brunei-latest.osm.pbf   # cut from a Geofabrik download
 make pipeline              # analysis → data/derived, web/public/data, web/public/tiles
 make dev                   # http://localhost:5173
-make web                   # static site in web/dist (deploy anywhere)
+make web                   # static site in web/dist, every page prerendered (needs Playwright's Chromium)
+make check                 # end-to-end checks of web/dist: no-JS HTML, URLs, agent tools
 make test                  # pytest + vitest
 ```
 
@@ -98,7 +109,7 @@ docs/              case study and architecture
 
 * [Case study](docs/case-study.md) — problem, research, data, method, design, findings, limitations, next steps
 * [Architecture](docs/architecture.md) — pipeline, static artifacts, rendering, testing
-* Methods page in the site (`#/methods`) — formulas, data register, audits, sensitivity
+* [Methods](https://sgjburbansideprojects.brianhar.site/methods/) page in the site — formulas, data register, audits, sensitivity
 * [Data licences](DATA_LICENSES.md) — sources and required attributions
 
 ## Licence
