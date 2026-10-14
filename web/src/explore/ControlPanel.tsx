@@ -5,6 +5,7 @@ import { loadNeighbourhoods } from "../lib/data";
 import { pct } from "../lib/format";
 import { href } from "../lib/router";
 import { isNonBaseline, useExplorer, type MetricId, type ScenarioId } from "../lib/store";
+import { networkMask } from "../lib/unitStats";
 import type { CityId, Meta, Summary } from "../lib/types";
 import type { Surface } from "./useSurface";
 
@@ -63,20 +64,21 @@ export function ControlPanel({
       if (!sfc) continue;
       if (sfc.shares) out[c] = sfc.shares.complete;
       else {
-        // share of people within the threshold of this category
+        // share of people within the threshold of this category, over the same base as the
+        // headline: everyone whose home joins the network, even if this category is out of range
+        const network = networkMask(sfc.d, meta.basket, sfc.cells.n);
         let tot = 0;
         let ok = 0;
         for (let i = 0; i < sfc.cells.n; i++) {
-          const v = sfc.value[i];
-          if (Number.isNaN(v)) continue;
+          if (!network[i]) continue;
           tot += sfc.weights[i];
-          if (v <= s.threshold) ok += sfc.weights[i];
+          if (sfc.value[i] <= s.threshold) ok += sfc.weights[i];
         }
         out[c] = tot ? ok / tot : NaN;
       }
     }
     return out;
-  }, [surfaces, s.threshold]);
+  }, [surfaces, s.threshold, meta.basket]);
 
   const metricLabel = metricOptions.find((m) => m.id === s.metric)?.label ?? "";
   const who = s.people === "elderly" ? "residents aged 65+" : "residents";
@@ -93,7 +95,7 @@ export function ControlPanel({
           <div key={c} className={`pstat ${c}`}>
             <div className="pstat-head">
               <span className="pstat-city">{meta.cities[c].name}</span>
-              <span className="pstat-value">{pct(stat[c])}</span>
+              <span className="pstat-value">{pct(stat[c], 1)}</span>
             </div>
             <div className="pstat-bar">
               <span style={{ width: `${Math.max(0, Math.min(1, stat[c] ?? 0)) * 100}%` }} />

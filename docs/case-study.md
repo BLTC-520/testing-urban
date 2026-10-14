@@ -178,6 +178,22 @@ partly a mapping artefact; in Johor Bahru, where the gaps are spread across the 
 425 car parks are mapped, 50 hubs lift complete access by 12 points but leave three in four
 residents short.
 
+**One footpath (local, one neighbourhood).** The smallest intervention changes the street network
+itself. Every dead end of the Johor Bahru walk network was paired with points within 80 m in a
+straight line that are at least 400 m further away on foot (9,893 pairs). Links that would cross a
+building (2 m clearance), water, a river, canal or stream, a railway, a primary or trunk road,
+another walkable way or a mapped wall or fence, or a school, hospital, cemetery, military or prison
+site, were dropped, as were links ending on service roads, tracks or corridors, which mostly lead
+into compounds (an early version picked a back gate into a private hospital's grounds); 1,488
+remained. Because a shortest path uses a new edge at most once, each link was scored exactly from
+the baseline distance fields and two bounded searches (checked against full recomputation in the
+tests). The best is a 75 m path in Bukit Indah (Perling) between the end of Jalan Bestari 10/1 and
+Jalan Penglin, 1,402 m apart on foot today: about 2,200 residents would gain an essential within 15
+minutes and would then have all six. Most were one essential short, usually healthcare: for the
+1,900 who gain it, the median walk to a clinic, hospital or pharmacy falls from 20 to 12 minutes. The gain is about 880 at a 10-minute limit and 1,600 at 0.9 m/s. It is a desk study: who
+owns the strip, whether an unmapped wall or drain is in the way, and how residents of a quiet street
+feel about opening it can only be checked on site, and the Story lists those checks.
+
 ## 10. Implications for future city design
 
 1. **Design for the slowest walker.** Signal timing, crossing distances and kerb design for an

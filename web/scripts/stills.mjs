@@ -32,7 +32,8 @@ try {
   const scenes = await page.evaluate(() =>
     [...document.querySelectorAll("[data-scene]")].map((el, i) => ({ i, scene: el.dataset.scene })).filter((s) => s.scene !== "hold"),
   );
-  const done = new Set();
+  // the border lab shows the still of whichever mode is selected
+  const done = new Set(["border-lab"]);
   for (const { i, scene } of scenes) {
     if (done.has(scene)) continue;
     done.add(scene);

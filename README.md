@@ -46,6 +46,11 @@ so the direction of the finding cannot flip.
 * **Parking to Proximity.** Turning 25 well-chosen car parks per city into neighbourhood hubs would
   give 393,500 more Singapore residents and 152,800 more Johor Bahru residents all six essentials within
   15 minutes (a scenario, with its caveats).
+* **One footpath.** A search of every dead end in Johor Bahru for streets that are close in a
+  straight line but far on foot finds a 75 m gap in Bukit Indah (Perling): Jalan Bestari 10/1 and
+  Jalan Penglin are 1,402 m apart on foot today. A public path there would give about 2,200
+  residents all six essentials within 15 minutes; most were one essential short, usually healthcare. A desk study:
+  ownership, walls and drains must be checked on site.
 
 | Walk-shed vs. the 15-minute circle | RTS Link + autonomous feeder | Parking to Proximity |
 |---|---|---|
@@ -57,8 +62,10 @@ Every page is prerendered to static HTML at build time, so the text, tables and 
 without JavaScript; the maps load on top. For agents the site also publishes
 [`/llms.txt`](https://sgjburbansideprojects.brianhar.site/llms.txt) (a guide with the key numbers),
 Markdown copies of each page, a [data catalogue](https://sgjburbansideprojects.brianhar.site/data/index.json),
-and four in-page tools — `get_city_summary`, `find_neighbourhoods`, `walk_from`, `open_explorer` —
-exposed through WebMCP where the browser supports it and as `window.sgjb`. Every Explorer view has
+and five in-page tools — `get_city_summary`, `find_neighbourhoods`, `walk_from`,
+`get_footpath_scenario`, `open_explorer` — exposed through WebMCP where the browser supports it and
+as `window.sgjb`. Without WebGL the pages keep working: the Story shows a still of each scene and
+the Explorer a table of neighbourhoods. Every Explorer view has
 its own URL, e.g. [healthcare within 10 minutes for slower walkers](https://sgjburbansideprojects.brianhar.site/explore/?metric=healthcare&minutes=10&speed=slow).
 
 ## My contribution
@@ -107,7 +114,8 @@ make check                 # end-to-end checks of web/dist: no-JS HTML, URLs, ag
 make test                  # pytest + vitest
 ```
 
-Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios summary export basemap`.
+Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios footpath summary export basemap`.
+After the data or the Story's scenes change, regenerate the fallback stills with `cd web && npm run build && node scripts/stills.mjs`.
 
 ## Repository
 

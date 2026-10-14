@@ -182,6 +182,14 @@ try {
     await page.waitForFunction(() => location.search.includes("minutes=20"));
     assert.equal(new URL(page.url()).search, "?metric=healthcare&minutes=20&speed=slow");
   });
+  await check("Explorer panel shares use the published base (healthcare within 15 minutes)", async () => {
+    const summary = JSON.parse(await get("/data/summary.json"));
+    await page.goto(origin + "/explore/?metric=healthcare", { waitUntil: "networkidle" });
+    await page.waitForFunction(() => document.querySelectorAll(".pstat-value").length === 2 && ![...document.querySelectorAll(".pstat-value")].some((e) => e.textContent.includes("–")), null, { timeout: 30000 });
+    const shown = await page.$$eval(".pstat-value", (els) => els.map((e) => e.textContent.trim()));
+    const want = ["sg", "jb"].map((c) => `${(summary.cities[c].all.share_within_healthcare * 100).toFixed(1)}%`);
+    assert.deepEqual(shown, want);
+  });
   await check("a point in the URL is walked from (city inferred)", async () => {
     await page.goto(origin + "/explore/?lon=103.76463&lat=1.46297", { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.__explorer.getState().selection?.city === "jb", null, { timeout: 30000 });
