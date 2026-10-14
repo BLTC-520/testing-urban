@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORY_COLOR, cssRGB, GAIN, NEUTRAL } from "../lib/colors";
 import type { Footpath, XY } from "../lib/footpath";
 
@@ -9,11 +9,27 @@ import type { Footpath, XY } from "../lib/footpath";
  */
 const d = (pts: XY[], close = false) => (pts.length ? `M${pts.map((p) => `${p[0]},${-p[1]}`).join("L")}${close ? "Z" : ""}` : "");
 
+/** Metres per screen pixel, so text and markers keep a readable size at any width. */
+function useUnitsPerPixel(widthM: number) {
+  const ref = useRef<SVGSVGElement>(null);
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => e.contentRect.width > 0 && setK(widthM / e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [widthM]);
+  return [ref, k] as const;
+}
+
 export function FootpathFigure({ fp }: { fp: Footpath }) {
   const f = fp.figure;
   const [x0, y0, x1, y1] = f.box;
   const w = x1 - x0;
   const h = y1 - y0;
+  const [svgRef, k] = useUnitsPerPixel(w);
+  const px = (n: number) => n * k;
   const paths = useMemo(
     () => ({
       buildings: f.buildings.map((r) => d(r, true)).join(""),
@@ -35,7 +51,7 @@ export function FootpathFigure({ fp }: { fp: Footpath }) {
   const [la, lb] = f.link;
   const scale = Math.max(50, Math.round(w / 6 / 50) * 50);
   const label = (xy: XY, text: string, anchor: "start" | "end" | "middle" = "start", dy = 0) => (
-    <text x={xy[0]} y={-xy[1] + dy} textAnchor={anchor} className="fp-label">
+    <text x={xy[0] + (anchor === "start" ? px(6) : anchor === "end" ? -px(6) : 0)} y={-xy[1] + px(dy)} textAnchor={anchor} className="fp-label" style={{ fontSize: px(12.5), strokeWidth: px(3.5) }}>
       {text}
     </text>
   );
@@ -47,6 +63,7 @@ export function FootpathFigure({ fp }: { fp: Footpath }) {
   const bname = west ? c.b.street : c.a.street;
   return (
     <svg
+      ref={svgRef}
       className="fp-map"
       viewBox={`${x0} ${-y1} ${w} ${h}`}
       role="img"
@@ -61,7 +78,7 @@ export function FootpathFigure({ fp }: { fp: Footpath }) {
       <path d={paths.minor} className="fp-street minor" />
       <path d={paths.major} className="fp-street major" />
       {routes.map((r, i) => (
-        <path key={`b${i}`} d={d(r.before.xy)} className="fp-route before" style={{ stroke: cssRGB(NEUTRAL) }} />
+        <path key={`b${i}`} d={d(r.before.xy)} className="fp-route before" />
       ))}
       {routes.map((r, i) => (
         <path key={`a${i}`} d={d(r.after.xy)} className="fp-route after" style={{ stroke: cssRGB(GAIN) }} />
@@ -70,12 +87,12 @@ export function FootpathFigure({ fp }: { fp: Footpath }) {
       <path d={d(f.link)} className="fp-link" style={{ stroke: cssRGB(GAIN) }} />
       {[...dests.values()].map((p) => (
         <g key={p.name} transform={`translate(${p.xy[0]},${-p.xy[1]})`}>
-          <circle r={9} className="fp-dest" style={{ fill: cssRGB(CATEGORY_COLOR[p.essential] ?? NEUTRAL) }} vectorEffect="non-scaling-stroke" />
+          <circle r={px(6)} className="fp-dest" style={{ fill: cssRGB(CATEGORY_COLOR[p.essential] ?? NEUTRAL) }} vectorEffect="non-scaling-stroke" />
         </g>
       ))}
       {routes.map((r, i) => {
         const p = r.before.xy[0];
-        return <circle key={`h${i}`} cx={p[0]} cy={-p[1]} r={7} className="fp-home" vectorEffect="non-scaling-stroke" />;
+        return <circle key={`h${i}`} cx={p[0]} cy={-p[1]} r={px(5)} className="fp-home" vectorEffect="non-scaling-stroke" />;
       })}
       {label(aside, aname, "end", -14)}
       {label(bside, bname, "start", 22)}
@@ -84,14 +101,14 @@ export function FootpathFigure({ fp }: { fp: Footpath }) {
       ))}
       <g transform={`translate(${x0 + w * 0.04},${-y0 - h * 0.06})`} className="fp-scale">
         <path d={`M0,0h${scale}`} vectorEffect="non-scaling-stroke" />
-        <path d={`M0,-6v6M${scale},-6v6`} vectorEffect="non-scaling-stroke" />
-        <text x={scale / 2} y={-12} textAnchor="middle">
+        <path d={`M0,${-px(5)}v${px(5)}M${scale},${-px(5)}v${px(5)}`} vectorEffect="non-scaling-stroke" />
+        <text x={scale / 2} y={-px(9)} textAnchor="middle" style={{ fontSize: px(11) }}>
           {scale} m
         </text>
       </g>
-      <g transform={`translate(${x1 - w * 0.04},${-y1 + h * 0.08})`} className="fp-north">
-        <path d="M0,-22L8,4L0,-2L-8,4Z" />
-        <text y={24} textAnchor="middle">
+      <g transform={`translate(${x1 - w * 0.04},${-y1 + h * 0.08}) scale(${k})`} className="fp-north">
+        <path d="M0,-16L6,3L0,-1L-6,3Z" />
+        <text y={17} textAnchor="middle" style={{ fontSize: 11 }}>
           N
         </text>
       </g>
@@ -103,7 +120,7 @@ export function FootpathLegend() {
   return (
     <div className="viz-legend fp-legend" role="list">
       <span role="listitem">
-        <i className="sw line dashed" style={{ borderColor: cssRGB(NEUTRAL) }} /> Walk today
+        <i className="sw line dashed before" /> Walk today
       </span>
       <span role="listitem">
         <i className="sw line" style={{ borderColor: cssRGB(GAIN) }} /> Walk with the path

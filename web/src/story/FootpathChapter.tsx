@@ -69,7 +69,7 @@ export function FootpathChapter({ meta, n }: { meta: Meta; n: string }) {
               </div>
               <div className="fp-figure">
                 <div className="fp-value">{about(m15.newly_complete)}</div>
-                <div className="fp-text">of them would then reach all six</div>
+                <div className="fp-text">would then have all six essentials within 15 minutes</div>
               </div>
               <div className="fp-figure">
                 <div className="fp-value">{about(c.changes.residents_walk_5min_shorter)}</div>
@@ -125,7 +125,7 @@ export function FootpathChapter({ meta, n }: { meta: Meta; n: string }) {
             </ul>
 
             <p>
-              The result holds under other assumptions: at a 10-minute limit {about(c.metrics["10min"].residents_gaining)} residents gain an essential, at 20 minutes{" "}
+              The size of the gain depends on the assumptions, but it does not vanish: at a 10-minute limit {about(c.metrics["10min"].residents_gaining)} residents gain an essential, at 20 minutes{" "}
               {about(c.metrics["20min"].residents_gaining)}, and walking at {meta.accessibility.walk_speed_mps.slow} m/s {about(c.metrics["15min_slow"].residents_gaining)}.{" "}
               {fp.alternatives.length} other places in Johor Bahru would each give {about(fp.alternatives[fp.alternatives.length - 1].metrics["15min"].residents_gaining)} to{" "}
               {about(fp.alternatives[0].metrics["15min"].residents_gaining)} residents a new essential; they are listed on the{" "}

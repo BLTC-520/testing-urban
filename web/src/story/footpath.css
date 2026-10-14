@@ -100,8 +100,10 @@
 }
 
 .fp-route.before {
+  stroke: var(--paper-0);
+  stroke-opacity: 0.85;
   stroke-width: 2;
-  stroke-dasharray: 6 5;
+  stroke-dasharray: 5 4;
 }
 
 .fp-route.after {
@@ -137,11 +139,9 @@
 .fp-label {
   fill: var(--paper-0);
   font-family: var(--font-sans);
-  font-size: 15px;
   font-weight: 600;
   paint-order: stroke;
   stroke: var(--ink-0);
-  stroke-width: 4px;
   stroke-linejoin: round;
 }
 
@@ -155,7 +155,6 @@
 .fp-north text {
   fill: var(--paper-1);
   font-family: var(--font-mono);
-  font-size: 13px;
 }
 
 .fp-north path {
@@ -174,6 +173,10 @@
 
 .fp-legend i.line.dashed {
   border-top-style: dashed;
+}
+
+.fp-legend i.line.before {
+  border-color: var(--paper-0);
 }
 
 .fp-legend i.line.thick {
@@ -254,9 +257,5 @@
   .fp-figures {
     grid-template-columns: 1fr;
     gap: var(--space-4);
-  }
-
-  .fp-label {
-    font-size: 22px;
   }
 }
