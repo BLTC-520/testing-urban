@@ -119,3 +119,38 @@ parking_to_proximity:
   sites_per_city: [10, 25, 50]
   objective: newly_complete_population   # greedy maximal-coverage selection
   threshold_min: 15
+
+# ---------------------------------------------------------------------------
+# Scenario 3 — One footpath (a missing link in one Johor Bahru neighbourhood).
+# A desk study: every candidate must still be checked on site (see site_checks).
+# ---------------------------------------------------------------------------
+footpath:
+  question: Which single short public footpath would bring the most Johor Bahru residents at least one more everyday essential within a 15-minute walk?
+  city: jb
+  max_link_m: 80            # assumption: a short path a local council could build in a road or drainage reserve
+  min_saving_m: 400         # assumption: the link must cut at least 400 m (about 6 minutes) from today's walk
+  building_clearance_m: 2   # assumption: keep 2 m from any mapped building
+  blocking_waterways: [river, canal, stream, dock, dam, weir, waterfall, sluice_gate]
+  footbridge_waterways: [drain, ditch]       # crossable with a small footbridge; flagged
+  blocking_barriers: [wall, fence, retaining_wall, city_wall, hedge, guard_rail]
+  blocking_highways: [motorway, motorway_link, trunk, trunk_link, primary, primary_link]
+  distinct_m: 400           # alternatives listed are at least this far apart
+  alternatives: 10
+  report_radius_m: 2500     # minutes saved are reported for homes within this walk of either end
+  sample_routes: 3
+  sample_spacing_m: 150
+  figure_margin_m: 90
+  figure_aspect: 1.45
+  assumptions:
+    - A public footpath about 2.5 m wide, open at all hours, step-free and lit, following the straight line between the two street ends.
+    - Where the line crosses a mapped drain or ditch, a small footbridge carries it.
+    - Homes and destinations keep their current access points; no shop, clinic, school or stop opens or closes.
+    - Walking at 1.2 m/s on the mapped network, as everywhere else in this study.
+    - The population of each hexagon is the modelled 2020 census population; nobody moves.
+  site_checks:
+    - Who owns the strip between the two street ends (road reserve, drainage reserve, open space or private lots)?
+    - Is there a wall, fence, gate or guardhouse that OpenStreetMap does not show?
+    - How wide and deep is any drain, and would a footbridge be needed?
+    - Is there already an informal path (a desire line) worn across the strip?
+    - Would the path be overlooked and lit, and how do residents on both streets feel about opening it?
+    - Do the entrances on the sample routes (the clinic or shop door, the bus stop) match the mapped points?

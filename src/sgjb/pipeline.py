@@ -4,7 +4,7 @@ can be re-run independently:
     python -m sgjb.pipeline all          # everything after `python -m sgjb.acquire`
     python -m sgjb.pipeline networks     # one stage
 
-Stages: prefilter → networks → features → population → access → form → scenarios → summary → export → basemap
+Stages: prefilter → networks → features → population → access → form → scenarios → footpath → summary → export → basemap
 """
 
 from __future__ import annotations
@@ -260,6 +260,16 @@ def locate_hubs(spec: dict) -> dict:
     return found
 
 
+def stage_footpath() -> None:
+    from .footpath import run, write
+
+    res = run()
+    write(res)
+    c = res["chosen"]
+    log(f"footpath: {c['link_m']:.0f} m link in {c['unit_name']} ({c['place']}); "
+        f"{c['metrics']['15min']['residents_gaining']:,.0f} residents gain an essential within 15 min")
+
+
 def stage_summary() -> None:
     from .summary import build_summary
 
@@ -281,7 +291,8 @@ def stage_basemap() -> None:
 STAGES = {
     "prefilter": stage_prefilter, "networks": stage_networks, "features": stage_features,
     "population": stage_population, "access": stage_access, "access_overture": stage_access_overture,
-    "form": stage_form, "scenarios": stage_scenarios, "summary": stage_summary, "export": stage_export,
+    "form": stage_form, "scenarios": stage_scenarios, "footpath": stage_footpath, "summary": stage_summary,
+    "export": stage_export,
     "basemap": stage_basemap,
 }
 
