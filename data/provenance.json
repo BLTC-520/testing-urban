@@ -3,7 +3,7 @@
     "gtfs_ktmb.zip": {
       "bytes": 46086,
       "path": "data/raw/gtfs/gtfs_ktmb.zip",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "80fe949069d3932b3be354f5964f1553410347388b28614be8490294619c974e",
       "url": "https://openapi-malaysia-transport.s3.ap-southeast-1.amazonaws.com/ktmb/gtfs_ktmb.zip"
     }
@@ -12,7 +12,7 @@
     "gtfs_mybas.zip": {
       "bytes": 4871447,
       "path": "data/raw/gtfs/gtfs_mybas.zip",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "d1fcb6702fae3b3a0dc55f31f533534dfa097e9d56efc6059522f0193a828046",
       "url": "https://openapi-malaysia-transport.s3.ap-southeast-1.amazonaws.com/mybas-johor/gtfs_mybas.zip"
     }
@@ -21,7 +21,7 @@
     "hrsl_elderly60_sgjb.tif": {
       "bytes": 541146,
       "path": "data/raw/population/hrsl_elderly60_sgjb.tif",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "a8f98ab7dc9af5f15512df2efb39d9e86d4ff80f264d3e3d067984140e58f2de",
       "url": "https://dataforgood-fb-data.s3.amazonaws.com/hrsl-cogs/hrsl_elderly_60_plus/v1.5/cog_globallat_0_lon_100_elderly_60_plus-v1.5.5.tif",
       "window_bbox": [
@@ -36,7 +36,7 @@
     "hrsl_general_sgjb.tif": {
       "bytes": 541042,
       "path": "data/raw/population/hrsl_general_sgjb.tif",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "701640a9be9d0af613e8726b0ef71c0047d1bb769f4005930e0da5564cd63751",
       "url": "https://dataforgood-fb-data.s3.amazonaws.com/hrsl-cogs/hrsl_general/v1.5/cog_globallat_0_lon_100_general-v1.5.5.tif",
       "window_bbox": [
@@ -51,14 +51,14 @@
     "kontur_population_MY_20231101.gpkg.gz": {
       "bytes": 11146602,
       "path": "data/raw/population/kontur_population_MY_20231101.gpkg.gz",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "b63c0629f701643f7f2c11815e7e25cf2bf97fa58ba6b2c57c67a79fac756105",
       "url": "https://geodata-eu-central-1-kontur-public.s3.amazonaws.com/kontur_datasets/kontur_population_MY_20231101.gpkg.gz"
     },
     "kontur_population_SG_20231101.gpkg.gz": {
       "bytes": 90717,
       "path": "data/raw/population/kontur_population_SG_20231101.gpkg.gz",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "0b0eb82d7776573059b736aa6fbf91942f40825fa5d9c6ce0140ae9fefc8330a",
       "url": "https://geodata-eu-central-1-kontur-public.s3.amazonaws.com/kontur_datasets/kontur_population_SG_20231101.gpkg.gz"
     }
@@ -68,7 +68,7 @@
       "bytes": 947755,
       "commit": "21a78e98efd4cd9b022a27a1bf67d167076b7591",
       "path": "data/raw/my_boundaries/administrative_2_district.geojson",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "3edb1022b2de371bba6b7afb9802b6fc6d747c86dbcc40abf2374a9134f3c561",
       "url": "https://github.com/dosm-malaysia/data-open"
     },
@@ -76,7 +76,7 @@
       "bytes": 2238573,
       "commit": "21a78e98efd4cd9b022a27a1bf67d167076b7591",
       "path": "data/raw/my_boundaries/electoral_1_dun.geojson",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "692bdccedcc31f1abe84c0f47c8bb53434034fd20edf9a74aac87a9dc4631c38",
       "url": "https://github.com/dosm-malaysia/data-open"
     }
@@ -86,7 +86,7 @@
       "bytes": 171875,
       "commit": "21a78e98efd4cd9b022a27a1bf67d167076b7591",
       "path": "data/raw/my_census_dun/census_district.csv",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "8b24ae66b6f983e08fef2e450b3c8a07a44ca6564a1107243eff608449be8e29",
       "url": "https://github.com/dosm-malaysia/data-open"
     },
@@ -94,9 +94,24 @@
       "bytes": 154788,
       "commit": "21a78e98efd4cd9b022a27a1bf67d167076b7591",
       "path": "data/raw/my_census_dun/census_dun.csv",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "a4e7cec3c0e08f600be7b53b8d425896120cbcdb7ad5965aa4e8ca23d99b915e",
       "url": "https://github.com/dosm-malaysia/data-open"
+    }
+  },
+  "overture_places": {
+    "places_sgjb_2026-09-23.1.parquet": {
+      "bbox": [
+        103.3,
+        1.1,
+        104.3,
+        1.85
+      ],
+      "bytes": 21813162,
+      "path": "data/raw/overture/places_sgjb_2026-09-23.1.parquet",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
+      "sha256": "d8cc3318226ed84a5ecbb4195e7e7069331a78ce6e1a39eae30eaa118c890e49",
+      "url": "s3://overturemaps-us-west-2/release/2026-09-23.1/theme=places/type=place/"
     }
   },
   "sg_age_subzone": {
@@ -104,7 +119,7 @@
       "bytes": 9380396,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_age_subzone/respopagesexfa2011to2020e.zip",
-      "retrieved_utc": "2026-10-14T02:17:45+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "908b66a888f261f69a21470d2014572457b3408eb3725dd0218e5e1fddf0c2e9",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     }
@@ -113,21 +128,21 @@
     "routes.json": {
       "bytes": 294661,
       "path": "data/raw/sg_bus/routes.json",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "73c03be7612bc46ca12685e8284c50368ef655ac35b401564028214e89c7f1e5",
       "url": "https://github.com/cheeaun/sgbusdata"
     },
     "services.json": {
       "bytes": 405543,
       "path": "data/raw/sg_bus/services.json",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "7ac77d3c121600a11293d137cb0b57fc6d1ff823ab90e629300a21f00966e1a8",
       "url": "https://github.com/cheeaun/sgbusdata"
     },
     "stops.json": {
       "bytes": 405692,
       "path": "data/raw/sg_bus/stops.json",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "3cf5875b360d758e07aff0a75a04ab0cb33b8a1f14f0b9b83d2c6181d5e04d78",
       "url": "https://github.com/cheeaun/sgbusdata"
     }
@@ -137,7 +152,7 @@
       "bytes": 27630,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_census_subzone/ResidentPopulationbyPlanningAreaSubzoneofResidenceEthnicGroupandSexCensusofPopulation2020.csv",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "de6a42794a98a6979aabb0541c220ec7bbce7365a68b7d078eebad686fdfec26",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     }
@@ -147,7 +162,7 @@
       "bytes": 1969776,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_planning_areas/MasterPlan2019PlanningAreaBoundaryNoSea.geojson",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "5213a4838922d89bb1625a0038eb16f361f39bc8a16b932c59dc882266484c1a",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     },
@@ -155,7 +170,7 @@
       "bytes": 3105979,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_planning_areas/SGsubzone.geojson",
-      "retrieved_utc": "2026-10-14T02:17:43+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "2a348408062b3b64bc7ff0575f6471f7361a382808004e414e6b3b7cd3b9d8fe",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     }
@@ -165,7 +180,7 @@
       "bytes": 5,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_rail_stations_lta/RapidTransitSystemStation.cpg",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     },
@@ -173,7 +188,7 @@
       "bytes": 208620,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_rail_stations_lta/RapidTransitSystemStation.dbf",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "c4127471d22f6d742c2371b8e204f655ca1b241012e2008313120b94e8ec1ec6",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     },
@@ -181,7 +196,7 @@
       "bytes": 416,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_rail_stations_lta/RapidTransitSystemStation.prj",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "786a17ef995779f5c1cf82b22c8f92224d3d16da77d9c471894177b8de7de0c2",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     },
@@ -189,7 +204,7 @@
       "bytes": 319748,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_rail_stations_lta/RapidTransitSystemStation.shp",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "2f9ddaade1d2726b9165f20fd13be7289ef13992e6fa2a721c8f4d56f3cea149",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     },
@@ -197,7 +212,7 @@
       "bytes": 1948,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_rail_stations_lta/RapidTransitSystemStation.shx",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "200b9feed48e3bede434356deddb574cdd2bb0e291ab4a2ead7c00c902bac4d7",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
     }
@@ -207,9 +222,24 @@
       "bytes": 788034,
       "commit": "11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e",
       "path": "data/raw/sg_rail_stations_mp19/MasterPlan2019RailStationlayerGEOJSON.geojson",
-      "retrieved_utc": "2026-10-14T02:17:47+00:00",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
       "sha256": "9406045afa10d9311bae8f14d085f614481ca9f2c3748ca6f36259a1950b36a2",
       "url": "https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore"
+    }
+  },
+  "worldcover": {
+    "worldcover_2021_sgjb.tif": {
+      "bytes": 3637939,
+      "path": "data/raw/worldcover/worldcover_2021_sgjb.tif",
+      "retrieved_utc": "2026-10-14T02:39:00+00:00",
+      "sha256": "b3acf4c6037490c6641b6abe25f4ba45d4b1c26bcd8358ad29342c8d1b70b321",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N00E102_Map.tif",
+      "window_bbox": [
+        103.3,
+        1.1,
+        104.3,
+        1.85
+      ]
     }
   }
 }

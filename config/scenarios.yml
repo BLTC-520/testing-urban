@@ -41,6 +41,13 @@ sensitivity:
 # ---------------------------------------------------------------------------
 crossborder:
   departure_window: ["07:00", "09:00"]   # weekday morning peak, for GTFS headways
+  # Border hubs. Located from OpenStreetMap by name (nearest match within
+  # `search_m` of the reference point); the reference points for JB Sentral and
+  # Woodlands CIQ are the official KTMB GTFS stop coordinates.
+  hubs:
+    bus:  {osm_names: ["Bangunan Sultan Iskandar", "Sultan Iskandar CIQ", "Kompleks Sultan Iskandar"], ref: [103.7660, 1.4640], search_m: 600}
+    ktm:  {osm_names: ["JB Sentral"], ref: [103.764445, 1.463147], search_m: 400}
+    rts:  {osm_names: ["Bukit Chagar"], ref: [103.7680, 1.4640], search_m: 800}
   gtfs_service_date: "2026-10-14"        # a Wednesday inside the feed's validity
   jb_access:
     bus_max_wait_min: 15                 # assumption: cap on half-headway waiting
@@ -64,7 +71,9 @@ crossborder:
   baseline_rail:
     label: KTM Shuttle Tebrau
     hub: jb_sentral
-    timetable: gtfs_ktmb                 # official: KTMB GTFS route "ST"
+    timetable: gtfs_ktmb                 # official: KTMB GTFS route "ST" (3 departures 07:00–09:00)
+    ride_min: 5                          # official: KTMB GTFS JB Sentral → Woodlands CIQ
+    planned_wait_min: 10                 # assumption: seats are booked per departure, so riders plan; buffer before departure
     woodlands_ciq_to_mrt_min: 15         # assumption: bus or walk to Woodlands MRT
   rts:
     label: RTS Link (Bukit Chagar ↔ Woodlands North)

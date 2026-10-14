@@ -1,0 +1,26 @@
+{
+  "bus": {
+    "lon": 103.7662156,
+    "lat": 1.4639345,
+    "osm": "n10000051482",
+    "name": "Bsi mart",
+    "tags": {},
+    "distance_from_ref_m": 25
+  },
+  "ktm": {
+    "lon": 103.76445936666669,
+    "lat": 1.4633072333333332,
+    "osm": "w315975",
+    "name": "JB Sentral",
+    "tags": {},
+    "distance_from_ref_m": 18
+  },
+  "rts": {
+    "lon": 103.7684088117647,
+    "lat": 1.464103870588235,
+    "osm": "w315689",
+    "name": "Jalan Bukit Chagar",
+    "tags": {},
+    "distance_from_ref_m": 47
+  }
+}

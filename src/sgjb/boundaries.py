@@ -105,6 +105,17 @@ def my_duns(codes: list[str] | None = None) -> gpd.GeoDataFrame:
     return gdf[["dun_code", "dun_name", "parlimen", "geometry"]].reset_index(drop=True)
 
 
+def sg_rail_stations_lta() -> gpd.GeoDataFrame:
+    """LTA station polygons. One ring in the April 2025 release is unclosed, so
+    invalid geometries are repaired on read rather than rejected."""
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        gdf = gpd.read_file(config.raw("sg_rail_stations_lta", "RapidTransitSystemStation.shp"), on_invalid="fix")
+    return gdf.to_crs("EPSG:4326")
+
+
 def neighbourhoods() -> gpd.GeoDataFrame:
     """Comparable neighbourhood units: SG planning areas + JB state constituencies."""
     sa = config.load("study_area")

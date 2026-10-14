@@ -150,3 +150,25 @@ global_exclude:
   abandoned: [yes]
   opening_hours: [closed, "off"]
 lifecycle_prefixes: ["disused:", "abandoned:", "construction:", "proposed:", "demolished:", "razed:", "was:"]
+
+# ---------------------------------------------------------------------------
+# Independent POI source for the data-quality audit and the "POI source"
+# sensitivity run: Overture Maps Places (Meta, Microsoft, Foursquare… — not OSM).
+# Mapped on Overture's `taxonomy.primary` (fine) or `basic_category` (coarse).
+# Generic classes such as `health_care` are deliberately excluded as ambiguous.
+# Green space and transit stay on OSM in that run (Overture parks have no area
+# and bus stops are not places).
+overture:
+  release: "2026-09-23.1"
+  min_confidence: 0.6
+  categories:
+    groceries:
+      primary: [grocery_store, organic_grocery_store, ethical_grocery_store, korean_grocery_store,
+                international_grocery_store, indian_grocery_store, butcher_shop, convenience_store, farmers_market]
+    healthcare:
+      primary: [hospital, doctors_office, family_practice, pediatric_clinic, walk_in_clinic, public_health_clinic, pharmacy]
+    education:
+      primary: [school, elementary_school, middle_school, high_school, public_school, private_school,
+                preschool, day_care_preschool, child_care_and_day_care]
+    dining:
+      basic: [restaurant, casual_eatery, cafe, coffee_shop, fast_food_restaurant, food_court, food_truck_stand]

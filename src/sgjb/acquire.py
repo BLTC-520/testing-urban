@@ -75,8 +75,12 @@ def git_files(repo: str, commit: str | None, paths: list[str], dest_dir: Path) -
     return out
 
 
-def cog_window(url: str, dest: Path, bbox: list[float]) -> Path:
-    """Read only the study bbox from a cloud-optimised GeoTIFF (HTTP range requests)."""
+def cog_window(url: str, dest: Path, bbox: list[float], categorical: bool = False) -> Path:
+    """Read only the study bbox from a cloud-optimised GeoTIFF (HTTP range requests).
+
+    Continuous rasters are stored as float32 with NaN → 0; categorical rasters
+    keep their original integer codes.
+    """
     import numpy as np
     import rasterio
     from rasterio.windows import from_bounds
@@ -87,12 +91,15 @@ def cog_window(url: str, dest: Path, bbox: list[float]) -> Path:
     os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
     with rasterio.open("/vsicurl/" + url) as src:
         w = from_bounds(*bbox, transform=src.transform).round_offsets().round_lengths()
-        a = src.read(1, window=w).astype("float32")
+        a = src.read(1, window=w)
         prof = src.profile.copy()
-        prof.update(width=a.shape[1], height=a.shape[0], transform=src.window_transform(w), dtype="float32",
-                    compress="deflate", predictor=2, tiled=True, blockxsize=256, blockysize=256)
+        prof.update(width=a.shape[1], height=a.shape[0], transform=src.window_transform(w),
+                    compress="deflate", tiled=True, blockxsize=256, blockysize=256)
+    if not categorical:
+        a = np.nan_to_num(a.astype("float32"), nan=0.0)
+        prof.update(dtype="float32", predictor=2)
     with rasterio.open(dest, "w", **prof) as dst:
-        dst.write(np.nan_to_num(a, nan=0.0), 1)
+        dst.write(a, 1)
     return dest
 
 
@@ -122,6 +129,9 @@ def main(argv: list[str] | None = None) -> None:
         url = sources[sid]["fetch"]["https"]
         p = cog_window(url, config.raw("population", name), bbox)
         record(sid, p, url, {"window_bbox": bbox})
+    wc = sources["worldcover"]["fetch"]["https"]
+    p = cog_window(wc, config.raw("worldcover", "worldcover_2021_sgjb.tif"), bbox, categorical=True)
+    record("worldcover", p, wc, {"window_bbox": bbox})
     for url in sources["kontur"]["fetch"]["https"]:
         p = http_get(url, config.raw("population", Path(url).name))
         record("kontur", p, url)
@@ -135,6 +145,12 @@ def main(argv: list[str] | None = None) -> None:
     f = sources["sg_bus"]["fetch"]
     for p in git_files(f["git"], None, f["paths"], config.raw("sg_bus")):
         record("sg_bus", p, f["git"])
+
+    # --- Overture places (bbox-filtered GeoParquet scan on S3)
+    from . import overture
+    proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+    p = overture.fetch(proxy=proxy)
+    record("overture_places", p, sources["overture_places"]["fetch"]["s3"], {"bbox": bbox})
 
     # --- GTFS
     for sid in ("gtfs_mybas_johor", "gtfs_ktmb"):

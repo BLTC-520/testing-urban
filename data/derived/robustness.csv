@@ -1,0 +1,8 @@
+finding,statement,share_of_runs,runs,label,category
+sg_more_complete,Singapore has a higher share of residents with complete 15-minute access than Johor Bahru,0.75,72,CONDITIONAL,
+gap_over_20pts,The completeness gap between the cities exceeds 20 percentage points,0.6666666666666666,72,CONDITIONAL,
+jb_majority_incomplete,Most Johor Bahru residents lack at least one essential within the threshold,1.0,72,ROBUST,
+sg_majority_complete,Most Singapore residents have every essential within the threshold,0.5833333333333334,72,CONDITIONAL,
+jb_low_access_higher,Johor Bahru has a larger share of residents in low-access areas,1.0,72,ROBUST,
+sg_most_missing,"In Singapore, the essential most often out of reach is healthcare",0.75,72,CONDITIONAL,healthcare
+jb_most_missing,"In Johor Bahru, the essential most often out of reach is healthcare",0.75,72,CONDITIONAL,healthcare
