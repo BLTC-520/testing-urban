@@ -1,0 +1,89 @@
+# Rules that turn OpenStreetMap ways into routable networks.
+#
+# The walk rules follow the spirit of OSMnx's `network_type="walk"` filter
+# (Boeing 2017) with two documented departures:
+#   * cycleways are kept unless foot=no — in Singapore most park-connector and
+#     shared paths are tagged highway=cycleway yet are legally and physically walkable;
+#   * foot=use_sidepath excludes a carriageway, because the mapped sidewalk is
+#     already in the network.
+
+walk:
+  speed_mps: 1.2            # base walking speed (see scenarios.yml for sensitivity)
+  include_highway:
+    - footway
+    - path
+    - pedestrian
+    - steps
+    - corridor
+    - elevator
+    - living_street
+    - residential
+    - service
+    - unclassified
+    - road
+    - track
+    - cycleway
+    - bridleway
+    - tertiary
+    - tertiary_link
+    - secondary
+    - secondary_link
+    - primary
+    - primary_link
+    - trunk
+    - trunk_link
+  exclude_tag_values:
+    foot: [no, private, use_sidepath]
+    area: [yes]
+    service: [private]
+    indoor: [room]
+  # access=private/no excludes a way unless foot explicitly re-permits it.
+  access_blocking: [private, no]
+  foot_overrides: [yes, designated, permissive]
+
+  # "Strict" variant used in the sensitivity analysis: walking along a fast
+  # arterial carriageway is only allowed when a sidewalk is tagged on it.
+  # In OSM, Singapore maps sidewalks as separate footways (so nothing is lost),
+  # while many Johor Bahru arterials have neither tag nor separate footway.
+  # The variant therefore bounds how much of Johor Bahru's walk access relies
+  # on walking along arterials that may lack pavements.
+  strict_arterials: [trunk, trunk_link, primary, primary_link]
+  strict_sidewalk_ok: [both, left, right, yes, separate]
+
+  # Components smaller than this (in nodes) are dropped (disconnected
+  # fragments, isolated private estates, mapping errors).
+  min_component_nodes: 200
+
+drive:
+  # Used only by the autonomous-feeder scenario. Free-flow speeds (km/h) are
+  # assumptions, scaled by `peak_speed_factor` in scenarios.yml.
+  speed_kmh:
+    motorway: 80
+    motorway_link: 50
+    trunk: 60
+    trunk_link: 40
+    primary: 50
+    primary_link: 35
+    secondary: 45
+    secondary_link: 30
+    tertiary: 40
+    tertiary_link: 30
+    unclassified: 30
+    residential: 30
+    living_street: 15
+    service: 15
+  exclude_tag_values:
+    access: [private, no]
+    motor_vehicle: [no, private]
+    motorcar: [no, private]
+    service: [parking_aisle, driveway, private, emergency_access]
+    area: [yes]
+
+# Snapping of origins / destinations to the walk network.
+snapping:
+  # Straight-line access from an origin or POI to its nearest network node is
+  # added as walking time. Beyond this distance the point is flagged as
+  # "off-network" and excluded rather than given a misleading time.
+  max_snap_m: 250
+  # Detour factor applied to the straight-line snap distance.
+  snap_detour: 1.3
