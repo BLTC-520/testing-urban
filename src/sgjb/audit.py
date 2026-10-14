@@ -55,23 +55,31 @@ def bus_stop_audit(features: gpd.GeoDataFrame, city_of) -> pd.DataFrame:
 
 
 def rail_station_audit(features: gpd.GeoDataFrame, city_of) -> pd.DataFrame:
+    """OSM station objects vs LTA station footprints. The LTA layer also holds
+    depots and substations, and interchanges are split into one polygon per
+    line, so passenger stations are kept by name and dissolved; a station is
+    matched when an OSM station lies within the radius of its footprint."""
     from .boundaries import sg_rail_stations_lta
+    from .geo import metric_crs
 
     lta = sg_rail_stations_lta()
-    lta = lta[lta.geometry.notna() & ~lta.geometry.is_empty]
-    rep = lta.geometry.representative_point()
-    name_col = next((c for c in lta.columns if c.upper().startswith("STN_NAM")), None)
-    names = lta[name_col].str.upper().str.replace(r"\s+(MRT|LRT)\s+STATION$", "", regex=True) if name_col else None
-    stations = pd.DataFrame({"name": names, "lon": rep.x, "lat": rep.y}).drop_duplicates("name") if names is not None \
-        else pd.DataFrame({"lon": rep.x, "lat": rep.y})
+    lta = lta[lta.geometry.notna() & ~lta.geometry.is_empty].copy()
+    lta["name"] = lta["STN_NAM_DE"].fillna("").str.upper().str.strip()
+    lta = lta[lta["name"].str.contains(r"\b(?:MRT|LRT) STATION$", regex=True)]
+    stations = lta.dissolve(by="name").to_crs(metric_crs())
     osm = features[(features["lvl_rapid_transit"] >= 0) & (features["railway"].isin(["station", "halt"]))]
     osm = osm[city_of(osm["lon"].to_numpy(), osm["lat"].to_numpy()) == "sg"]
-    sx, sy = to_metric(stations["lon"].to_numpy(), stations["lat"].to_numpy())
     ox, oy = to_metric(osm["lon"].to_numpy(), osm["lat"].to_numpy())
+    pts = gpd.GeoSeries(gpd.points_from_xy(ox, oy), crs=metric_crs())
+    if len(pts):
+        tree = pts.sindex
+        _, dist = tree.nearest(stations.geometry, return_distance=True, return_all=False)
+    else:
+        dist = np.full(len(stations), np.inf)
     return pd.DataFrame([{
         "city": "sg", "official_source": "LTA Rapid Transit System Station layer (Apr 2025)",
         "official_stations": int(len(stations)), "osm_stations": int(len(osm)),
-        "recall_200m": _match_rate(sx, sy, ox, oy, 200.0), "recall_400m": _match_rate(sx, sy, ox, oy, 400.0),
+        "recall_200m": float((dist <= 200.0).mean()), "recall_400m": float((dist <= 400.0).mean()),
     }])
 
 

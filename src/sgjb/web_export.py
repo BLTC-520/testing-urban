@@ -46,8 +46,12 @@ def export_meta() -> None:
     prov = json.loads((config.DATA_DIR / "provenance.json").read_text())
     cats = []
     for k, c in tax["categories"].items():
+        # tag values per nested variant (strict ⊂ core ⊂ broad), for the "what counts" lists
+        includes = {v: [f"{key}={val}" for key, vals in (c.get(v) or {}).items() for val in vals]
+                    for v in ("strict", "core", "broad")}
         cats.append({"id": k, "label": c.get("label"), "short": c.get("short"), "question": c.get("question"),
-                     "basket": k in tax["basket"]})
+                     "basket": k in tax["basket"], "includes": includes,
+                     "min_area_m2": c.get("min_area_m2")})
     hubs = json.loads(config.derived("hubs.json").read_text()) if config.derived("hubs.json").exists() else {}
     meta = {
         "title": "Singapore / Johor Bahru 15-Minute City Explorer",

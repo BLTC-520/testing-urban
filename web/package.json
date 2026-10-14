@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "test": "vitest run",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "shots": "node scripts/shot_story.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",

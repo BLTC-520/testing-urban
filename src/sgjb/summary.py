@@ -129,7 +129,11 @@ def build_summary() -> dict:
     findings.to_csv(config.derived("robustness.csv"), index=False)
     out["sensitivity"] = {"runs": len(grid), "findings": findings.to_dict(orient="records"),
                           "range": {f"{c}_share_complete": [float(grid[f"{c}_share_complete"].min()),
-                                                            float(grid[f"{c}_share_complete"].max())] for c in ("sg", "jb")}}
+                                                            float(grid[f"{c}_share_complete"].max())] for c in ("sg", "jb")},
+                          # every run, so readers can see the spread rather than only its ends
+                          "grid": grid[["speed", "threshold", "taxonomy", "network", "population",
+                                        "sg_share_complete", "jb_share_complete", "sg_share_low", "jb_share_low"]
+                                       ].round(4).to_dict(orient="records")}
 
     # --- POI source sensitivity (Overture)
     ovp = config.interim("access_overture.parquet")

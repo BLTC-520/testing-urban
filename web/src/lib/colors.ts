@@ -16,7 +16,8 @@ export const SG: RGB = hex("#e75438");
 export const JB: RGB = hex("#3b89e9");
 /** De-emphasised reference series (e.g. today's baseline in a scenario chart). */
 export const NEUTRAL: RGB = hex("#8a8f98");
-export const GAIN: RGB = hex("#b6f36b");
+/** Scenario highlight (newly complete cells, the RTS station): warm against the cool ramp, CVD-safe vs teal. */
+export const GAIN: RGB = hex("#ffd166");
 export const LOSS: RGB = hex("#ff4fa3");
 
 /** Essentials, in list order (validated adjacent set). Supplementary layers use the neutral mark. */

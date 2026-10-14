@@ -25,7 +25,7 @@ export interface ViewState {
 
 export interface MapHandle {
   map: () => MLMap | null;
-  flyTo: (v: ViewState & { duration?: number }) => void;
+  flyTo: (v: ViewState & { duration?: number; padding?: { top: number; bottom: number; left: number; right: number } }) => void;
   fitBounds: (b: [[number, number], [number, number]], padding?: number, duration?: number) => void;
 }
 

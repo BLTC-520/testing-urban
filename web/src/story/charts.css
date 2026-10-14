@@ -157,7 +157,20 @@
 
 .viz.paired .pm-grid {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px 40px;
+}
+
+@media (max-width: 960px) {
+  .viz.paired .pm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .viz.paired .pm-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .pm-row {
@@ -167,13 +180,14 @@
 }
 
 .pm-label {
+  min-height: 2.8em;
   font-size: var(--step--1);
   color: var(--paper-1);
 }
 
 .pm-bar {
   display: grid;
-  grid-template-columns: 1fr 64px;
+  grid-template-columns: 1fr 52px;
   align-items: center;
   gap: 8px;
 }
@@ -188,4 +202,25 @@
   font-variant-numeric: tabular-nums;
   color: var(--paper-0);
   font-weight: 600;
+}
+
+.viz .tick.strong {
+  fill: var(--paper-1);
+}
+
+.viz .muted-svg {
+  fill: var(--paper-3);
+}
+
+.viz-legend i.dot.ring {
+  background: transparent;
+  border: 2px solid var(--paper-1);
+  width: 10px;
+  height: 10px;
+}
+
+.viz-note {
+  margin: 6px 0 0;
+  font-size: var(--step--2);
+  color: var(--paper-2);
 }

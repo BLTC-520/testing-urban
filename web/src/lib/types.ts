@@ -8,6 +8,9 @@ export interface CategoryMeta {
   short: string;
   question: string;
   basket: boolean;
+  /** OSM tag=value lists per nested taxonomy variant (strict ⊂ core ⊂ broad) */
+  includes?: { strict: string[]; core: string[]; broad: string[] };
+  min_area_m2?: { strict: number; core: number; broad: number } | null;
 }
 
 export interface SourceMeta {
@@ -46,7 +49,15 @@ export interface Meta {
     baseline_bus: { headway_min: number; checkpoint_to_mrt_min: number; label: string };
     baseline_rail: { ride_min: number; planned_wait_min: number; woodlands_ciq_to_mrt_min: number; label: string };
     rts: { ride_min: number; peak_headway_min: number; transfer_to_mrt_min: number; capacity_pphpd: number; label: string };
-    av_feeder: { wait_min: { low: number; central: number; high: number }; label: string; precedent: string };
+    av_feeder: {
+      wait_min: { low: number; central: number; high: number };
+      label: string;
+      precedent: string;
+      walk_to_pickup_max_min: number;
+      peak_speed_factor: number;
+      pooling_detour: number;
+      dropoff_walk_min: number;
+    };
   };
   parking_to_proximity: { sites_per_city: number[]; hub_program: string[]; min_site_area_m2: number; label: string };
   cities: Record<CityId, { name: string; center: [number, number]; zoom: number; population_definition: string }>;
@@ -91,6 +102,17 @@ export interface Summary {
     runs: number;
     findings: { finding: string; statement: string; share_of_runs: number; runs: number; label: string; category?: string }[];
     range: Record<string, [number, number]>;
+    grid?: {
+      speed: number;
+      threshold: number;
+      taxonomy: string;
+      network: string;
+      population: string;
+      sg_share_complete: number;
+      jb_share_complete: number;
+      sg_share_low: number;
+      jb_share_low: number;
+    }[];
   };
   poi_source_overture?: Record<CityId, CitySummaryBlock>;
   form?: Record<CityId, Record<string, number>>;

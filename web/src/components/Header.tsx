@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "./header.css";
 
 const LINKS = [
@@ -7,8 +8,17 @@ const LINKS = [
 ];
 
 export function Header({ path, overlay = false }: { path: string; overlay?: boolean }) {
+  // transparent over the hero, solid once the page scrolls under it
+  const [top, setTop] = useState(true);
+  useEffect(() => {
+    if (!overlay) return;
+    const on = () => setTop(window.scrollY < 24);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, [overlay]);
   return (
-    <header className={`site-header${overlay ? " overlay" : ""}`}>
+    <header className={`site-header${overlay && top ? " overlay" : ""}`}>
       <a className="wordmark" href="#/" aria-label="Singapore / Johor Bahru 15-Minute City Explorer — home">
         <span className="wm-mark" aria-hidden>
           <svg viewBox="0 0 32 32" width="22" height="22">

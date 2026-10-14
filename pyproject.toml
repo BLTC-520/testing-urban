@@ -31,7 +31,8 @@ dependencies = [
 dev = ["pytest>=8", "matplotlib>=3.8", "networkx>=3.2"]
 
 [project.scripts]
-sgjb = "sgjb.cli:main"
+sgjb = "sgjb.pipeline:main"
+sgjb-fetch = "sgjb.acquire:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
