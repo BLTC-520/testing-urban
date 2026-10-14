@@ -20,6 +20,10 @@ sources:
       object: s3://osm-planet-us-west-2/planet/pbf/2026/planet-261005.osm.pbf
       https: https://osm-planet-us-west-2.s3.amazonaws.com/planet/pbf/2026/planet-261005.osm.pbf
       md5: d3b708ffc28873cf24a053e092dfd731
+      md5_note: >-
+        Published checksum of the full planet object. The 2026-10-05 extract was cut by streaming
+        byte ranges of this immutable object (resumed once after a worker restart), so the MD5
+        cannot be recomputed locally; the extract's own SHA-256 is in data/provenance.json.
       alternative: >-
         Equivalent regional input: Geofabrik "malaysia-singapore-brunei" extract of the
         same date. The bbox in study_area.yml is cut with osmium either way.
