@@ -1,0 +1,113 @@
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.segmented button {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--paper-2);
+  font-size: var(--step--1);
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  font-variant-numeric: tabular-nums;
+}
+
+.segmented.sm button {
+  padding: 4px 6px;
+  font-size: var(--step--2);
+}
+
+.segmented button:hover {
+  color: var(--paper-0);
+}
+
+.segmented button.on {
+  background: var(--paper-0);
+  color: var(--ink-0);
+  font-weight: 500;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+.field-hint {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--paper-3);
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: var(--step--1);
+  color: var(--paper-1);
+  user-select: none;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switch .track {
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--ink-4);
+  border: 1px solid var(--line-strong);
+  position: relative;
+  transition: background 0.2s;
+  flex: none;
+}
+
+.switch .thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--paper-2);
+  transition: transform 0.2s var(--ease-out), background 0.2s;
+}
+
+.switch input:checked + .track {
+  background: rgba(132, 209, 139, 0.35);
+}
+
+.switch input:checked + .track .thumb {
+  transform: translateX(12px);
+  background: var(--ramp-6);
+}
+
+.switch input:focus-visible + .track {
+  outline: 2px solid var(--ramp-5);
+  outline-offset: 2px;
+}

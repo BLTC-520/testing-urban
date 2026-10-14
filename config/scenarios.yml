@@ -1,0 +1,121 @@
+# Analysis parameters and scenario definitions.
+#
+# Nothing in here is a prediction. Each scenario is a transparent "what if"
+# evaluated with the same accessibility engine as the observed baseline.
+# Every parameter states where its value comes from:
+#   official   — published by an operator or government agency
+#   literature — taken from peer-reviewed or institutional research
+#   assumption — chosen by this project; varied in the sensitivity analysis
+
+accessibility:
+  walk_speed_mps:
+    base: 1.2          # assumption: common planning value (~4.3 km/h)
+    slow: 0.9          # assumption: older adults / reduced mobility; sensitivity case
+    brisk: 1.4         # assumption: healthy adult brisk walk; sensitivity case
+  thresholds_min: [5, 10, 15, 20]
+  headline_threshold_min: 15
+  # Gravity (continuous-decay) robustness measure: weight halves every 10 min.
+  gravity_half_life_min: 10
+  # A cell is "low access" when fewer than half the basket categories are
+  # reachable within the headline threshold.
+  low_access_completeness: 0.5
+  # Time cap for nearest-destination searches; destinations further than
+  # this are reported as "> cap" rather than given an exact value.
+  search_cap_min: 60
+
+sensitivity:
+  walk_speed_mps: [0.9, 1.2, 1.4]
+  threshold_min: [10, 15, 20]
+  taxonomy: [strict, core, broad]
+  network: [permissive, strict]
+  population: [hrsl, kontur]
+  # A finding is ROBUST if it holds in ≥ 90 % of runs, CONDITIONAL if it
+  # holds in 50–90 %, FRAGILE below 50 %.
+  robust_share: 0.9
+  conditional_share: 0.5
+
+# ---------------------------------------------------------------------------
+# Scenario 1 — RTS Link (regional mobility; NOT a 15-minute-city measure).
+# Measures door-to-platform time from Johor Bahru homes to the first
+# Singapore MRT platform, before and after the RTS Link opens.
+# ---------------------------------------------------------------------------
+crossborder:
+  departure_window: ["07:00", "09:00"]   # weekday morning peak, for GTFS headways
+  # Border hubs. Located from OpenStreetMap by name (nearest match within
+  # `search_m` of the reference point); the reference points for JB Sentral and
+  # Woodlands CIQ are the official KTMB GTFS stop coordinates.
+  hubs:
+    bus:  {osm_names: ["Bangunan Sultan Iskandar", "Sultan Iskandar CIQ", "Kompleks Sultan Iskandar"], ref: [103.7660, 1.4640], search_m: 600}
+    ktm:  {osm_names: ["Johor Bahru Sentral", "JB Sentral"], ref: [103.764445, 1.463147], search_m: 400}
+    rts:  {osm_names: ["Bukit Chagar"], ref: [103.7680, 1.4640], search_m: 800}
+  gtfs_service_date: "2026-10-14"        # a Wednesday inside the feed's validity
+  jb_access:
+    bus_max_wait_min: 15                 # assumption: cap on half-headway waiting
+    bus_board_penalty_min: 2             # assumption: boarding / reliability margin
+    transfer_penalty_min: 5              # assumption
+    max_access_walk_min: 15              # assumption: walk to the first stop
+  # Border friction regimes. Clearance time is per country (Malaysia exit,
+  # Singapore entry) and includes queueing. Values are assumptions bracketing
+  # off-peak automated clearance (low) through peak-hour congestion (high);
+  # ICA reports car waits of up to three hours on peak days, which is beyond
+  # the "high" regime for bus passengers and is noted as a limitation.
+  border_regimes:
+    low:     {clearance_min_per_country: 5,  causeway_ride_min: 8}
+    central: {clearance_min_per_country: 15, causeway_ride_min: 20}
+    high:    {clearance_min_per_country: 30, causeway_ride_min: 45}
+  baseline_bus:
+    label: Cross-border bus via the Causeway
+    hub: jb_bus_ciq
+    headway_min: 6                       # assumption: combined CW / SBS / SMRT services
+    checkpoint_to_mrt_min: 12            # assumption: re-board after clearance, ride to Kranji / Woodlands MRT
+  baseline_rail:
+    label: KTM Shuttle Tebrau
+    hub: jb_sentral
+    timetable: gtfs_ktmb                 # official: KTMB GTFS route "ST" (3 departures 07:00–09:00)
+    ride_min: 5                          # official: KTMB GTFS JB Sentral → Woodlands CIQ
+    planned_wait_min: 10                 # assumption: seats are booked per departure, so riders plan; buffer before departure
+    woodlands_ciq_to_mrt_min: 15         # assumption: bus or walk to Woodlands MRT
+  rts:
+    label: RTS Link (Bukit Chagar ↔ Woodlands North)
+    hub: rts_jb_station
+    ride_min: 5                          # official: ~5-minute journey (LTA / MOT)
+    peak_headway_min: 3.6                # official design headway, widely reported
+    capacity_pphpd: 10000                # official: up to 10,000 passengers/hour/direction
+    co_located_ciq: true                 # official: clear both countries at the departure station
+    transfer_to_mrt_min: 4               # assumption: RTS platform → TEL Woodlands North platform
+  # Optional add-on evaluated with the same model: an on-demand shared
+  # autonomous feeder serving the Johor Bahru side of the RTS.
+  av_feeder:
+    label: Shared autonomous feeder to Bukit Chagar
+    precedent: >-
+      LTA opened autonomous shuttle services in Punggol to the public on
+      1 April 2026; the draft Johor Bahru Local Plan 2035 proposes autonomous
+      rapid transit corridors centred on Bukit Chagar (alignment not confirmed).
+    walk_to_pickup_max_min: 3            # assumption: curbside pickup within 3 min walk
+    wait_min: {low: 3, central: 6, high: 10}   # assumption
+    peak_speed_factor: 0.6               # assumption: AM-peak road speed vs free flow
+    pooling_detour: 1.25                 # assumption: shared rides deviate from the direct path
+    dropoff_walk_min: 2                  # assumption
+
+# ---------------------------------------------------------------------------
+# Scenario 2 — Parking to Proximity (15-minute city; local).
+# If shared autonomous vehicles reduce the need for car parking (ITF 2015
+# Lisbon study), some parking land near under-served homes could host
+# neighbourhood service hubs. Which sites matter most, and how much would
+# 15-minute completeness change?
+# ---------------------------------------------------------------------------
+parking_to_proximity:
+  label: Parking to Proximity
+  literature: >-
+    International Transport Forum (2015), "Urban Mobility System Upgrade: How shared
+    self-driving cars could change city traffic" — modelled for Lisbon that a shared
+    self-driving fleet could remove all on-street parking.
+  candidate_parking_types: [surface, multi-storey, rooftop, null]   # null = untagged lot
+  min_site_area_m2: 2000                 # assumption: room for a small neighbourhood hub
+  # What a converted site provides (assumption). A site ≥ 1 ha additionally
+  # reserves 0.5 ha as public green space, meeting the green-space definition.
+  hub_program: [groceries, healthcare, education, dining, transit]
+  green_space_min_site_m2: 10000
+  sites_per_city: [10, 25, 50]
+  objective: newly_complete_population   # greedy maximal-coverage selection
+  threshold_min: 15

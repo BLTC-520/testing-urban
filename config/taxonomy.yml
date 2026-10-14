@@ -1,0 +1,174 @@
+# Essential-services taxonomy: how raw OpenStreetMap tags become the
+# categories used in every accessibility metric.
+#
+# Three nested variants support the sensitivity analysis:
+#   strict  — only unambiguous, full-service destinations;
+#   core    — strict + common everyday equivalents (the published baseline);
+#   broad   — core + marginal substitutes.
+# Each variant inherits everything from the narrower one, i.e.
+#   strict ⊂ core ⊂ broad.
+#
+# A reviewer can answer "why is this POI counted as healthcare?" from this file alone.
+
+version: "2026.10"
+
+# The essential basket. A location is "complete" at threshold τ when at least
+# one destination from every basket category is reachable within τ minutes on foot.
+basket: [groceries, healthcare, education, green_space, transit, dining]
+
+# Mapped and reported, but not part of the completeness score.
+supplementary: [rapid_transit, civic, parking]
+
+categories:
+  groceries:
+    label: Groceries
+    short: Food shop
+    question: Can I buy fresh food and daily provisions?
+    strict:
+      shop: [supermarket, greengrocer]
+      amenity: [marketplace]          # includes Singapore wet markets / Malaysian pasar
+    core:
+      shop: [grocery, convenience, butcher, seafood, frozen_food, health_food]
+    broad:
+      shop: [bakery, deli, dairy, beverages, department_store, variety_store]
+
+  healthcare:
+    label: Healthcare
+    short: Clinic or pharmacy
+    question: Can I see a doctor or fill a prescription?
+    strict:
+      amenity: [clinic, doctors, hospital]
+      healthcare: [clinic, doctor, hospital, centre]
+    core:
+      amenity: [pharmacy]
+      healthcare: [pharmacy]
+    broad:
+      amenity: [dentist]
+      healthcare: [dentist]
+      shop: [chemist]
+
+  education:
+    label: Education
+    short: School or kindergarten
+    question: Can my children get to school or childcare?
+    strict:
+      amenity: [school]
+    core:
+      amenity: [kindergarten, childcare]
+    broad:
+      amenity: [college, university]
+
+  green_space:
+    label: Green space
+    short: Park ≥ 0.5 ha
+    question: Is there a usable park nearby?
+    geometry: area            # accessed via points along the boundary, not the centroid
+    strict:
+      leisure: [park, nature_reserve, recreation_ground, garden]
+      landuse: [recreation_ground, village_green]
+    core: {}
+    broad:
+      leisure: [playground, common, dog_park, fitness_station]
+    # Minimum area per variant. The core threshold follows the WHO Regional
+    # Office for Europe (2016) indicator of green space ≥ 0.5–1 ha within 300 m.
+    min_area_m2:
+      strict: 10000
+      core: 5000
+      broad: 0
+    exclude_tag_values:
+      access: [private, no, customers]
+      garden:type: [residential, private]
+
+  transit:
+    label: Public transport
+    short: Bus stop or station
+    question: Can I get on a bus or train?
+    strict:
+      highway: [bus_stop]
+      amenity: [bus_station]
+      railway: [station, halt, subway_entrance, tram_stop]
+    core: {}
+    broad:
+      public_transport: [platform, stop_position]
+
+  dining:
+    label: Everyday food
+    short: Hawker, food court or eatery
+    question: Can I get an affordable meal?
+    strict:
+      amenity: [food_court, restaurant, fast_food]   # hawker centres are amenity=food_court
+    core:
+      amenity: [cafe]                                 # kopitiam / coffee shops
+    broad:
+      amenity: [ice_cream]
+      shop: [bakery]
+
+  # ---- supplementary (not in the completeness basket) ----
+  rapid_transit:
+    label: Rapid transit
+    short: MRT / LRT / rail station
+    question: Can I reach the rail network?
+    strict:
+      railway: [station, halt, subway_entrance]
+    core: {}
+    broad: {}
+    # Only rail stations count (not bus stations or tram stops of other modes).
+    require_any:
+      station: [subway, light_rail, train, monorail]
+      railway: [subway_entrance]
+      train: [yes]
+      subway: [yes]
+      light_rail: [yes]
+
+  civic:
+    label: Civic & community
+    short: Community centre or library
+    question: Is there a library or community space?
+    strict:
+      amenity: [community_centre, library]
+    core:
+      amenity: [post_office, townhall, social_centre]
+    broad:
+      amenity: [place_of_worship]
+
+  parking:
+    label: Car parking
+    short: Parking area
+    question: How much land is given to parked cars?
+    geometry: area
+    strict:
+      amenity: [parking]
+    core: {}
+    broad: {}
+    min_area_m2: {strict: 0, core: 0, broad: 0}
+    exclude_tag_values:
+      parking: [underground]       # no surface land use
+
+# Tags that disqualify any POI (lifecycle prefixes and closed features).
+global_exclude:
+  disused: [yes]
+  abandoned: [yes]
+  opening_hours: [closed, "off"]
+lifecycle_prefixes: ["disused:", "abandoned:", "construction:", "proposed:", "demolished:", "razed:", "was:"]
+
+# ---------------------------------------------------------------------------
+# Independent POI source for the data-quality audit and the "POI source"
+# sensitivity run: Overture Maps Places (Meta, Microsoft, Foursquare… — not OSM).
+# Mapped on Overture's `taxonomy.primary` (fine) or `basic_category` (coarse).
+# Generic classes such as `health_care` are deliberately excluded as ambiguous.
+# Green space and transit stay on OSM in that run (Overture parks have no area
+# and bus stops are not places).
+overture:
+  release: "2026-09-23.1"
+  min_confidence: 0.6
+  categories:
+    groceries:
+      primary: [grocery_store, organic_grocery_store, ethical_grocery_store, korean_grocery_store,
+                international_grocery_store, indian_grocery_store, butcher_shop, convenience_store, farmers_market]
+    healthcare:
+      primary: [hospital, doctors_office, family_practice, pediatric_clinic, walk_in_clinic, public_health_clinic, pharmacy]
+    education:
+      primary: [school, elementary_school, middle_school, high_school, public_school, private_school,
+                preschool, day_care_preschool, child_care_and_day_care]
+    dining:
+      basic: [restaurant, casual_eatery, cafe, coffee_shop, fast_food_restaurant, food_court, food_truck_stand]

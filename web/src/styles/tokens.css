@@ -1,0 +1,85 @@
+/*
+ * Design tokens — "night survey".
+ * A dark cartographic palette in which places with everyday services light up.
+ * Colour roles:
+ *   --ink-*      backgrounds and surfaces (blue-black)
+ *   --paper-*    text on dark (warm off-white)
+ *   --sg / --jb  city identity (charts, labels, legends — never the map ramp)
+ *   --ramp-*     completeness ramp, 0 → 6 categories (indigo → luminous)
+ *   --gain/loss  scenario deltas
+ */
+:root {
+  --ink-0: #07090c;
+  --ink-1: #0b0e12;
+  --ink-2: #11151b;
+  --ink-3: #171c24;
+  --ink-4: #222a35;
+  --line: rgba(236, 233, 226, 0.09);
+  --line-strong: rgba(236, 233, 226, 0.18);
+
+  --paper-0: #f3efe6;
+  --paper-1: #d9d4c9;
+  --paper-2: #a8a49b;
+  --paper-3: #77746d;
+
+  /* categorical — validated (dataviz validate_palette.js, dark mode, surface #11151b) */
+  --sg: #e75438;
+  --sg-soft: rgba(231, 84, 56, 0.16);
+  --jb: #3b89e9;
+  --jb-soft: rgba(59, 137, 233, 0.16);
+  --neutral-series: #8a8f98;
+
+  /* ordinal ramp: analogous blue → cyan → mint, OKLCH L 0.30 → 0.91 (monotone, ΔL ≈ 0.10) */
+  --ramp-0: #222a51;
+  --ramp-1: #22477d;
+  --ramp-2: #10699f;
+  --ramp-3: #0b8eaf;
+  --ramp-4: #1cb4b6;
+  --ramp-5: #6ad5b6;
+  --ramp-6: #b6f4ca;
+
+  /* essentials — validated as an adjacent set in list order */
+  --cat-groceries: #be8609;
+  --cat-healthcare: #dc4b6e;
+  --cat-education: #5f8adf;
+  --cat-green_space: #2da962;
+  --cat-transit: #9c70d0;
+  --cat-dining: #d3772e;
+
+  --gain: #ffd166;
+  --loss: #ff4fa3;
+  --warn: #ffb547;
+
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --step--2: clamp(0.69rem, 0.67rem + 0.08vw, 0.74rem);
+  --step--1: clamp(0.8rem, 0.77rem + 0.13vw, 0.88rem);
+  --step-0: clamp(0.94rem, 0.9rem + 0.2vw, 1.06rem);
+  --step-1: clamp(1.13rem, 1.05rem + 0.38vw, 1.38rem);
+  --step-2: clamp(1.4rem, 1.25rem + 0.75vw, 1.95rem);
+  --step-3: clamp(1.8rem, 1.5rem + 1.5vw, 2.8rem);
+  --step-4: clamp(2.4rem, 1.8rem + 3vw, 4.4rem);
+  --step-5: clamp(3rem, 2rem + 5vw, 6.6rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: 7rem;
+
+  --radius-1: 4px;
+  --radius-2: 8px;
+  --radius-3: 14px;
+
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+  --glass: rgba(11, 14, 18, 0.72);
+  --glass-strong: rgba(11, 14, 18, 0.9);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --header-h: 56px;
+}

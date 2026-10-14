@@ -1,0 +1,47 @@
+# Study geography.
+#
+# Three nested boundaries (acquisition > analysis > focus) so that shortest paths
+# and catchments near the edge of an analysis area can leave it without being
+# truncated by the data extract.
+
+# WGS 84 / UTM zone 48N. Both Singapore and Johor Bahru lie inside zone 48
+# (102°E–108°E), so one metric CRS serves both sides of the border with
+# negligible distortion. Used for all distance/area calculations.
+crs_metric: "EPSG:32648"
+
+# lon_min, lat_min, lon_max, lat_max — the OSM extract and population rasters
+# are cut to this box. Deliberately larger than the analysis areas.
+acquisition_bbox: [103.30, 1.10, 104.30, 1.85]
+
+# H3 resolution of the analysis unit ("origin cell"). Res 10 hexagons average
+# 0.015 km² (edge ≈ 66 m, i.e. under a minute's walk), small enough that a
+# single representative network node per cell is a reasonable approximation.
+h3_resolution: 10
+# Coarser resolution used for the overview map layer.
+h3_overview_resolution: 8
+
+cities:
+  sg:
+    name: Singapore
+    country: SGP
+    # Union of the 55 URA Master Plan 2019 planning areas (sea excluded).
+    boundary: sg_planning_areas
+    neighbourhood_unit: planning_area      # 55 units, median ≈ 70k residents
+    fine_unit: subzone                     # 332 units
+  jb:
+    name: Johor Bahru
+    country: MYS
+    # Union of the 10 Johor state constituencies (DUN N.40–N.49) that make up
+    # the five parliamentary seats of Johor Bahru district (P.158–P.162).
+    # Census 2020 counts 1,753,284 residents across them.
+    boundary: my_dun_jb
+    dun_codes: [N.40, N.41, N.42, N.43, N.44, N.45, N.46, N.47, N.48, N.49]
+    neighbourhood_unit: dun
+
+# Points of interest for the cross-border corridor (RTS Link). Coordinates are
+# taken from OpenStreetMap during the pipeline run; these names are the lookup keys.
+corridor:
+  rts_jb_station: "Bukit Chagar"
+  rts_sg_station: "Woodlands North"
+  jb_bus_ciq: "Bangunan Sultan Iskandar"
+  sg_land_checkpoint: "Woodlands Checkpoint"

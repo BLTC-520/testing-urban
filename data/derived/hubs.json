@@ -1,0 +1,34 @@
+{
+  "bus": {
+    "lon": 103.7654024,
+    "lat": 1.4642838,
+    "osm": "n9742774947",
+    "name": "Sultan Iskandar CIQ",
+    "tags": {},
+    "distance_from_ref_m": 74
+  },
+  "ktm": {
+    "lon": 103.7646343,
+    "lat": 1.4629737,
+    "osm": "n1639480363",
+    "name": "Johor Bahru Sentral",
+    "tags": {
+      "public_transport": "station",
+      "railway": "station",
+      "station": "train"
+    },
+    "distance_from_ref_m": 29
+  },
+  "rts": {
+    "lon": 103.7621858,
+    "lat": 1.4662412,
+    "osm": "n13377979326",
+    "name": "Bukit Chagar",
+    "tags": {
+      "public_transport": "station",
+      "railway": "station",
+      "station": "light_rail"
+    },
+    "distance_from_ref_m": 693
+  }
+}

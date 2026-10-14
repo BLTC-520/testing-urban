@@ -1,0 +1,230 @@
+# Data source register.
+#
+# `url` is the authoritative location. `fetch` is what scripts/fetch_data.py
+# actually downloads. Where the two differ, the mirror is named and verified
+# (see `verification`). Checksums and retrieval timestamps for every file
+# are written to data/provenance.json at fetch time.
+#
+# Classification used throughout the project:
+#   observed  — measured/recorded data (OSM features, census counts, timetables)
+#   modelled  — produced by a model (gridded population, travel times)
+#   assumed   — parameters chosen by this project (see scenarios.yml)
+
+sources:
+  - id: osm
+    name: OpenStreetMap planet snapshot 2026-10-05
+    provider: OpenStreetMap Foundation (planet mirror on AWS Open Data)
+    url: https://planet.openstreetmap.org/pbf/
+    fetch:
+      method: planet_stream_extract     # stream planet → osmium bbox extract
+      object: s3://osm-planet-us-west-2/planet/pbf/2026/planet-261005.osm.pbf
+      https: https://osm-planet-us-west-2.s3.amazonaws.com/planet/pbf/2026/planet-261005.osm.pbf
+      md5: d3b708ffc28873cf24a053e092dfd731
+      md5_note: >-
+        Published checksum of the full planet object. The 2026-10-05 extract was cut by streaming
+        byte ranges of this immutable object (resumed once after a worker restart), so the MD5
+        cannot be recomputed locally; the extract's own SHA-256 is in data/provenance.json.
+      alternative: >-
+        Equivalent regional input: Geofabrik "malaysia-singapore-brunei" extract of the
+        same date. The bbox in study_area.yml is cut with osmium either way.
+    snapshot: "2026-10-05"
+    licence: ODbL-1.0
+    attribution: "© OpenStreetMap contributors"
+    class: observed
+    used_for: [walk network, drive network, points of interest, parks, car parks, transit stops, basemap]
+
+  - id: hrsl_general
+    name: High Resolution Settlement Layer — general population (v1.5.5)
+    provider: Meta Data for Good & CIESIN, Columbia University
+    url: https://dataforgood.facebook.com/dfg/tools/high-resolution-population-density-maps
+    fetch:
+      https: https://dataforgood-fb-data.s3.amazonaws.com/hrsl-cogs/hrsl_general/v1.5/cog_globallat_0_lon_100_general-v1.5.5.tif
+      method: cog_window                 # only the study bbox is read (HTTP range requests)
+    licence: CC-BY-4.0
+    attribution: "Data for Good at Meta & CIESIN — High Resolution Population Density Maps"
+    class: modelled
+    used_for: [origin population weights (both cities)]
+
+  - id: hrsl_elderly
+    name: High Resolution Settlement Layer — elderly 60+ (v1.5.5)
+    provider: Meta Data for Good & CIESIN, Columbia University
+    url: https://dataforgood.facebook.com/dfg/tools/high-resolution-population-density-maps
+    fetch:
+      https: https://dataforgood-fb-data.s3.amazonaws.com/hrsl-cogs/hrsl_elderly_60_plus/v1.5/cog_globallat_0_lon_100_elderly_60_plus-v1.5.5.tif
+      method: cog_window
+    licence: CC-BY-4.0
+    attribution: "Data for Good at Meta & CIESIN — High Resolution Population Density Maps"
+    class: modelled
+    used_for: [older-resident accessibility]
+
+  - id: kontur
+    name: Kontur Population (H3 r8), 2023-11-01
+    provider: Kontur
+    url: https://data.humdata.org/organization/kontur
+    fetch:
+      https:
+        - https://geodata-eu-central-1-kontur-public.s3.amazonaws.com/kontur_datasets/kontur_population_SG_20231101.gpkg.gz
+        - https://geodata-eu-central-1-kontur-public.s3.amazonaws.com/kontur_datasets/kontur_population_MY_20231101.gpkg.gz
+    licence: CC-BY-4.0
+    attribution: "Kontur Population: Global Population Density for 400m H3 Hexagons"
+    class: modelled
+    used_for: [population sensitivity (alternative allocation)]
+
+  - id: my_census_dun
+    name: Population and Housing Census of Malaysia 2020 — by state constituency (DUN)
+    provider: Department of Statistics Malaysia (DOSM)
+    url: https://open.dosm.gov.my/dashboard/kawasanku
+    fetch:
+      git: https://github.com/dosm-malaysia/data-open
+      commit: 21a78e98efd4cd9b022a27a1bf67d167076b7591
+      paths: [datasets/census/census_dun.csv, datasets/census/census_district.csv]
+    licence: Malaysia Open Data Terms of Use (data.gov.my) — attribution required
+    attribution: "Department of Statistics Malaysia (DOSM), Census 2020"
+    class: observed
+    used_for: [Johor Bahru study area, calibration and validation of gridded population, neighbourhood statistics]
+
+  - id: my_boundaries
+    name: Malaysian electoral (DUN, parliament) and district boundaries
+    provider: Department of Statistics Malaysia (DOSM)
+    url: https://open.dosm.gov.my/
+    fetch:
+      git: https://github.com/dosm-malaysia/data-open
+      commit: 21a78e98efd4cd9b022a27a1bf67d167076b7591
+      paths: [datasets/geodata/electoral_1_dun.geojson, datasets/geodata/administrative_2_district.geojson]
+    licence: Malaysia Open Data Terms of Use — attribution required
+    attribution: "Department of Statistics Malaysia (DOSM)"
+    class: observed
+    used_for: [Johor Bahru analysis boundary and neighbourhood units]
+
+  - id: sg_planning_areas
+    name: URA Master Plan 2019 Planning Area Boundary (No Sea)
+    provider: Urban Redevelopment Authority (URA), via data.gov.sg
+    url: https://data.gov.sg/datasets/d_4765db0e87b9c86336792efe8a1f7a66/view
+    fetch:
+      git: https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore
+      commit: 11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e
+      paths: [MasterPlan2019PlanningAreaBoundaryNoSea.geojson, SGsubzone.geojson]
+      note: >-
+        data.gov.sg is not reachable from the build environment; the unmodified
+        official KML-derived GeoJSON was taken from a public research repository
+        and verified (55 planning areas, 332 subzones, attribute schema of the
+        official file, areas consistent with URA statistics).
+    licence: Singapore Open Data Licence v1.0
+    attribution: "Contains information from Master Plan 2019 Planning Area Boundary (No Sea) accessed from data.gov.sg, made available under the Singapore Open Data Licence v1.0"
+    class: observed
+    used_for: [Singapore analysis boundary and neighbourhood units]
+
+  - id: sg_census_subzone
+    name: Census of Population 2020 — resident population by planning area / subzone
+    provider: Singapore Department of Statistics (SingStat), via data.gov.sg
+    url: https://data.gov.sg/datasets?query=Census%20of%20Population%202020%20subzone
+    fetch:
+      git: https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore
+      commit: 11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e
+      paths: [ResidentPopulationbyPlanningAreaSubzoneofResidenceEthnicGroupandSexCensusofPopulation2020.csv]
+      note: Mirror verified against the official national total of 4,044,210 residents.
+    licence: Singapore Open Data Licence v1.0
+    attribution: "Contains information from the Census of Population 2020 accessed from data.gov.sg (SingStat), Singapore Open Data Licence v1.0"
+    class: observed
+    used_for: [validation of gridded population, neighbourhood statistics]
+
+  - id: sg_age_subzone
+    name: Singapore Residents by Planning Area / Subzone, Age Group, Sex and Floor Area of Residence, June 2011–2020
+    provider: Singapore Department of Statistics (SingStat)
+    url: https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data
+    fetch:
+      git: https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore
+      commit: 11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e
+      paths: [respopagesexfa2011to2020e.zip]
+      note: Unmodified SingStat release archive; the June 2020 sheet totals 4,044,210 residents (matches the census).
+    licence: Singapore Open Data Licence v1.0
+    attribution: "Singapore Department of Statistics, Singapore Residents by Planning Area/Subzone, Age Group, Sex and Floor Area of Residence, June 2020"
+    class: observed
+    used_for: [residents aged 65+ by subzone (elderly accessibility)]
+
+  - id: sg_rail_stations_lta
+    name: LTA Rapid Transit System Station layer (April 2025)
+    provider: Land Transport Authority (LTA) DataMall — Geospatial Whole Island
+    url: https://datamall.lta.gov.sg/content/datamall/en/static-data.html
+    fetch:
+      git: https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore
+      commit: 11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e
+      paths: [TrainStation_Apr2025/RapidTransitSystemStation.shp, TrainStation_Apr2025/RapidTransitSystemStation.shx,
+              TrainStation_Apr2025/RapidTransitSystemStation.dbf, TrainStation_Apr2025/RapidTransitSystemStation.prj,
+              TrainStation_Apr2025/RapidTransitSystemStation.cpg]
+    licence: Singapore Open Data Licence v1.0 (LTA DataMall)
+    attribution: "Contains information from LTA DataMall, Singapore Open Data Licence v1.0"
+    class: observed
+    used_for: [audit of OSM rail stations]
+
+  - id: sg_rail_stations_mp19
+    name: URA Master Plan 2019 Rail Station layer
+    provider: Urban Redevelopment Authority (URA), via data.gov.sg
+    url: https://data.gov.sg/
+    fetch:
+      git: https://github.com/Hon-Lam-Chia/Geospatial-Analysis-of-MRT-Lines-in-Singapore
+      commit: 11a622f705d9b79b8f2e3b13cdbc12a1a4e6b88e
+      paths: [MasterPlan2019RailStationlayerGEOJSON.geojson]
+    licence: Singapore Open Data Licence v1.0
+    attribution: "Contains information from Master Plan 2019 Rail Station layer accessed from data.gov.sg"
+    class: observed
+    used_for: [audit of OSM rail stations]
+
+  - id: sg_bus
+    name: Singapore bus stops and services (from LTA DataMall)
+    provider: Land Transport Authority (LTA) DataMall, compiled by the open-source sgbusdata project
+    url: https://datamall.lta.gov.sg/
+    fetch:
+      git: https://github.com/cheeaun/sgbusdata
+      paths: [data/v1/stops.json, data/v1/services.json, data/v1/routes.json]
+    licence: Singapore Open Data Licence v1.0 (LTA DataMall)
+    attribution: "Contains information from LTA DataMall, Singapore Open Data Licence v1.0"
+    class: observed
+    used_for: [audit of OSM bus stops, transit layer]
+
+  - id: worldcover
+    name: ESA WorldCover 10 m 2021 v200
+    provider: European Space Agency (ESA WorldCover consortium)
+    url: https://esa-worldcover.org/
+    fetch:
+      https: https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N00E102_Map.tif
+      method: cog_window
+    licence: CC-BY-4.0
+    attribution: "© ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium"
+    class: observed
+    used_for: [basemap land / water / vegetation / built-up layers]
+
+  - id: overture_places
+    name: Overture Maps Places, release 2026-09-23.1
+    provider: Overture Maps Foundation (sources include Meta, Microsoft, Foursquare)
+    url: https://docs.overturemaps.org/guides/places/
+    fetch:
+      s3: s3://overturemaps-us-west-2/release/2026-09-23.1/theme=places/type=place/
+      method: geoparquet_bbox             # row groups filtered on the bbox struct column
+    licence: CDLA-Permissive-2.0 (places); see Overture attribution guidance
+    attribution: "© Overture Maps Foundation — Places (Meta, Microsoft, Foursquare and others)"
+    class: observed
+    used_for: [independent check of OSM POI completeness, POI-source sensitivity run]
+
+  - id: gtfs_mybas_johor
+    name: myBAS Johor Bahru GTFS Static
+    provider: Malaysia Official Open API (data.gov.my) — operator BAS.MY Johor Bahru (Causeway Link)
+    url: https://api.data.gov.my/gtfs-static/mybas-johor
+    fetch:
+      https: https://openapi-malaysia-transport.s3.ap-southeast-1.amazonaws.com/mybas-johor/gtfs_mybas.zip
+      note: Storage bucket that backs the official GTFS Static API (refreshed daily).
+    licence: Malaysia Open Data Terms of Use — attribution required
+    attribution: "Malaysia Official Open API (data.gov.my), myBAS Johor GTFS"
+    class: observed
+    used_for: [Johor Bahru bus access to the border hubs, audit of OSM bus stops]
+
+  - id: gtfs_ktmb
+    name: KTMB GTFS Static (incl. Shuttle Tebrau JB Sentral – Woodlands)
+    provider: Malaysia Official Open API (data.gov.my) — Keretapi Tanah Melayu Berhad
+    url: https://api.data.gov.my/gtfs-static/ktmb
+    fetch:
+      https: https://openapi-malaysia-transport.s3.ap-southeast-1.amazonaws.com/ktmb/gtfs_ktmb.zip
+    licence: Malaysia Open Data Terms of Use — attribution required
+    attribution: "Malaysia Official Open API (data.gov.my), KTMB GTFS"
+    class: observed
+    used_for: [baseline cross-border rail option]
