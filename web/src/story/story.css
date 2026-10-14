@@ -937,3 +937,21 @@
     padding: 8px 10px;
   }
 }
+
+/* ------------------------------------------------------------------ hero fine print */
+
+.hero-fine {
+  max-width: 560px;
+  margin: calc(var(--space-3) * -1) 0 var(--space-4);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--paper-2);
+}
+
+.hero-fine p {
+  margin: 0 0 var(--space-2);
+}
+
+.hero-fine a {
+  color: var(--paper-1);
+}

@@ -7,7 +7,7 @@ export const PAGE_META: Record<PagePath, { title: string; description: string }>
   "/": {
     title: SITE,
     description:
-      "An open, reproducible study of everyday walking access in Singapore and Johor Bahru — street-network accessibility for 5.8 million residents, the RTS Link across the border, and what autonomous mobility could change.",
+      "An open, reproducible study of everyday walking access in Singapore and Johor Bahru — street-network accessibility for 5.8 million people, the RTS Link across the border, and what autonomous mobility could change.",
   },
   "/explore": {
     title: `Explorer — ${SITE}`,

@@ -184,7 +184,7 @@ const llms = [
   ``,
   `> ${story.description}`,
   ``,
-  `An open, reproducible street-network study. Every number on the site is computed from published data (OpenStreetMap, the 2020 censuses of Singapore and Malaysia, Meta/CIESIN HRSL population, LTA and myBAS transit data, Overture Places) by the pipeline in the repository. Results are labelled as observed, calculated, modelled, assumed or scenario.`,
+  `An open, reproducible street-network study. Every result on the site is computed from published data (OpenStreetMap, the 2020 censuses of Singapore and Malaysia, Meta/CIESIN HRSL population, LTA and myBAS transit data, Overture Places) by the pipeline in the repository. Results are labelled as observed, calculated, modelled, assumed or scenario.`,
   ``,
   `## Key findings`,
   ``,
@@ -245,7 +245,7 @@ function headline() {
   const fp = existsSync(fpFile) ? JSON.parse(readFileSync(fpFile, "utf8")).chosen : null;
   const r2 = (x) => (Math.round(x / 10 ** (Math.floor(Math.log10(x)) - 1)) * 10 ** (Math.floor(Math.log10(x)) - 1)).toLocaleString("en-US");
   return [
-    `- Residents who can walk to all six everyday essentials within 15 minutes: Singapore ${p(sg.share_complete)} of ${n(sg.population)}, Johor Bahru ${p(jb.share_complete)} of ${n(jb.population)} (2020 censuses).`,
+    `- Share who can walk to all six everyday essentials within 15 minutes: Singapore ${p(sg.share_complete)} of ${n(sg.population)} residents (citizens and permanent residents), Johor Bahru ${p(jb.share_complete)} of ${n(jb.population)} people (all persons); 2020 censuses.`,
     `- These shares are of residents whose homes join the walking network: ${p(sg.population_on_network / sg.population)} of Singapore's and ${p(jb.population_on_network / jb.population)} of Johor Bahru's residents.`,
     ...(ov ? [`- With Overture Places instead of OpenStreetMap as the source of destinations: Singapore ${p(ov.sg.share_complete)}, Johor Bahru ${p(ov.jb.share_complete)}.`] : []),
     `- Low access (fewer than three of six): Singapore ${p(sg.share_low_access)}, Johor Bahru ${p(jb.share_low_access)} (${n(jb.low_access_population)} people).`,

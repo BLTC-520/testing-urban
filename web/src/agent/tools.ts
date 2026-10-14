@@ -44,14 +44,18 @@ function cityArg(v: unknown): CityId | undefined {
 
 async function citySummary(input: Json) {
   const [summary, meta, labels] = await Promise.all([loadSummary(), loadMeta(), categoryLabels()]);
+  const overture = summary.poi_source_overture;
   const cities = (cityArg(input.city) ? [cityArg(input.city)!] : (["sg", "jb"] as CityId[])).map((c) => {
     const a = summary.cities[c].all as unknown as Record<string, number> & { share_complete_by_threshold: Record<string, number>; share_complete_by_speed: Record<string, number> };
     return {
       city: c,
       name: CITY_NAME[c],
       residents: Math.round(a.population),
+      residents_on_walking_network: Math.round(a.population_on_network),
+      percent_on_walking_network: pct(a.population_on_network / a.population),
       population_definition: meta.cities[c].population_definition,
       percent_with_all_six_essentials_within_15_min: pct(a.share_complete),
+      percent_with_all_six_using_overture_places: pct(overture?.[c]?.share_complete ?? NaN),
       percent_low_access: pct(a.share_low_access),
       low_access_residents: Math.round(a.low_access_population),
       mean_essentials_reached: round(a.mean_categories, 2),
@@ -66,8 +70,21 @@ async function citySummary(input: Json) {
       })),
     };
   });
+  const nonResidents = meta.cities.sg.non_residents;
+  const sgAll = summary.cities.sg.all;
+  const sgBound = nonResidents ? (sgAll.share_complete * sgAll.population_on_network) / (sgAll.population + nonResidents) : NaN;
+  const denominator = [
+    "Shares count residents whose homes are within 250 m of a walkable street (see residents_on_walking_network). Residents further out are left out of the share.",
+    "Singapore counts residents (citizens and permanent residents, Census of Population 2020). Johor Bahru counts all persons (Population and Housing Census of Malaysia 2020).",
+    nonResidents
+      ? `About ${(nonResidents / 1e6).toFixed(2)} million non-residents in Singapore are not counted. Even if none of them had all six essentials within reach, Singapore's share of all persons would still be at least ${pct(sgBound)}%.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return {
     question: "Share of residents who can walk to all six everyday essentials within 15 minutes on the street network",
+    denominator,
     essentials: meta.basket.map((k) => labels[k]),
     walking_speed_mps: meta.accessibility.walk_speed_mps.base,
     low_access_definition: `fewer than ${Math.round(meta.accessibility.low_access_completeness * meta.basket.length)} of ${meta.basket.length} essentials`,
@@ -185,7 +202,7 @@ export const TOOLS: AgentTool[] = [
   {
     name: "get_city_summary",
     description:
-      "Headline results for Singapore and/or Johor Bahru: share of residents who can walk to all six everyday essentials (groceries, healthcare, education, a park, public transport, everyday food) within 15 minutes, low-access residents, and per-essential walking times.",
+      "Headline results for Singapore and/or Johor Bahru: share of residents who can walk to all six everyday essentials (a grocery or provision shop, a clinic, hospital or pharmacy, a school or childcare centre, a park of at least 0.5 ha, a bus stop or station, an eatery) within 15 minutes, the share on the walking network, the Overture Places check, low-access residents, and per-essential walking times.",
     inputSchema: { type: "object", properties: { city: { type: "string", enum: ["sg", "jb"], description: "Omit for both cities" } } },
     annotations: { readOnlyHint: true },
     run: citySummary,

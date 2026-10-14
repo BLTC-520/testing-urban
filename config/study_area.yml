@@ -28,6 +28,13 @@ cities:
     boundary: sg_planning_areas
     neighbourhood_unit: planning_area      # 55 units, median ≈ 70k residents
     fine_unit: subzone                     # 332 units
+    # Non-residents (many of them work-permit holders, living in worker dormitories often
+    # in industrial areas) are outside the census of residents, so the Singapore figures
+    # cover residents only. This count is used only for the all-persons bound on the
+    # Methods page and in the get_city_summary tool; the pipeline does not model where
+    # non-residents live.
+    non_residents: 1641600
+    non_residents_source: "Population in Brief 2020 (Singapore Department of Statistics and partners): non-resident population of 1,641.6 thousand in June 2020"
   jb:
     name: Johor Bahru
     country: MYS

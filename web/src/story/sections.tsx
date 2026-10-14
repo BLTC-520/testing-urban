@@ -135,17 +135,18 @@ function Hero({ meta, summary }: { meta: Meta; summary: Summary }) {
           from home
         </h1>
         <p className="dek">
-          Two cities share a strait, a causeway and a labour market, but not a street pattern. We routed {((sg.population + jb.population) / 1e6).toFixed(1)} million residents along every
-          mapped street and footpath on both sides to ask a plain question: <em>can you reach the basics of daily life on foot?</em>
+          Two cities share a strait, a causeway and a labour market, but not a street pattern. We routed {((sg.population + jb.population) / 1e6).toFixed(1)} million people, Singapore's
+          residents and all of Johor Bahru's, along the mapped streets and footpaths on both sides to ask a plain question: <em>can you reach the basics of daily life on foot?</em>
         </p>
         <div className="hero-figures">
-          <CityFigure city="sg" value={pct(sg.share_complete)}>
+          <CityFigure city="sg" value={pct(sg.share_complete, 1)}>
             of Singapore residents can walk to all {meta.basket.length} everyday essentials within 15 minutes.
           </CityFigure>
-          <CityFigure city="jb" value={pct(jb.share_complete)}>
+          <CityFigure city="jb" value={pct(jb.share_complete, 1)}>
             of Johor Bahru residents can.
           </CityFigure>
         </div>
+        <HeroFinePrint summary={summary} />
         <p className="hero-meta">
           <Badge kind="observed">streets &amp; places</Badge> <Badge kind="calculated">walking times</Badge> <Badge kind="modelled">where people live</Badge>
         </p>
@@ -155,6 +156,31 @@ function Hero({ meta, summary }: { meta: Meta; summary: Summary }) {
         </a>
       </div>
     </section>
+  );
+}
+
+/** Qualifiers under the headline figures. Every number is computed from summary.json. */
+function HeroFinePrint({ summary }: { summary: Summary }) {
+  const sg = summary.cities.sg.all;
+  const jb = summary.cities.jb.all;
+  const ov = summary.poi_source_overture;
+  return (
+    <div className="hero-fine">
+      <p>
+        Population from the 2020 censuses. Shares are of the residents whose homes are within 250 m of a walkable street:{" "}
+        {pct(sg.population_on_network / sg.population, 1)} of them in Singapore, {pct(jb.population_on_network / jb.population, 1)} in Johor Bahru.
+        {ov ? (
+          <>
+            {" "}
+            With Overture Places instead of OpenStreetMap for food shops, clinics, schools and eateries: {pct(ov.sg.share_complete, 1)} and {pct(ov.jb.share_complete, 1)}.
+          </>
+        ) : null}
+      </p>
+      <p>
+        Singapore counts residents; Johor Bahru counts everyone — <a href={href("/methods", undefined, "population")}>see Methods</a>.{" "}
+        <a href={href("/methods", undefined, "metrics")}>How these are measured</a>
+      </p>
+    </div>
   );
 }
 
@@ -271,13 +297,13 @@ function BasketEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
       <Kicker n="03">The essentials</Kicker>
       <h2>Six things a day should not need a car for</h2>
       <p className="lede">
-        <strong>Completeness</strong> counts how many of six everyday needs a resident can reach on foot within 15 minutes. Each essential is defined by OpenStreetMap tags, listed
+        <strong>Completeness</strong> counts how many of six kinds of everyday destination a resident can reach on foot within 15 minutes. Each essential is defined by OpenStreetMap tags, listed
         here, so anyone can check them or change them in the explorer.
       </p>
       <div className="basket">
         {meta.basket.map((id) => {
           const c = meta.categories.find((x) => x.id === id);
-          const tags = [...(c?.includes?.strict ?? []), ...(c?.includes?.core ?? [])].map(prettyTag);
+          const tags = [...new Set([...(c?.includes?.strict ?? []), ...(c?.includes?.core ?? [])].map(prettyTag))];
           const minArea = c?.min_area_m2?.core;
           return (
             <article key={id} className="basket-card">
@@ -310,8 +336,8 @@ function BasketEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
         })}
       </div>
       <p className="small muted">
-        Bars: share of residents with that essential within a 15-minute walk <Badge kind="calculated" />. Homes and destinations join the network at the nearest walkable street
-        (never more than 250 m away). Walking pace 1.2 m/s ≈ 4.3 km/h <Badge kind="assumed" />.
+        Bars: share of residents with that essential within a 15-minute walk <Badge kind="calculated" />. Homes and destinations join the network at the nearest walkable street.
+        Those more than 250 m from one are left out. Walking pace 1.2 m/s ≈ 4.3 km/h <Badge kind="assumed" />.
       </p>
     </Essay>
   );
@@ -393,6 +419,8 @@ function GapEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
 // ============================================================================ where
 
 function WhereSteps({ summary }: { summary: Summary }) {
+  const hc = summary.audit.poi_cross_source.find((r) => r.city === "jb" && r.category === "healthcare");
+  const hcRatio = hc ? Number(hc.osm_per_10k) / Number(hc.overture_per_10k) : NaN;
   const units: UnitPoint[] = summary.neighbourhoods
     .filter((n) => n.population >= MIN_UNIT_POP)
     .map((n) => ({ id: n.unit_id, name: n.unit_name, city: n.city, value: n.share_complete, population: n.population }));
@@ -410,8 +438,8 @@ function WhereSteps({ summary }: { summary: Summary }) {
         </p>
         <NeighbourhoodStrip units={units} labelIds={labelIds} caption="Share of residents reaching all six essentials, by neighbourhood" />
         <p className="small">
-          In most of these areas the missing essential is a clinic or pharmacy within 15 minutes — also the category OpenStreetMap maps least completely (chapter 08), so treat
-          individual neighbourhoods as places to check, not verdicts.
+          In most of these areas the missing essential is healthcare: a clinic, hospital or pharmacy within 15 minutes. OpenStreetMap lists {pct(hcRatio)} as many clinics,
+          hospitals and pharmacies per resident in Johor Bahru as Overture Places does (chapter 08), so treat individual neighbourhoods as places to check, not verdicts.
         </p>
         <p className="small muted">
           Dots are Singapore planning areas and Johor Bahru state constituencies, sized by residents. <Badge kind="calculated" /> <Badge kind="modelled">residents</Badge>
@@ -509,7 +537,7 @@ function AuditEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
     overture: Number(r.overture_per_10k),
   }));
   sourceRows.sort((x, y) => (x.label === y.label ? (x.city === "sg" ? -1 : 1) : x.label.localeCompare(y.label)));
-  const NOUN: Record<string, string> = { groceries: "food shops", healthcare: "clinics and pharmacies", education: "schools and childcare centres", dining: "eateries" };
+  const NOUN: Record<string, string> = { groceries: "food shops", healthcare: "healthcare places", education: "schools and childcare centres", dining: "eateries" };
   const overtureMore = a.poi_cross_source
     .filter((r) => r.city === "jb" && Number(r.overture_per_10k) > 1.2 * Number(r.osm_per_10k))
     .map((r) => NOUN[String(r.category)] ?? String(r.category));
@@ -566,8 +594,8 @@ function AuditEssay({ meta, summary }: { meta: Meta; summary: Summary }) {
             ) : (
               <>We re-ran the whole analysis with Overture Places for shops, clinics, schools and eateries. </>
             )}
-            Result: Singapore <strong>{pct(ov.sg.share_complete)}</strong>, Johor Bahru <strong>{pct(ov.jb.share_complete)}</strong> complete (OpenStreetMap:{" "}
-            {pct(summary.cities.sg.all.share_complete)} and {pct(summary.cities.jb.all.share_complete)}).{" "}
+            Result: Singapore <strong>{pct(ov.sg.share_complete, 1)}</strong>, Johor Bahru <strong>{pct(ov.jb.share_complete, 1)}</strong> complete (OpenStreetMap:{" "}
+            {pct(summary.cities.sg.all.share_complete, 1)} and {pct(summary.cities.jb.all.share_complete, 1)}).{" "}
             {ov.sg.share_complete - ov.jb.share_complete > 0.2
               ? ov.jb.share_complete > summary.cities.jb.all.share_complete + 0.03
                 ? "Part of Johor Bahru's gap is under-mapping, but most of it survives."
@@ -793,7 +821,7 @@ function ParkingSteps({ meta, summary, state, setState, sites }: Props & { meta:
         <h4 className="city-h sg-ink">Singapore</h4>
         {nums("sg")}
         <p className="small muted">
-          Where streets are disconnected, a hub only helps the homes its walk-shed can reach. Where OpenStreetMap misses existing clinics (see chapter 08), the gain is overstated:
+          Where streets are disconnected, a hub only helps the homes its walk-shed can reach. Where OpenStreetMap misses existing clinics (see chapter 08), the gain may be overstated:
           read the numbers as where land could matter, not as a forecast. <Badge kind="calculated" />
         </p>
       </Step>
@@ -974,7 +1002,7 @@ function Ending({ meta }: { meta: Meta }) {
               <h4>About</h4>
               <p className="small">
                 An open urban-technology study of walkable access in Singapore and Johor Bahru. Data pipeline in Python (OSM, H3, numba Dijkstra), interface in React, MapLibre and
-                deck.gl; every number on this page is reproducible from public data.
+                deck.gl; every computed number on this page can be reproduced from public data.
               </p>
             </div>
             <div>

@@ -10,6 +10,7 @@ import type { Surface } from "./useSurface";
 
 export function ControlPanel({
   meta,
+  summary,
   surfaces,
   onFly,
 }: {
@@ -103,6 +104,15 @@ export function ControlPanel({
           Share of {who} who can reach {s.metric === "complete" ? "all six essentials" : metricLabel.toLowerCase()} within{" "}
           {s.threshold} min at {speeds[s.speed]} m/s{s.scenario !== "none" ? " — with the scenario applied" : ""}.
         </p>
+        {summary ? (
+          <p className="small muted">
+            Census 2020: Singapore counts residents, Johor Bahru counts all persons. Shares count residents whose homes are within 250 m of a walkable street (
+            {pct(summary.cities.sg.all.population_on_network / summary.cities.sg.all.population, 1)} and{" "}
+            {pct(summary.cities.jb.all.population_on_network / summary.cities.jb.all.population, 1)}). With Overture Places instead of OpenStreetMap for food shops, clinics,
+            schools and eateries: {pct(summary.poi_source_overture?.sg.share_complete, 1)} in Singapore, {pct(summary.poi_source_overture?.jb.share_complete, 1)} in Johor Bahru.{" "}
+            <a href={href("/methods", undefined, "metrics")}>How these are measured</a>
+          </p>
+        ) : null}
       </div>
 
       <Field label="Show">

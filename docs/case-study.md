@@ -1,7 +1,7 @@
 # Case study — Singapore / Johor Bahru 15-Minute City Explorer
 
 > How far is daily life from home in two cities that share a strait — and what could future
-> mobility change? An open, reproducible street-network study for 5.8 million residents.
+> mobility change? An open, reproducible street-network study for 5.8 million people.
 
 All figures below come from `data/derived/summary.json` (OpenStreetMap snapshot 2026-10-05,
 walking at 1.2 m/s, 15 minutes, core definitions) unless stated otherwise.
@@ -36,7 +36,7 @@ like when many road users are autonomous agents?**
 |---|---|---|
 | Streets, footpaths, destinations, parks, car parks | OpenStreetMap planet snapshot 2026-10-05 (bbox extract) | observed |
 | Independent places (sensitivity) | Overture Maps Places 2026-09-23 | observed |
-| Residents | Census 2020: SingStat (subzones), DOSM (state constituencies N.40–N.49) | observed |
+| Population | Census 2020: SingStat (subzones; residents), DOSM (state constituencies N.40–N.49; all persons) | observed |
 | Where residents live inside census units | Meta/CIESIN HRSL 30 m, Kontur (fallback and sensitivity) | modelled |
 | Residents aged 65+ | SingStat / DOSM age tables, HRSL elderly layer | observed / modelled |
 | Bus stops, rail stations (validation) | LTA DataMall, myBAS GTFS | observed |
@@ -112,7 +112,7 @@ keys. Details: [architecture.md](architecture.md).
 
 | | Singapore | Johor Bahru |
 |---|---:|---:|
-| Residents (census 2020) | 4,044,340 | 1,753,284 |
+| Census 2020 count (SG residents; JB all persons) | 4,044,340 | 1,753,284 |
 | All six essentials within 15 min | **80.4 %** | **12.0 %** |
 | Fewer than three within 15 min | 2.0 % (78,900) | 37.9 % (657,200) |
 | None of the six within 15 min | 0.2 % | 14.4 % |
@@ -126,19 +126,28 @@ keys. Details: [architecture.md](architecture.md).
 | Footpaths, share of walkable length | 47 % | 11 % |
 | Neighbours in the 15-min circle reached on foot (median) | 47 % | 34 % |
 
+**Population basis.** Singapore's census counts residents; Johor Bahru's counts all persons. Shares count
+residents whose homes are within 250 m of a walkable street: 99.9 % of Singapore's census count and
+98.9 % of Johor Bahru's. Singapore's total population also includes about 1.64 million non-residents
+(Singapore Department of Statistics, *Population in Brief 2020*), many of them work-permit holders. The
+pipeline does not model where they live. Even if none of them had all six essentials within reach,
+Singapore's share of all persons would be at least 57.1 %, still far above Johor Bahru's 12.0 %. The
+direction of the finding cannot flip; the gap would be at least 45 points rather than 68. Using Overture
+Places for food shops, clinics, schools and eateries gives 89.5 % in Singapore and 23.0 % in Johor Bahru.
+
 1. **The gap is large and robust.** Singapore leads in all 72 sensitivity runs; the gap exceeds
    20 points in 70 of them. "Most Johor Bahru residents lack at least one essential" holds in every
    run; "most Singapore residents have all six" is *conditional* (79 % of runs) — it fails with a
    10-minute budget or a slow walker.
 2. **The shape of the gap differs.** In Singapore the question is *which* essential is missing — 14 %
-   of residents are exactly one short, usually a clinic. In Johor Bahru it is *how many*: residents
-   spread almost evenly from none to all six.
+   of residents are exactly one short, usually for healthcare (a clinic, hospital or pharmacy). In
+   Johor Bahru it is *how many*: residents spread almost evenly from none to all six.
 3. **Street structure matters.** Singapore has three times the junction density and four times the
    footpath share; from a typical home its walk reaches a larger share of the neighbours inside the
    circle.
-4. **Part of the gap is the map, most is not.** OpenStreetMap lists a third as many clinics and
-   pharmacies per resident in Johor Bahru as Overture Places does. Re-running with Overture lifts
-   Johor Bahru to 23.0 % (Singapore 89.5 %): the gap narrows by two points. Bus-stop recall against
+4. **Part of the gap is the map, most is not.** OpenStreetMap lists a third as many clinics,
+   hospitals and pharmacies per resident in Johor Bahru as Overture Places does. Re-running with
+   Overture lifts Johor Bahru to 23.0 % (Singapore 89.5 %): the gap narrows by two points. Bus-stop recall against
    official lists is 92 % (Singapore) and 83 % (Johor Bahru) within 30 m.
 5. **Older and slower walkers lose the most.** At 0.9 m/s Singapore's complete share falls by 20
    points — a design target for an ageing city.
@@ -189,7 +198,7 @@ residents short.
 * OpenStreetMap completeness differs by category and country (bounded, not removed, by the audits).
 * Presence is not service: capacity, price, hours and quality are not measured.
 * Network distance is not walkability: heat, shade, crossings, gradients and safety are not modelled.
-* Population inside census units is modelled; census definitions differ (residents vs all persons).
+* Population inside census units is modelled; census definitions differ (residents vs all persons). The Findings section gives the bound.
 * Gated estates: private roads are excluded, so residents inside them start from the nearest public street.
 * Scenarios are explorations with stated assumptions, not forecasts.
 

@@ -103,7 +103,7 @@ try {
   await check("llms.txt, llms-full.txt, robots.txt, sitemap.xml, data/index.json", async () => {
     const llms = await get("/llms.txt");
     assert.match(llms, /^# Singapore \/ Johor Bahru 15-Minute City Explorer$/m);
-    assert.match(llms, /Singapore 80\.4% of 4,044,340, Johor Bahru 12\.0% of 1,753,284/);
+    assert.match(llms, /Singapore 80\.4% of 4,044,340 residents .*, Johor Bahru 12\.0% of 1,753,284 people/);
     for (const t of ["get_city_summary", "find_neighbourhoods", "walk_from", "open_explorer"]) assert.ok(llms.includes(`\`${t}\``), t);
     const full = await get("/llms-full.txt");
     assert.ok(full.length > 40000 && full.includes("## Metrics") && full.includes("# Fifteen minutes from home"));
