@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Badge, type Evidence } from "../components/Controls";
 import { Header } from "../components/Header";
+import { Tex } from "../components/Tex";
 import { loadMeta, loadSummary } from "../lib/data";
 import { int, pct } from "../lib/format";
 import type { Meta, Summary } from "../lib/types";
@@ -31,10 +32,10 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
-function Formula({ children, note }: { children: ReactNode; note?: ReactNode }) {
+function Formula({ tex, note }: { tex: string; note?: ReactNode }) {
   return (
     <figure className="formula">
-      <div className="f-body">{children}</div>
+      <Tex block>{tex}</Tex>
       {note ? <figcaption>{note}</figcaption> : null}
     </figure>
   );
@@ -242,32 +243,41 @@ export function Methods() {
 
           <Section id="metrics" title="Metrics">
             <p>
-              For each cell <var>i</var> and essential <var>k</var>, a multi-source Dijkstra search from every destination of <var>k</var> gives the network distance to the nearest
+              For each cell <Tex>i</Tex> and essential <Tex>k</Tex>, a multi-source Dijkstra search from every destination of <Tex>k</Tex> gives the network distance to the nearest
               one:
             </p>
-            <Formula note="u, v: end nodes of the edge the cell snaps to; o: along-edge offsets; s: snap distance">
-              d<sub>ik</sub> = min( D<sub>k</sub>(u) + o<sub>u</sub>, D<sub>k</sub>(v) + o<sub>v</sub> ) + 1.3 · s<sub>i</sub>
-            </Formula>
+            <Formula
+              tex={String.raw`d_{ik} = \min\bigl(D_k(u) + o_u,\; D_k(v) + o_v\bigr) + 1.3\, s_i`}
+              note={
+                <>
+                  <Tex>u, v</Tex>: end nodes of the edge the cell snaps to; <Tex>o_u, o_v</Tex>: along-edge offsets; <Tex>s_i</Tex>: snap distance; <Tex>D_k</Tex>: network
+                  distance from the nearest destination of <Tex>k</Tex>
+                </>
+              }
+            />
             <p>
-              With walking speed <var>v</var> (baseline {acc?.walk_speed_mps.base} m/s) and time budget <var>τ</var> (baseline {acc?.headline_threshold_min} min),{" "}
+              With walking speed <Tex>v</Tex> (baseline {acc?.walk_speed_mps.base} m/s) and time budget <Tex>\tau</Tex> (baseline {acc?.headline_threshold_min} min),{" "}
               <strong>completeness</strong> is the share of the {meta?.basket.length ?? 6} essentials within reach:
             </p>
-            <Formula>
-              C<sub>i</sub>(τ) = (1 / K) · Σ<sub>k</sub> 1[ d<sub>ik</sub> ≤ v · τ ]
-            </Formula>
+            <Formula tex={String.raw`C_i(\tau) = \frac{1}{K} \sum_{k=1}^{K} \mathbf{1}\!\left[\, d_{ik} \le v\,\tau \,\right]`} />
             <p>
-              Population-weighted indicators use the residents <var>w</var>
-              <sub>i</sub> of each cell. The headline is the <strong>share complete</strong>, Σ w<sub>i</sub>·1[C<sub>i</sub> = 1] / Σ w<sub>i</sub>; a resident is in a{" "}
-              <strong>low-access</strong> area when C<sub>i</sub> &lt; {acc?.low_access_completeness}. Distributions are summarised with weighted quantiles and a weighted Gini
+              Population-weighted indicators use the residents <Tex>w_i</Tex> of each cell. The headline is the <strong>share complete</strong>,{" "}
+              <Tex>{String.raw`\sum_i w_i \mathbf{1}[C_i = 1] \,/\, \sum_i w_i`}</Tex>; a resident is in a <strong>low-access</strong> area when{" "}
+              <Tex>{`C_i < ${acc?.low_access_completeness ?? 0.5}`}</Tex>. Distributions are summarised with weighted quantiles and a weighted Gini
               coefficient.
             </p>
             <p>
               Two robustness measures avoid the hard cut-off: <strong>cumulative opportunities</strong> (destinations within 5, 10, 15 and 20 minutes) and a{" "}
               <strong>gravity index</strong>
             </p>
-            <Formula note={`β = ln 2 / (half-life × v); half-life ${acc?.gravity_half_life_min ?? 10} min`}>
-              G<sub>ik</sub> = Σ<sub>j∈k</sub> exp( −β · d<sub>ij</sub> )
-            </Formula>
+            <Formula
+              tex={String.raw`G_{ik} = \sum_{j \in k} e^{-\beta\, d_{ij}}, \qquad \beta = \frac{\ln 2}{h\, v}`}
+              note={
+                <>
+                  <Tex>h</Tex>: half-life, {acc?.gravity_half_life_min ?? 10} min (the weight of a destination halves for every {acc?.gravity_half_life_min ?? 10} minutes of walking)
+                </>
+              }
+            />
             <p>
               The explorer recomputes completeness in the browser from the published distances for any speed, threshold, definition or population group, using the same
               formulas (tested against the Python implementation).
@@ -304,9 +314,11 @@ export function Methods() {
           <Section id="scenarios" title="Scenarios">
             <h3>1 · RTS Link: door to platform (regional)</h3>
             <p>Minutes from a Johor Bahru home to the first Singapore MRT platform, decomposed so that each term is either calculated or an explicit assumption:</p>
-            <Formula>T = T_access(home → hub) + 2 · clearance + T_crossing + T_connection</Formula>
+            <Formula
+              tex={String.raw`T = T_{\text{access}}(\text{home} \to \text{hub}) + 2\,T_{\text{clearance}} + T_{\text{crossing}} + T_{\text{connection}}`}
+            />
             <p>
-              <Badge kind="calculated" /> T_access on real networks: walking, or walking plus myBAS buses with frequency-based waits (half the scheduled headway in the{" "}
+              <Badge kind="calculated" /> <Tex>{String.raw`T_{\text{access}}`}</Tex> on real networks: walking, or walking plus myBAS buses with frequency-based waits (half the scheduled headway in the{" "}
               {meta?.crossborder ? "07:00–09:00" : ""} weekday window from the official GTFS, capped at 15 min, plus a 2-minute boarding margin), or a shared autonomous feeder on
               the road network. <Badge kind="assumed" /> Everything after the hub.
             </p>
