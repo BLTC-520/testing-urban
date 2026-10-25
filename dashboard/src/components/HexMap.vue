@@ -32,6 +32,7 @@ import { useFilters } from "../stores/filters.ts";
 import { basemapStyle, registerPmtiles } from "../map/basemapStyle.ts";
 import { rampAt, hexToRGB } from "../map/colors.ts";
 import { BUILDINGS_VIEW, buildingsFocus, buildingsLayer, hexStyle, ionToken } from "../map/buildings.ts";
+import { STUDY_AREA } from "../map/studyArea.ts";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
 
@@ -188,6 +189,8 @@ onMounted(() => {
     zoom: (c?.zoom ?? 10.6) - 0.3,
     pitch: 42,
     bearing: -12,
+    // The camera stays over the study area: nothing outside it has data.
+    maxBounds: STUDY_AREA,
     attributionControl: { compact: true },
     // A wall display is not interacted with; a desk review is. Keep both usable
     // but never let a stray scroll zoom the whole page instead.

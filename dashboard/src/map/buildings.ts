@@ -23,6 +23,7 @@
 import { Tile3DLayer } from "@deck.gl/geo-layers";
 import { CesiumIonLoader } from "@loaders.gl/3d-tiles";
 import type { CityId } from "../api/types.ts";
+import { STUDY_AREA, type Bounds } from "./studyArea.ts";
 
 /** Cesium OSM Buildings, available to every Cesium ion account. */
 export const OSM_BUILDINGS_ASSET = 96188;
@@ -145,19 +146,40 @@ interface TilesetJson {
   [key: string]: unknown;
 }
 
-function sphereTile(tile: TileJson): TileJson {
+const RAD = Math.PI / 180;
+
+/**
+ * Whether a tile can hold anything inside the area. 3D Tiles nest — a child's
+ * region lies within its parent's — so a tile outside takes its whole subtree
+ * with it. A tile with no region (a box or sphere) is kept: it cannot be placed
+ * cheaply, and Cesium OSM Buildings uses regions throughout.
+ */
+function overlaps(tile: TileJson, [west, south, east, north]: Bounds): boolean {
+  const r = tile.boundingVolume?.region;
+  if (!r) return true;
+  return r[0] <= east * RAD && r[2] >= west * RAD && r[1] <= north * RAD && r[3] >= south * RAD;
+}
+
+function prepareTile(tile: TileJson, area: Bounds): TileJson {
   const region = tile.boundingVolume?.region;
   const large = region !== undefined
     && Math.max(region[2] - region[0], region[3] - region[1]) > LARGE_REGION_RAD;
   return {
     ...tile,
     ...(large ? { boundingVolume: { sphere: regionToSphere(region) } } : {}),
-    ...(tile.children ? { children: tile.children.map(sphereTile) } : {}),
+    ...(tile.children
+      ? { children: tile.children.filter((c) => overlaps(c, area)).map((c) => prepareTile(c, area)) }
+      : {}),
   };
 }
 
-export function spheresForLargeRegions<T extends TilesetJson>(tileset: T): T {
-  return { ...tileset, root: sphereTile(tileset.root) };
+/**
+ * Every tileset the loader parses passes through here: tiles wholly outside
+ * the study area are dropped, so the traversal never asks for them however far
+ * the camera looks, and large regions become bounding spheres (see above).
+ */
+export function prepareTileset<T extends TilesetJson>(tileset: T, area: Bounds): T {
+  return { ...tileset, root: prepareTile(tileset.root, area) };
 }
 
 const isTileset = (x: unknown): x is TilesetJson =>
@@ -192,7 +214,7 @@ const BuildingsLoader: typeof CesiumIonLoader = {
   parse: async (data, options, context) => {
     const parsed = await CesiumIonLoader.parse(data, options, context);
     return isTileset(parsed)
-      ? { ...spheresForLargeRegions(parsed), loader: BuildingsLoader }
+      ? { ...prepareTileset(parsed, STUDY_AREA), loader: BuildingsLoader }
       : emptyModelSafe(parsed);
   },
 };

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   OSM_BUILDINGS_ASSET, buildingsFocus, buildingsLayer, emptyModelSafe, geodeticToEcef, hexStyle, ionToken,
-  regionToSphere, spheresForLargeRegions,
+  prepareTileset, regionToSphere,
 } from "./buildings.ts";
+import { STUDY_AREA } from "./studyArea.ts";
 
 const RAD = Math.PI / 180;
 const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
@@ -51,6 +52,42 @@ describe("a region's bounding sphere", () => {
   });
 });
 
+describe("keeping only the study area", () => {
+  const deg = (d: number) => d * RAD;
+  const region = (w: number, s: number, e: number, n: number) => ({ region: [deg(w), deg(s), deg(e), deg(n), 0, 100] });
+  const tileset = {
+    root: {
+      boundingVolume: region(90, -10, 120, 20),
+      children: [
+        { boundingVolume: region(103.8, 1.25, 103.9, 1.32), content: { uri: "sg.b3dm" } },   // Singapore
+        { boundingVolume: region(103.7, 1.45, 103.8, 1.55), content: { uri: "jb.b3dm" } },   // Johor Bahru
+        { boundingVolume: region(104.0, 1.0, 104.2, 1.15), content: { uri: "batam.b3dm" } }, // overlaps the box's corner
+        { boundingVolume: region(100.4, 13.6, 100.7, 13.9), content: { uri: "bangkok.b3dm" } },
+        { boundingVolume: { sphere: [0, 0, 0, 1] }, content: { uri: "no-region.b3dm" } },
+      ],
+    },
+  };
+  const uris = (t: typeof tileset) =>
+    (t.root.children ?? []).map((c) => (c as { content?: { uri: string } }).content?.uri);
+
+  it("drops tiles that lie wholly outside it, so they are never requested", () => {
+    expect(uris(prepareTileset(tileset, STUDY_AREA))).not.toContain("bangkok.b3dm");
+  });
+
+  it("keeps tiles inside or overlapping it, and any it cannot place", () => {
+    expect(uris(prepareTileset(tileset, STUDY_AREA))).toEqual(
+      ["sg.b3dm", "jb.b3dm", "batam.b3dm", "no-region.b3dm"],
+    );
+  });
+
+  it("is the pipeline's acquisition box, which holds both cities", () => {
+    const [w, s, e, n] = STUDY_AREA;
+    for (const [lon, lat] of [[103.85, 1.29], [103.76, 1.46]]) {
+      expect(lon > w && lon < e && lat > s && lat < n).toBe(true);
+    }
+  });
+});
+
 describe("large bounding regions in a tileset", () => {
   // The shape of Cesium OSM Buildings' top: a root spanning the whole globe,
   // split into hemispheres, with ordinary city-sized tiles further down.
@@ -68,7 +105,7 @@ describe("large bounding regions in a tileset", () => {
       ],
     },
   };
-  const out = spheresForLargeRegions(tileset);
+  const out = prepareTileset(tileset, [-180, -90, 180, 90]);
 
   it("become bounding spheres", () => {
     expect(out.root.boundingVolume).toHaveProperty("sphere");
