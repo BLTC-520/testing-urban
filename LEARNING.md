@@ -429,3 +429,102 @@ Three ways. `npm run verify` recomputes the published shares out of SQLite for e
 speed. The API tests assert the headline findings — 80.4% versus 12.0%, healthcare scarcest in both
 cities — so a regression fails a test rather than quietly changing a number on a wall. And the
 scenario deltas are the pipeline's own published figures, not ones the dashboard derived.
+
+## Phase 8 — 3D landmarks on the map
+
+The map had the data and none of the place. Twelve landmarks now stand on it, modelled in Blender
+from a script, and putting them there forced three changes to the map that were overdue anyway.
+
+### Files
+
+| File | What it does |
+|---|---|
+| `scripts/landmarks/landmarks.json` | the twelve landmarks: anchor, dimensions, provenance, confidence |
+| `scripts/landmarks/analyse_refs.py` | k-means over reference photographs → night palettes and silhouette profiles |
+| `scripts/landmarks/textures.py` | facade textures generated from those measured colours |
+| `scripts/landmarks/footprints.py` | reads each landmark's OSM footprint out of `basemap.pmtiles`: centroid, area, long axis |
+| `scripts/landmarks/build_models.py` | Blender, headless: builds every model and exports one `.glb` each |
+| `dashboard/src/map/landmarks.ts` | placement, scale policy, zoom fade, one `ScenegraphLayer` per model |
+| `dashboard/src/map/lighting.ts` | the night lighting rig, shared by the hexagons and the landmarks |
+| `dashboard/landmarks.html` + `src/landmarksCheck.ts` | the check page: one landmark at a time on the real basemap |
+| `dashboard/scripts/shot_landmarks.mjs` | drives that page headless and leaves twelve screenshots |
+| `tests/test_landmarks.py` | the footprint maths, the clustering, and the manifest |
+
+### Decisions
+
+**Procedural, not sculpted.** Nobody can review a `.blend`. A script that says "three 194 m slabs,
+340 m deck, 67 m overhang" is a diff, and when a published figure turns out to be wrong the model
+changes by editing a number. The cost is that the models are stylised — a hand-modelled Merlion
+would be better — and the benefit is that every line of every model is traceable to a source.
+
+**Position and bearing come from data the repository already has.** The basemap archive carries an
+OSM `buildings` layer that nothing was drawing. `footprints.py` pulls the footprint under each
+landmark's anchor and takes its centroid and principal axis. Two guards stop that being worse than
+typing the numbers in: a footprint that does not *contain* the anchor has to be within 120 m to
+count, and a footprint only sets the yaw if it is both anchor-containing and at least 1.5× longer
+than it is wide — the principal axis of a near-circular building is whichever way its vertices
+happened to fall. The Flyer's terminal and the Esplanade's base are both rejected by that rule and
+fall back to a bearing recorded in prose in `landmarks.json`.
+
+**Colours are measured, not chosen.** The emissive colour of the Sands' windows is the mean of the
+brightest 2% of pixels in a night photograph of it. Writing that down is more useful than a hex code
+because it says what the number *is*.
+
+**Everything is at true scale except what says it isn't.** `MIN_DRAWN_M = 55` lifts the 8.6 m
+Merlion to 6.4× so it does not vanish, and the hover card prints "drawn 6.4×". Exaggerating a map
+symbol is normal; hiding that you did is not.
+
+### What went wrong
+
+**The orientation was wrong on every landmark, invisibly.** deck.gl composes `getOrientation` as
+Rz(yaw)·Ry(pitch)·Rx(roll). The roll of 90 that every `ScenegraphLayer` needs — glTF is Y-up,
+deck.gl is Z-up — leaves the model's own +X axis pointing at deck's +X, which is *east*. So the yaw
+that lands a model on a compass bearing is `90 - bearing`, not `-bearing`. With `-bearing` every
+landmark was rotated by the same wrong amount and every one of them still looked like a building
+standing in the right place. Pointing the check page's camera due north and looking at which way
+the Merlion's water jet went found it immediately; no amount of staring at the pitched view would
+have.
+
+**The hexagons were a wall.** Height encodes population as `cbrt(pop) * 140`, which is right at the
+overview and absurd close in: a hexagon with 7,000 residents is 2.7 km tall. At the zoom where a
+200 m tower finally resolves, the data was standing in front of the city. The fix is that the
+columns collapse to a thirtieth of their height over the same zoom level in which the landmarks
+fade in, squared rather than linear because a column at half height is still 1.3 km of wall. The
+fill thins at the same time so the street network shows through. Nothing is lost — colour carries
+completeness at every zoom.
+
+**The models looked like daylight dropped on a night map.** First pass had emission strengths
+around 1–3 on large flat surfaces, which in glTF multiplies into `emissiveFactor` and turns a
+dark SkyPark into a tan plate. Halving them and letting the window textures carry the light fixed
+it. The reference photographs are the arbiter: a night photograph of a tower is mostly dark.
+
+**Blender's `bpy` module needs an exact CPython.** `pip install bpy` only resolves against the
+interpreter version a given Blender embeds — 5.2 is built for 3.13. It is a separate optional
+extra for that reason, and because it is a few hundred megabytes that no part of the analysis needs.
+
+### Interview questions
+
+**Why Blender rather than downloading models?**
+Licensing and reviewability. A model from an asset library comes with terms this repository cannot
+satisfy and a mesh nobody can diff. Generating from published dimensions means the provenance of
+every model is a row in a JSON file with a confidence field, and the whole set rebuilds in 20
+seconds.
+
+**How do you know a landmark is in the right place and pointing the right way?**
+Position and bearing come from the OSM footprint in our own basemap, and the manifest records which
+of the two sources each one used. The cross-check is that the Sands' footprint measures 339 m long
+against a published SkyPark of 340 m. Orientation is checked visually, because it has to be: the
+check page puts one landmark at a time on the real basemap and the screenshot script leaves twelve
+images to look at.
+
+**What did adding decoration cost the data?**
+Nothing, and it improved it. The landmarks made it obvious that the population columns were
+unreadable at close zoom, which was already true and nobody had noticed because nobody zoomed in.
+The columns now flatten and the fill thins as the camera comes down, so the map reads as a
+choropleth over a real city instead of a forest of kilometre-high prisms.
+
+**Why one layer per model rather than one instanced layer?**
+A `ScenegraphLayer` holds one scenegraph. Twelve landmarks are twelve different buildings, so
+sharing a geometry is not available; the alternative is twelve layers of one instance each, which
+is about 10,500 triangles in total and costs no measurable frame time. Instancing is the right
+answer when you have a thousand copies of one tree, not twelve copies of nothing.

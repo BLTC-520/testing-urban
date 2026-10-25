@@ -138,6 +138,64 @@ threshold land on the wrong side of it — about 260–290 residents per city. N
 downstream, both are small, and I would rather have them written down than discover them in an
 interview.
 
+### Decision: 3D landmarks, built from numbers
+
+The hex map answers the dashboard's question. It does not answer "where am I?", and on a wall
+display that is the question a passer-by asks first. So the map carries twelve landmarks — the
+Merlion, Marina Bay Sands, the ArtScience Museum, the Supertree Grove, the Singapore Flyer, the
+Esplanade on one side; Bangunan Sultan Ibrahim, the state mosque, Komtar JBCC, The Astaka and
+both ends of the Causeway on the other.
+
+They are modelled in Blender, headless, from a Python script
+([`scripts/landmarks/build_models.py`](scripts/landmarks/build_models.py)). Not sculpted and not
+scanned: **the script is the model**. That matters for three reasons.
+
+**It is reviewable.** A `.blend` file in a pull request is a binary nobody can read. A script that
+says the Sands are three 194 m slabs under a 340 m deck with a 67 m overhang is a diff.
+
+**Its inputs are sourced.** Every dimension lives in
+[`landmarks.json`](scripts/landmarks/landmarks.json) with a confidence field saying whether it is
+published, derived from published figures, or estimated off a photograph. Position and bearing are
+not typed in at all: [`footprints.py`](scripts/landmarks/footprints.py) reads the OSM building
+outline out of the basemap archive this repository already ships, and takes the centroid and the
+long axis of the footprint. The Sands' footprint comes back as 339 m long — against a published
+SkyPark of 340 m — which is the check that the right building was found.
+
+**Its colours are measured.** The night palette is not picked by eye.
+[`analyse_refs.py`](scripts/landmarks/analyse_refs.py) k-means clusters reference photographs and
+writes out the colour of their brightest 2% of pixels — the lit windows themselves — and
+[`textures.py`](scripts/landmarks/textures.py) builds the facade textures from those numbers. The
+photographs are not committed (unclear licences); the URLs and the derived numbers are.
+
+Three things fell out of putting real buildings on the map that were worth fixing anyway:
+
+* **The columns had to come down.** Height encodes population, and a res-8 hexagon holding 7,000
+  people extrudes to 2.7 km. At the zoom where a 200 m tower is finally visible, the data was a
+  wall standing in front of the city. The columns now collapse over the one zoom level in which
+  the landmarks fade in, and the fill thins at the same time, so the streets show through.
+* **Buildings, not just land.** The basemap archive had an unused `buildings` layer. It is now
+  extruded as massing from zoom 13 — at a uniform 9 m, because the extract carries no heights, and
+  the legend says so rather than letting anyone read a skyline into it.
+* **One lighting rig.** deck.gl's default lighting is a studio with nothing in shadow. The map now
+  runs a night rig ([`lighting.ts`](dashboard/src/map/lighting.ts)) — low cool ambient, a weak key
+  from the north-east, a warm fill standing in for the city's own glow — which the hexagons need
+  more than the landmarks do.
+
+Everything is drawn at its real size, with one exception that the hover card admits to: nothing is
+drawn shorter than 55 m, so the 8.6 m Merlion appears at 6.4×. A map symbol that is not to scale is
+normal. One that is not to scale and does not say so is not.
+
+**Checking it.** None of this is assertable. "Is the Sands pointing along the bay or across it" is a
+question about pixels, so the dashboard ships a page that puts one landmark at a time on the real
+basemap — `npm --prefix dashboard run shots:landmarks` leaves twelve screenshots to look at. That
+page is what caught the one real bug in the layer: deck.gl composes its orientation as
+Rz(yaw)·Ry(pitch)·Rx(roll), so after the fixed roll that turns glTF's Y-up into Z-up, a model's own
+axis points *east*, not north. Every landmark was quietly rotated by the same wrong amount and
+still looked like a building. Pointing the camera north and looking at the Merlion's water jet
+found it in one frame.
+
+Total cost: 638 kB of glTF, about 10,300 triangles across all twelve, and no measurable frame time.
+
 ### How this was built
 
 The concept is mine: a command centre for the 15-minute-city data, in the stack a 3D digital-twin
@@ -244,6 +302,7 @@ After the data or the Story's scenes change, regenerate the fallback stills with
 config/            study area, network rules, essentials taxonomy, scenario parameters, data sources
 src/sgjb/          the pipeline (acquire → networks → access → form → scenarios → summary → export)
 tests/             pytest: graph kernels, OSM parsing, metrics, export format, output integrity
+scripts/landmarks/ Blender build for the dashboard's 3D landmarks (models, textures, footprints)
 data/derived/      versioned results (summary.json, neighbourhoods, sensitivity grid, sites)
 web/               Vite + React + TypeScript site: Story, Explorer, Methods
 server/            Node + SQLite: ingest of the pipeline outputs, read-only dashboard API

@@ -80,6 +80,26 @@ export function basemapStyle(): StyleSpecification {
         paint: { "fill-color": "#0d1714", "fill-opacity": 0.8 } },
       { id: "water", type: "fill", source: "basemap", "source-layer": "water",
         paint: { "fill-color": "#06111b" } },
+      /*
+       * Building massing. The archive carries OSM footprints but no heights —
+       * the extract the pipeline cuts does not keep building:levels — so every
+       * block is extruded to the same 9 m. That is a drawing convention, not a
+       * measurement: it gives the landmarks a city to stand in and the low sun
+       * something to cast across, and it is stated in the map's legend so
+       * nobody reads a skyline into it.
+       *
+       * It starts at zoom 13 because below that the footprints are generalised
+       * to the point of being smears, and because a whole city of extrusions is
+       * expensive for something the overview does not need.
+       */
+      { id: "buildings", type: "fill-extrusion", source: "basemap", "source-layer": "buildings",
+        minzoom: 13,
+        paint: {
+          "fill-extrusion-color": "#161b22",
+          "fill-extrusion-height": 9,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14.2, 0.9] as never,
+        } },
       { id: "water-edge", type: "line", source: "basemap", "source-layer": "water", minzoom: 10,
         paint: { "line-color": "#0d2030", "line-width": 0.6 } },
       road("roads-minor", 12, ["service", "residential", "living_street", "unclassified"], [[12, 0.25], [18, 3]], "#1b2129"),

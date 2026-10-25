@@ -4,6 +4,7 @@
 #   make osm       OpenStreetMap extract: streams the dated planet (≈95 GB read, nothing stored)
 #                  or: make osm OSM_FROM=path/to/malaysia-singapore-brunei-latest.osm.pbf
 #   make pipeline  all analysis stages → data/derived + web/public/data + web/public/tiles
+#   make landmarks rebuild the dashboard's 3D landmarks with Blender
 #   make web       static site → web/dist (prerendered)
 #   make check     end-to-end checks of the built site
 #   make test      Python and TypeScript tests
@@ -12,7 +13,7 @@
 PY ?= .venv/bin/python
 NPM ?= npm
 
-.PHONY: setup data osm pipeline web check test dev serve clean
+.PHONY: setup data osm pipeline landmarks web check test dev serve clean
 
 setup:
 	python3 -m venv .venv
@@ -32,6 +33,15 @@ endif
 
 pipeline:
 	$(PY) -m sgjb.pipeline all
+
+# The 3D landmarks on the command-centre map. Needs the extra dependencies:
+#   .venv/bin/pip install -e ".[landmarks]"
+# The reference photographs the colours come from are not committed; fetch_refs
+# re-downloads them if you want to redo the analysis step as well.
+landmarks:
+	$(PY) scripts/landmarks/textures.py
+	$(PY) scripts/landmarks/footprints.py -o scripts/landmarks/refs/footprints.json
+	$(PY) scripts/landmarks/build_models.py --out dashboard/public/models
 
 web:
 	cd web && $(NPM) run build:site

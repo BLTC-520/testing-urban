@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "Reference photographs used to set the night colours and proportions of the",
+    "3D landmarks. The files themselves are not committed — their licences are",
+    "not stated by the repositories that host them — so only these URLs and the",
+    "numbers derived from them in refs/analysis.json live here.",
+    "fetch_refs.sh re-downloads them into a scratch directory."
+  ],
+  "references": {
+    "mbs_night": {
+      "shows": "Marina Bay Sands and the ArtScience Museum from across the bay, after dark",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/Singapore.jpg",
+      "feeds": ["marina-bay-sands", "artscience-museum"]
+    },
+    "mbs_wide": {
+      "shows": "the same view, smaller, with more of the podium roof visible",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/Singapore_new.jpg",
+      "feeds": ["marina-bay-sands"]
+    },
+    "supertrees_night": {
+      "shows": "Supertree Grove lit at blue hour, with the OCBC Skyway",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/garden%20by%20the%20bay.jpg",
+      "feeds": ["supertree-grove"]
+    },
+    "flyer_day": {
+      "shows": "the Singapore Flyer from Marina Barrage: rim, spokes, capsules, A-frame",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/singaporeGallery.jpg",
+      "feeds": ["singapore-flyer"]
+    }
+  }
+}

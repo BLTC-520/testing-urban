@@ -1,0 +1,327 @@
+{
+  "mbs_night": {
+    "source": {
+      "shows": "Marina Bay Sands and the ArtScience Museum from across the bay, after dark",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/Singapore.jpg",
+      "feeds": [
+        "marina-bay-sands",
+        "artscience-museum"
+      ]
+    },
+    "size": [
+      960,
+      540
+    ],
+    "palette": [
+      {
+        "hex": "#0e193f",
+        "share": 0.558
+      },
+      {
+        "hex": "#1b1714",
+        "share": 0.232
+      },
+      {
+        "hex": "#57461d",
+        "share": 0.089
+      },
+      {
+        "hex": "#736e66",
+        "share": 0.047
+      },
+      {
+        "hex": "#c1ac4d",
+        "share": 0.038
+      },
+      {
+        "hex": "#f4f1c2",
+        "share": 0.037
+      }
+    ],
+    "emissive": [
+      {
+        "hex": "#fdfef6",
+        "share": 0.532
+      },
+      {
+        "hex": "#fefcce",
+        "share": 0.341
+      },
+      {
+        "hex": "#fffca3",
+        "share": 0.127
+      }
+    ],
+    "sky": "#0a1743",
+    "mean_luminance": 0.181,
+    "profile": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.096,
+      0.183,
+      0.344,
+      0.29,
+      0.214,
+      0.169,
+      0.149,
+      0.162,
+      0.19,
+      0.189,
+      0.572,
+      0.795,
+      1.0,
+      0.95,
+      0.835,
+      0.36,
+      0.126,
+      0.121,
+      0.094
+    ]
+  },
+  "mbs_wide": {
+    "source": {
+      "shows": "the same view, smaller, with more of the podium roof visible",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/Singapore_new.jpg",
+      "feeds": [
+        "marina-bay-sands"
+      ]
+    },
+    "size": [
+      250,
+      230
+    ],
+    "palette": [
+      {
+        "hex": "#0e193f",
+        "share": 0.554
+      },
+      {
+        "hex": "#191614",
+        "share": 0.211
+      },
+      {
+        "hex": "#483b1f",
+        "share": 0.098
+      },
+      {
+        "hex": "#766c4c",
+        "share": 0.067
+      },
+      {
+        "hex": "#bbad6e",
+        "share": 0.042
+      },
+      {
+        "hex": "#f4f0cb",
+        "share": 0.028
+      }
+    ],
+    "emissive": [
+      {
+        "hex": "#fcfdf2",
+        "share": 0.509
+      },
+      {
+        "hex": "#f9f7cc",
+        "share": 0.312
+      },
+      {
+        "hex": "#fcf197",
+        "share": 0.179
+      }
+    ],
+    "sky": "#0a1743",
+    "mean_luminance": 0.1792,
+    "profile": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.086,
+      0.177,
+      0.325,
+      0.292,
+      0.202,
+      0.169,
+      0.152,
+      0.14,
+      0.181,
+      0.152,
+      0.424,
+      0.749,
+      1.0,
+      0.971,
+      0.835,
+      0.395,
+      0.107,
+      0.111,
+      0.078
+    ]
+  },
+  "supertrees_night": {
+    "source": {
+      "shows": "Supertree Grove lit at blue hour, with the OCBC Skyway",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/garden%20by%20the%20bay.jpg",
+      "feeds": [
+        "supertree-grove"
+      ]
+    },
+    "size": [
+      960,
+      636
+    ],
+    "palette": [
+      {
+        "hex": "#4278d5",
+        "share": 0.295
+      },
+      {
+        "hex": "#295bba",
+        "share": 0.293
+      },
+      {
+        "hex": "#160f1d",
+        "share": 0.146
+      },
+      {
+        "hex": "#332c64",
+        "share": 0.14
+      },
+      {
+        "hex": "#e8dfe4",
+        "share": 0.069
+      },
+      {
+        "hex": "#93838f",
+        "share": 0.058
+      }
+    ],
+    "emissive": [
+      {
+        "hex": "#fdfdfe",
+        "share": 0.743
+      },
+      {
+        "hex": "#fcfdf7",
+        "share": 0.226
+      },
+      {
+        "hex": "#fafee6",
+        "share": 0.031
+      }
+    ],
+    "sky": "#2960c3",
+    "mean_luminance": 0.3622,
+    "profile": [
+      0.204,
+      0.34,
+      0.368,
+      0.406,
+      0.397,
+      0.421,
+      0.411,
+      0.409,
+      0.335,
+      0.203,
+      0.199,
+      0.294,
+      0.355,
+      0.529,
+      0.477,
+      1.0,
+      0.426,
+      0.299,
+      0.223,
+      0.215,
+      0.191,
+      0.251,
+      0.517,
+      0.502
+    ]
+  },
+  "flyer_day": {
+    "source": {
+      "shows": "the Singapore Flyer from Marina Barrage: rim, spokes, capsules, A-frame",
+      "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/singaporeGallery.jpg",
+      "feeds": [
+        "singapore-flyer"
+      ]
+    },
+    "size": [
+      960,
+      720
+    ],
+    "palette": [
+      {
+        "hex": "#817d38",
+        "share": 0.289
+      },
+      {
+        "hex": "#d7e6e6",
+        "share": 0.231
+      },
+      {
+        "hex": "#a7d1ed",
+        "share": 0.21
+      },
+      {
+        "hex": "#4d606b",
+        "share": 0.111
+      },
+      {
+        "hex": "#7b8a8e",
+        "share": 0.091
+      },
+      {
+        "hex": "#262d27",
+        "share": 0.069
+      }
+    ],
+    "emissive": [
+      {
+        "hex": "#f3f9f5",
+        "share": 0.736
+      },
+      {
+        "hex": "#fdfadf",
+        "share": 0.186
+      },
+      {
+        "hex": "#fefacc",
+        "share": 0.078
+      }
+    ],
+    "sky": "#9acbef",
+    "mean_luminance": 0.6082,
+    "profile": [
+      0.101,
+      0.166,
+      0.234,
+      0.307,
+      0.416,
+      0.975,
+      1.0,
+      0.986,
+      0.829,
+      0.735,
+      0.662,
+      0.54,
+      0.449,
+      0.182,
+      0.129,
+      0.111,
+      0.01,
+      0.057,
+      0.062,
+      0.041,
+      0.014,
+      0.0,
+      0.0,
+      0.001
+    ]
+  }
+}

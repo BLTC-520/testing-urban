@@ -29,6 +29,16 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "matplotlib>=3.8", "networkx>=3.2"]
+# The 3D landmarks in the dashboard map (see scripts/landmarks/). Separate from
+# the pipeline because bpy is Blender — a few hundred megabytes — and nothing in
+# the analysis needs it. `pip install bpy` only resolves on the exact CPython
+# version a given Blender release embeds; 5.2 is built for 3.13.
+landmarks = [
+  "bpy>=5.2,<6",
+  "pillow>=11",
+  "pmtiles>=3.4",
+  "mapbox-vector-tile>=2.1",
+]
 
 [project.scripts]
 sgjb = "sgjb.pipeline:main"

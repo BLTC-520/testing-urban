@@ -1,0 +1,29 @@
+<!doctype html>
+<!--
+  A check page for the 3D landmarks, outside the dashboard.
+
+  The dashboard needs the API running before its map shows anything; this page
+  needs nothing but the basemap archive, so it is the quickest way to see
+  whether a model sits in the right place, points the right way and is the
+  right size. It is not part of the production build — `vite build` only takes
+  index.html — and `npm run check:landmarks` drives it with a headless browser.
+
+      npm run dev:landmarks        # then open /landmarks.html
+      npm run check:landmarks      # screenshots every landmark into .landmark-shots/
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Landmark check</title>
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="hud">
+      <span id="label">loading…</span>
+      <span id="meta"></span>
+    </div>
+    <script type="module" src="/src/landmarksCheck.ts"></script>
+  </body>
+</html>

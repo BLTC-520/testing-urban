@@ -31,6 +31,8 @@ import { useData } from "../stores/data.ts";
 import { useFilters } from "../stores/filters.ts";
 import { basemapStyle, registerPmtiles } from "../map/basemapStyle.ts";
 import { rampAt, hexToRGB } from "../map/colors.ts";
+import { landmarkLayers, exaggeration, MIN_ZOOM, type Landmark } from "../map/landmarks.ts";
+import { nightLighting } from "../map/lighting.ts";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
 
@@ -50,10 +52,59 @@ const container = ref<HTMLDivElement | null>(null);
 const map = shallowRef<MlMap | null>(null);
 const overlay = shallowRef<MapboxOverlay | null>(null);
 const hovered = ref<{ x: number; y: number; hex: Hex } | null>(null);
+const landmark = ref<{ x: number; y: number; mark: Landmark } | null>(null);
 const ready = ref(false);
+/** Landmarks are opt-out: they are the fastest way to read where you are. */
+const showLandmarks = ref(true);
+/*
+ * The camera's zoom, mirrored into Vue state because the landmark layer's
+ * opacity depends on it. Rounded to a twentieth of a level before it is stored:
+ * MapLibre fires `zoom` on every frame of an inertial pinch, and rebuilding
+ * twelve deck layers at 60 Hz is exactly the stutter this dashboard cannot
+ * afford on a wall display.
+ */
+const zoom = ref(10.3);
 
 /** What the colour encodes. Absolute level, or the scenario's change. */
 const mode = computed(() => (f.isScenario && f.showDelta ? "delta" : "level"));
+
+/**
+ * How tall the columns stand, as a function of how close the camera is.
+ *
+ * Height encodes population, and at the overview that is exactly right: the
+ * dense estates read as a ridge across the island. Zoomed in it stops working.
+ * A res-8 hexagon holding 7,000 people extrudes to about 2.7 km, so at the zoom
+ * where a 200 m tower is finally visible the hexagons are kilometre-high walls
+ * standing in front of it, and the map shows neither the data nor the city.
+ *
+ * So the columns collapse over the one zoom level in which the landmarks fade
+ * in, from full height to a thirtieth of it. The curve is squared rather than
+ * linear because the first half of the collapse is the half that matters: a
+ * column at half height is still eight hundred metres of wall.
+ *
+ * Nothing is lost. Colour still carries completeness at every zoom, and the
+ * column was never the thing being read from six hundred metres up.
+ */
+const FLAT_BY = 1.0; // zoom levels over which the columns collapse
+const FLAT_FLOOR = 0.03;
+function elevationScaleAt(z: number): number {
+  if (z <= MIN_ZOOM) return 1;
+  const t = Math.min(1, (z - MIN_ZOOM) / FLAT_BY);
+  return (1 - t) ** 2 * (1 - FLAT_FLOOR) + FLAT_FLOOR;
+}
+
+/**
+ * How opaque the hexagons are, as a function of the same zoom.
+ *
+ * Flattening the columns is not enough on its own: a flat carpet at full
+ * opacity still hides the streets the landmarks are standing in. Close in, the
+ * fill thins to let the basemap through, which is the point at which the map
+ * starts to look like a place rather than a chart.
+ */
+function fillAlphaAt(z: number): number {
+  if (z <= MIN_ZOOM) return 215;
+  return Math.round(215 - 85 * Math.min(1, (z - MIN_ZOOM) / FLAT_BY));
+}
 
 /** Baseline shares by hex id, so a delta needs no second layer. */
 const baselineByHex = computed(() => {
@@ -85,14 +136,14 @@ function buildLayers() {
        * presentation choice and is stated in the legend.
        */
       getElevation: (h) => Math.cbrt(h.pop) * 140,
-      elevationScale: 1,
+      elevationScale: elevationScaleAt(zoom.value),
       getFillColor: (h) => {
         if (delta) {
           const before = base.get(h.hex);
           if (before === undefined) return [34, 42, 53, 160];
           return hexToRGB(h.share_complete - before);
         }
-        return rampAt(h.share_complete);
+        return rampAt(h.share_complete, fillAlphaAt(zoom.value));
       },
       getLineColor: (h) => (h.hex === selected ? [243, 239, 230, 255] : [0, 0, 0, 0]),
       getLineWidth: (h) => (h.hex === selected ? 3 : 0),
@@ -105,7 +156,7 @@ function buildLayers() {
       material: { ambient: 0.55, diffuse: 0.6, shininess: 32, specularColor: [40, 60, 80] },
       // deck.gl diffs accessors by this key rather than re-running them all.
       updateTriggers: {
-        getFillColor: [f.minutes, f.speed, f.scenario, mode.value],
+        getFillColor: [f.minutes, f.speed, f.scenario, mode.value, fillAlphaAt(zoom.value)],
         getElevation: [f.city],
         getLineColor: [selected],
         getLineWidth: [selected],
@@ -119,7 +170,29 @@ function buildLayers() {
         void selectHex(info.object);
       },
     }),
+    // The landmarks go last so they pick above the hexagons: at this pitch a
+    // tower stands over several of them and the building is what the pointer
+    // is actually on.
+    ...landmarkLayers({
+      zoom: zoom.value,
+      visible: showLandmarks.value,
+      city: f.city,
+      onHover: (info) => {
+        landmark.value = info.object ? { x: info.x, y: info.y, mark: info.object } : null;
+      },
+      onClick: (mark) => flyToLandmark(mark),
+    }),
   ];
+}
+
+/** Clicking a landmark frames it: close enough to read, still pitched. */
+function flyToLandmark(mark: Landmark) {
+  map.value?.easeTo({
+    center: [mark.lon, mark.lat],
+    zoom: Math.max(zoom.value, 15.2),
+    pitch: 56,
+    duration: 1100,
+  });
 }
 
 /**
@@ -171,12 +244,18 @@ onMounted(() => {
   });
   m.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
 
-  const o = new MapboxOverlay({ interleaved: true, layers: [] });
+  const o = new MapboxOverlay({ interleaved: true, layers: [], effects: [nightLighting()] });
   m.addControl(o);
 
   m.on("load", () => {
     ready.value = true;
+    zoom.value = m.getZoom();
     o.setProps({ layers: buildLayers() });
+  });
+
+  m.on("zoom", () => {
+    const z = Math.round(m.getZoom() * 20) / 20;
+    if (z !== zoom.value) zoom.value = z;
   });
 
   map.value = m;
@@ -194,7 +273,8 @@ onBeforeUnmount(() => {
 
 /** Push new layers whenever the data or the encoding changes. */
 watch(
-  () => [d.cells, d.baselineCells, f.selection?.hex, mode.value] as const,
+  () => [d.cells, d.baselineCells, f.selection?.hex, mode.value, zoom.value,
+         showLandmarks.value, f.city] as const,
   () => { if (ready.value) overlay.value?.setProps({ layers: buildLayers() }); },
   { deep: false },
 );
@@ -223,7 +303,8 @@ const legendStops = computed(() =>
       </h2>
       <span class="panel-note">
         colour = {{ mode === "delta" ? "change vs baseline" : "share of residents" }} ·
-        height = population (cube root)
+        height = population (cube root)<template v-if="zoom >= 13">
+        · buildings: OSM footprints at a uniform 9 m, no heights in the source</template>
       </span>
     </div>
 
@@ -247,6 +328,34 @@ const legendStops = computed(() =>
           :class="['chip', { on: f.res === r }]"
           @click="f.res = r"
         >r{{ r }}</button>
+        <button
+          :class="['chip', { on: showLandmarks }]"
+          :title="zoom < MIN_ZOOM
+            ? 'Landmarks appear from zoom 12.3 — below that a tower is five pixels tall'
+            : 'Blender-built landmarks at their real size and bearing'"
+          @click="showLandmarks = !showLandmarks"
+        >landmarks<span v-if="showLandmarks && zoom < MIN_ZOOM" class="dim"> · zoom in</span></button>
+      </div>
+
+      <!--
+        Landmark card. Separate from the hexagon tooltip because it answers a
+        different question: not "what is the figure here" but "what am I
+        looking at, and how much of it is measured".
+      -->
+      <div
+        v-if="landmark"
+        class="tip mark"
+        :style="{ left: `${landmark.x + 14}px`, top: `${landmark.y + 14}px` }"
+      >
+        <strong>{{ landmark.mark.name }}</strong><br />
+        <span class="dim">{{ landmark.mark.facts }}</span><br />
+        <span class="num prov">
+          {{ Math.round(landmark.mark.height_m) }} m ·
+          {{ landmark.mark.confidence }} ·
+          {{ exaggeration(landmark.mark) > 1.05
+            ? `drawn ${exaggeration(landmark.mark).toFixed(1)}x`
+            : "true scale" }}
+        </span>
       </div>
 
       <!-- Hover tooltip: the per-mark hover layer the dataviz rules require. -->
@@ -315,4 +424,12 @@ const legendStops = computed(() =>
 }
 .tip strong { font-size: 13px; }
 .tip .dim { color: var(--paper-2); }
+
+/* The landmark card carries a sentence, so it wraps where the hex tip does not. */
+.tip.mark { max-width: 280px; white-space: normal; }
+.tip.mark .prov {
+  display: inline-block; margin-top: 5px;
+  font-size: 10px; color: var(--paper-3); letter-spacing: 0.02em;
+}
+.chip .dim { color: var(--paper-3); }
 </style>

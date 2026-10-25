@@ -1,0 +1,194 @@
+{
+  "merlion": {
+    "centroid": [
+      103.853546,
+      1.287077
+    ],
+    "area_m2": 576.3,
+    "bearing_deg": 163.2,
+    "length_m": 32.5,
+    "width_m": 26.6,
+    "elongation": 1.22,
+    "vertices": 17,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 111.6,
+    "bearing_trusted": false
+  },
+  "marina-bay-sands": {
+    "centroid": [
+      103.860657,
+      1.28363
+    ],
+    "area_m2": 12439.9,
+    "bearing_deg": 23.4,
+    "length_m": 339.0,
+    "width_m": 63.2,
+    "elongation": 5.36,
+    "vertices": 18,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 55.1,
+    "bearing_trusted": true
+  },
+  "artscience-museum": {
+    "centroid": [
+      103.859353,
+      1.286327
+    ],
+    "area_m2": 851.5,
+    "bearing_deg": 60.5,
+    "length_m": 45.0,
+    "width_m": 36.5,
+    "elongation": 1.23,
+    "vertices": 9,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 22.5,
+    "bearing_trusted": false
+  },
+  "supertree-grove": {
+    "centroid": [
+      103.863933,
+      1.28194
+    ],
+    "area_m2": 560.7,
+    "bearing_deg": 176.3,
+    "length_m": 27.4,
+    "width_m": 27.6,
+    "elongation": 0.99,
+    "vertices": 11,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 41.2,
+    "bearing_trusted": false
+  },
+  "singapore-flyer": {
+    "centroid": [
+      103.863211,
+      1.289365
+    ],
+    "area_m2": 9134.1,
+    "bearing_deg": 64.6,
+    "length_m": 126.9,
+    "width_m": 103.7,
+    "elongation": 1.22,
+    "vertices": 25,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 43.9,
+    "bearing_trusted": false
+  },
+  "esplanade": {
+    "centroid": [
+      103.855799,
+      1.289676
+    ],
+    "area_m2": 10386.7,
+    "bearing_deg": 55.8,
+    "length_m": 156.1,
+    "width_m": 161.2,
+    "elongation": 0.97,
+    "vertices": 57,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 71.6,
+    "bearing_trusted": false
+  },
+  "sultan-ibrahim-building": {
+    "centroid": [
+      103.76111,
+      1.457805
+    ],
+    "area_m2": 4793.2,
+    "bearing_deg": 157.7,
+    "length_m": 100.0,
+    "width_m": 68.2,
+    "elongation": 1.47,
+    "vertices": 13,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 15.2,
+    "bearing_trusted": false
+  },
+  "sultan-abu-bakar-mosque": {
+    "centroid": [
+      103.743303,
+      1.460946
+    ],
+    "area_m2": 674.5,
+    "bearing_deg": 5.7,
+    "length_m": 41.3,
+    "width_m": 24.1,
+    "elongation": 1.71,
+    "vertices": 17,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 45.4,
+    "bearing_trusted": false
+  },
+  "komtar-jbcc": {
+    "centroid": [
+      103.762961,
+      1.463745
+    ],
+    "area_m2": 1320.2,
+    "bearing_deg": 170.9,
+    "length_m": 45.4,
+    "width_m": 46.7,
+    "elongation": 0.97,
+    "vertices": 7,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 23.8,
+    "bearing_trusted": false
+  },
+  "astaka-towers": {
+    "centroid": [
+      103.773113,
+      1.467648
+    ],
+    "area_m2": 1086.1,
+    "bearing_deg": 162.6,
+    "length_m": 58.7,
+    "width_m": 41.4,
+    "elongation": 1.42,
+    "vertices": 15,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 94.2,
+    "bearing_trusted": false
+  },
+  "sultan-iskandar-ciq": {
+    "centroid": [
+      103.764051,
+      1.456344
+    ],
+    "area_m2": 162.1,
+    "bearing_deg": 163.7,
+    "length_m": 20.6,
+    "width_m": 11.4,
+    "elongation": 1.8,
+    "vertices": 8,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 88.0,
+    "bearing_trusted": false
+  },
+  "woodlands-checkpoint": {
+    "centroid": [
+      103.769193,
+      1.446726
+    ],
+    "area_m2": 1801.6,
+    "bearing_deg": 9.9,
+    "length_m": 89.0,
+    "width_m": 37.5,
+    "elongation": 2.37,
+    "vertices": 15,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 96.8,
+    "bearing_trusted": false
+  }
+}
