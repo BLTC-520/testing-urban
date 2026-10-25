@@ -13,7 +13,8 @@
     "matched": true,
     "match": "nearest-large",
     "anchor_offset_m": 111.6,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": true
   },
   "marina-bay-sands": {
     "centroid": [
@@ -29,7 +30,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 55.1,
-    "bearing_trusted": true
+    "bearing_trusted": true,
+    "on_water": false
   },
   "artscience-museum": {
     "centroid": [
@@ -45,7 +47,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 22.5,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "supertree-grove": {
     "centroid": [
@@ -61,7 +64,8 @@
     "matched": true,
     "match": "nearest-large",
     "anchor_offset_m": 41.2,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "singapore-flyer": {
     "centroid": [
@@ -77,7 +81,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 43.9,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "esplanade": {
     "centroid": [
@@ -93,7 +98,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 71.6,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "fullerton": {
     "centroid": [
@@ -109,7 +115,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 38.2,
-    "bearing_trusted": true
+    "bearing_trusted": true,
+    "on_water": false
   },
   "guoco-tower": {
     "centroid": [
@@ -125,7 +132,8 @@
     "matched": true,
     "match": "nearest-large",
     "anchor_offset_m": 80.6,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "one-raffles-place": {
     "centroid": [
@@ -141,7 +149,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 32.9,
-    "bearing_trusted": true
+    "bearing_trusted": true,
+    "on_water": false
   },
   "republic-plaza": {
     "centroid": [
@@ -157,7 +166,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 66.5,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "uob-plaza": {
     "centroid": [
@@ -173,7 +183,8 @@
     "matched": true,
     "match": "nearest-large",
     "anchor_offset_m": 78.6,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "sultan-ibrahim-building": {
     "centroid": [
@@ -189,7 +200,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 15.2,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "sultan-abu-bakar-mosque": {
     "centroid": [
@@ -205,7 +217,8 @@
     "matched": true,
     "match": "nearest-large",
     "anchor_offset_m": 45.4,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "komtar-jbcc": {
     "centroid": [
@@ -221,7 +234,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 23.8,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "astaka-towers": {
     "centroid": [
@@ -237,7 +251,8 @@
     "matched": true,
     "match": "nearest-large",
     "anchor_offset_m": 94.2,
-    "bearing_trusted": false
+    "bearing_trusted": false,
+    "on_water": false
   },
   "sultan-iskandar-ciq": {
     "centroid": [
@@ -253,7 +268,8 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 1.6,
-    "bearing_trusted": true
+    "bearing_trusted": true,
+    "on_water": false
   },
   "woodlands-checkpoint": {
     "centroid": [
@@ -269,9 +285,11 @@
     "matched": true,
     "match": "contains-anchor",
     "anchor_offset_m": 17.3,
-    "bearing_trusted": true
+    "bearing_trusted": true,
+    "on_water": false
   },
   "johor-causeway": {
-    "matched": false
+    "matched": false,
+    "on_water": false
   }
 }

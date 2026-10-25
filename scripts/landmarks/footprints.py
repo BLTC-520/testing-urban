@@ -20,6 +20,11 @@ promenade rather than inside a building) and reports:
                       across the bay instead of along it.
 * ``length_m`` /
   ``width_m``         extent along and across that axis
+* ``on_water``        whether the resolved position falls inside a water polygon
+                      of the same archive. Two landmarks are meant to (the
+                      Merlion stands in the bay, the Causeway crosses the
+                      strait); for every other one it means the anchor is
+                      wrong
 
 Why PCA for the bearing
 -----------------------
@@ -152,6 +157,36 @@ def point_in_ring(lon: float, lat: float, ring: list[tuple[float, float]]) -> bo
     return inside
 
 
+def on_water(reader: Reader, lat: float, lon: float) -> bool:
+    """Is this point inside a water polygon of the basemap archive?
+
+    Only the containing tile is read: MVT clips every geometry to its own tile,
+    so whatever covers this point is present in the tile this point falls in.
+
+    This is a cheap, automatable answer to "is the model standing in the sea".
+    Published points for waterfront buildings are routinely a few hundred
+    metres out, and an anchor that lands in water is the one case the footprint
+    search cannot rescue: it finds nothing to snap to and falls back to the
+    point it was given. Nothing has tripped this yet; it costs one tile read.
+    """
+    tx, ty = tile_of(lat, lon, Z)
+    raw = reader.get(Z, tx, ty)
+    if not raw:
+        return False
+    if raw[:2] == b"\x1f\x8b":
+        raw = gzip.decompress(raw)
+    layer = mapbox_vector_tile.decode(raw).get("water")
+    if not layer:
+        return False
+    ext = layer["extent"]
+    for feat in layer["features"]:
+        for ring in rings_of(feat["geometry"]):
+            ll = [unproject(tx, ty, Z, px, py, ext) for px, py in ring]
+            if point_in_ring(lon, lat, ll):
+                return True
+    return False
+
+
 def footprints_near(reader: Reader, lat: float, lon: float) -> list[tuple[float, list, bool]]:
     """Every buildings-layer ring within SEARCH_M, with its distance and hit flag.
 
@@ -210,7 +245,7 @@ def main() -> int:
                 near = [c for c in cands if c[0] <= NEAREST_M]
                 pick, how = max(near, key=lambda c: len(c[1])), "nearest-large"
             else:
-                out[m["id"]] = {"matched": False}
+                out[m["id"]] = {"matched": False, "on_water": on_water(reader, m["lat"], m["lon"])}
                 print(f"  {m['id']:23s} no usable footprint nearby")
                 continue
             d = describe(pick[1])
@@ -221,11 +256,15 @@ def main() -> int:
             # model's yaw. Everything else falls back to the bearing recorded in
             # landmarks.json, which says in prose where it came from.
             d["bearing_trusted"] = how == "contains-anchor" and d["elongation"] >= MIN_ELONGATION
+            # Checked at the position the model will actually stand at.
+            lon_, lat_ = d["centroid"] if how == "contains-anchor" else (m["lon"], m["lat"])
+            d["on_water"] = on_water(reader, lat_, lon_)
             out[m["id"]] = d
             print(
                 f"  {m['id']:23s} {how:15s} {d['area_m2']:>8.0f} m2  "
                 f"{d['length_m']:5.0f} x {d['width_m']:5.0f} m  "
                 f"bearing {d['bearing_deg']:5.1f} {'(used)' if d['bearing_trusted'] else '(ignored)'}"
+                f"{'  ON WATER' if d['on_water'] else ''}"
             )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

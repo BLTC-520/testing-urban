@@ -198,6 +198,24 @@ def test_only_the_smallest_landmark_is_drawn_out_of_scale():
     assert enlarged == ["merlion"], enlarged
 
 
+def test_no_landmark_stands_in_the_sea():
+    """An invariant, not a bug report — nothing has tripped this yet.
+
+    Published coordinates for waterfront buildings are routinely a few hundred
+    metres out, and an anchor in the water is the one case the footprint search
+    cannot rescue: it finds nothing to snap to and falls back to the point it
+    was given. footprints.py tests the resolved position against the basemap's
+    own water polygons, and the two landmarks that genuinely stand in water —
+    the Merlion in the bay, the Causeway across the strait — say so in
+    landmarks.json.
+    """
+    feet = json.loads((TOOLS / "refs" / "footprints.json").read_text())
+    specs = json.loads((TOOLS / "landmarks.json").read_text())["landmarks"]
+    allowed = {m["id"] for m in specs if m.get("expect_water")}
+    wet = {k for k, v in feet.items() if v.get("on_water")}
+    assert wet <= allowed, f"standing in water without saying so: {sorted(wet - allowed)}"
+
+
 def test_models_stay_small_enough_to_ship():
     """Twelve landmarks are a map decoration, not a download."""
     total = sum(p.stat().st_size for p in MODELS.glob("*.glb"))

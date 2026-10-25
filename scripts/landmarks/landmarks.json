@@ -13,7 +13,13 @@
     "  derived    computed from published figures (e.g. hub height from total",
     "             height minus half the wheel diameter)",
     "  estimated  read off a reference photograph or a floor count; the model",
-    "             is recognisable but the number is not a citation"
+    "             is recognisable but the number is not a citation",
+    "",
+    "'expect_water' is permission, not a claim: footprints.py reports whether a",
+    "landmark's resolved position falls inside a water polygon of the basemap, and",
+    "a test fails if one does without that permission. The Merlion stands in the",
+    "bay and the Causeway crosses the strait. Nothing else should, and the check",
+    "is cheap enough to keep even though nothing has tripped it yet."
   ],
   "landmarks": [
     {
@@ -28,9 +34,10 @@
       "confidence": "published",
       "facts": "Cement, porcelain-plate skin, 70 t. Lim Nang Seng, 1972; moved to the present park in 2002. Spouts water into the bay.",
       "faces_deg": 50,
-      "note": "8.6 m is invisible beside a 200 m tower, so the model is drawn at its true size and the layer exaggerates the small landmarks separately \u2014 see dashboard/src/map/landmarks.ts.",
+      "note": "8.6 m is invisible beside a 200 m tower, so the model is drawn at its true size and the layer exaggerates the small landmarks separately \u2014 see dashboard/src/map/landmarks.ts. It also stands in the bay rather than on it, so it is one of the two landmarks allowed to resolve onto a water polygon.",
       "bearing_deg": 50.0,
-      "bearing_note": "faces out across the bay"
+      "bearing_note": "faces out across the bay",
+      "expect_water": true
     },
     {
       "id": "marina-bay-sands",
@@ -260,7 +267,7 @@
       "facts": "Malaysia's customs, immigration and quarantine complex at the north end of the Causeway: the building this whole study's cross-border travel times pass through.",
       "bearing_deg": 147.5,
       "bearing_note": "long axis of that hall",
-      "note": "The first anchor for this was 400 m out, in the strait. The footprint search found nothing containing it and fell back to the published point, which put a customs complex on the water \u2014 the failure mode the contains-anchor rule is there to make visible rather than to fix."
+      "note": "The first anchor for this was about 500 m south-west of the inspection halls. The footprint search found nothing containing it \u2014 only a 162 m2 shed 139 m away \u2014 and fell back to the published point, which is the fallback working as intended and is also why 'nearest-large' is worth reading in the output: a 55 m customs complex with no sizeable footprint near its anchor is an anchor to check."
     },
     {
       "id": "woodlands-checkpoint",
@@ -289,7 +296,8 @@
       "facts": "The 1,056 m embankment of 1923 carrying road, railway and a water pipeline between Woodlands and Johor Bahru - the only land crossing in the study area, and the thing every cross-border walk in this dashboard has to pass through.",
       "bearing_deg": 161.8,
       "bearing_note": "the KTM track's heading across the strait, 1.4496,103.7703 to 1.4588,103.7673 in the basemap's rail layer",
-      "note": "'height' is the lamp standards, not the deck: the deck itself sits about 6 m above the water."
+      "note": "'height' is the lamp standards, not the deck: the deck itself sits about 6 m above the water.",
+      "expect_water": true
     }
   ]
 }
