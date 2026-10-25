@@ -38,6 +38,12 @@ photographs. **The photographs are not redistributed in this repository**: they 
 third-party GitHub repositories that state no licence, so only the URLs and the numbers derived
 from them are committed, in `scripts/landmarks/sources.json` and `scripts/landmarks/refs/`.
 
+The Johor Bahru side is thinner than the Singapore side, which is worth saying rather than hiding:
+one usable night photograph of the Causeway and the city behind it, against eight for Marina Bay.
+The models of Bangunan Sultan Ibrahim, the state mosque, Komtar JBCC and The Astaka are built from
+published descriptions and dimensions alone. That asymmetry in available material runs alongside
+the asymmetry in mapping that the study measures directly.
+
 What is derived is a palette and a silhouette profile — cluster centres of pixel colours, and the
 lit width of the structure band by band. Neither reproduces the image. `scripts/landmarks/fetch_refs.sh`
 re-downloads the originals for anyone who wants to repeat the analysis, and substituting your own

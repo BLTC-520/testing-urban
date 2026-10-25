@@ -777,5 +777,105 @@
       0.0,
       0.0
     ]
+  },
+  "jb_causeway_dusk": {
+    "source": {
+      "shows": "Johor Bahru from the Singapore side at dusk: the Causeway with its lit pipeline duct, the CIQ where it lands, and the city's mid-rise skyline behind",
+      "url": "https://raw.githubusercontent.com/ziwei105/travelMalaysia/HEAD/Images/jb.jpg",
+      "feeds": [
+        "johor-causeway",
+        "sultan-iskandar-ciq",
+        "komtar-jbcc",
+        "astaka-towers"
+      ]
+    },
+    "size": [
+      612,
+      408
+    ],
+    "palette": [
+      {
+        "hex": "#6a9ab8",
+        "share": 0.235
+      },
+      {
+        "hex": "#507a9a",
+        "share": 0.217
+      },
+      {
+        "hex": "#405f7d",
+        "share": 0.133
+      },
+      {
+        "hex": "#0e1c2a",
+        "share": 0.116
+      },
+      {
+        "hex": "#273d56",
+        "share": 0.109
+      },
+      {
+        "hex": "#798297",
+        "share": 0.091
+      },
+      {
+        "hex": "#78545b",
+        "share": 0.036
+      },
+      {
+        "hex": "#5c2725",
+        "share": 0.026
+      },
+      {
+        "hex": "#cb7552",
+        "share": 0.025
+      },
+      {
+        "hex": "#e3cbb2",
+        "share": 0.013
+      }
+    ],
+    "emissive": [
+      {
+        "hex": "#85c2d7",
+        "share": 0.355
+      },
+      {
+        "hex": "#f0bd69",
+        "share": 0.352
+      },
+      {
+        "hex": "#ecdfd2",
+        "share": 0.293
+      }
+    ],
+    "sky": "#487da7",
+    "mean_luminance": 0.4039,
+    "profile": [
+      0.052,
+      0.025,
+      0.473,
+      0.574,
+      0.823,
+      0.966,
+      1.0,
+      0.98,
+      0.85,
+      0.502,
+      0.246,
+      0.702,
+      0.833,
+      0.483,
+      0.328,
+      0.204,
+      0.239,
+      0.313,
+      0.433,
+      0.276,
+      0.333,
+      0.357,
+      0.345,
+      0.387
+    ]
   }
 }

@@ -65,6 +65,16 @@
         "komtar-jbcc",
         "astaka-towers"
       ]
+    },
+    "jb_causeway_dusk": {
+      "shows": "Johor Bahru from the Singapore side at dusk: the Causeway with its lit pipeline duct, the CIQ where it lands, and the city's mid-rise skyline behind",
+      "url": "https://raw.githubusercontent.com/ziwei105/travelMalaysia/HEAD/Images/jb.jpg",
+      "feeds": [
+        "johor-causeway",
+        "sultan-iskandar-ciq",
+        "komtar-jbcc",
+        "astaka-towers"
+      ]
     }
   }
 }

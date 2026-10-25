@@ -463,8 +463,21 @@ def palette(analysis: dict) -> dict:
         best = max(window, key=lambda c: hsv(c["hex"])[1] * (0.3 + c["share"]))
         return srgb(best["hex"], scale)
 
+    def warmth(hexstr: str) -> float:
+        r, g, b = srgb(hexstr)
+        return r - b
+
+    def warmest(clusters: list[dict], scale: float = 1.0) -> tuple:
+        """The most orange of a set of clusters — a sodium or tungsten light."""
+        return srgb(max(clusters, key=lambda c: warmth(c["hex"]))["hex"], scale)
+
+    def coolest(clusters: list[dict], scale: float = 1.0) -> tuple:
+        """The most blue of a set — a fluorescent tube or an LED strip."""
+        return srgb(min(clusters, key=lambda c: warmth(c["hex"]))["hex"], scale)
+
     mbs = analysis["mbs_night"]
     trees = analysis.get("supertrees_dusk", analysis["supertrees_night"])
+    jb = analysis.get("jb_causeway_dusk")
     return {
         # The warm window light, straight off the photograph.
         "warm": srgb(mbs["emissive"][2]["hex"]),
@@ -481,6 +494,11 @@ def palette(analysis: dict) -> dict:
         "foliage": (0.07, 0.16, 0.09),
         "stone": (0.42, 0.40, 0.36),
         "roof": (0.22, 0.14, 0.12),
+        # Two lights off the Johor Bahru dusk photograph, where the Causeway
+        # reads as one cool white band beside one warm one: the lit duct over
+        # the water pipeline, and the sodium of the carriageway and its lamps.
+        "duct": coolest(jb["emissive"], 1.15) if jb else (0.52, 0.76, 0.84),
+        "street": warmest(jb["emissive"], 1.0) if jb else (0.94, 0.74, 0.41),
     }
 
 
@@ -952,11 +970,15 @@ def build_johor_causeway(spec, pal, tex):
     fill = material("cw-fill", (0.19, 0.19, 0.20), rough=0.9)
     deck = material("cw-deck", (0.13, 0.14, 0.16), rough=0.8)
     lane = material("cw-lane", (0.22, 0.21, 0.19), rough=0.6,
-                    emit=(1.0, 0.84, 0.5), strength=0.3)
+                    emit=pal["street"], strength=0.45)
     rail = material("cw-rail", (0.30, 0.31, 0.34), rough=0.5, metallic=0.6)
     lamp = material("cw-lamp", (0.9, 0.85, 0.7), rough=0.3,
-                    emit=(1.0, 0.88, 0.6), strength=1.5)
-    pipe = material("cw-pipe", (0.26, 0.28, 0.30), rough=0.7, metallic=0.4)
+                    emit=pal["street"], strength=1.8)
+    # The pipeline's housing is the brightest thing on the crossing in every
+    # photograph of it: a continuous cool white band down one side, which is
+    # what makes the Causeway legible from the Singapore shore at night.
+    pipe = material("cw-duct", (0.72, 0.80, 0.84), rough=0.4,
+                    emit=pal["duct"], strength=1.45)
 
     # The embankment: wider under water than above it, like any bank of fill.
     solid("embankment", [
@@ -972,8 +994,10 @@ def build_johor_causeway(spec, pal, tex):
     # The KTM track down one side — the alignment this landmark was placed from.
     prism("track", length, 4.4, 0.7, z0=5.7, at=(0.0, -17.0), mat=rail)
     # The water pipeline along the other, which is the other thing the Causeway
-    # carries and the reason it is an embankment rather than a bridge.
-    arc_tube("pipeline", [(-length / 2, 17.5, 6.6), (length / 2, 17.5, 6.6)], 1.1, n=6, mat=pipe)
+    # carries and the reason it is an embankment rather than a bridge. Drawn as
+    # its housing — a low lit box — rather than as a bare tube, because that is
+    # what is visible.
+    prism("duct", length, 5.2, 2.6, z0=5.9, at=(0.0, 17.2), chamfer=0.8, mat=pipe)
 
     lamps = []
     count = int(length // 55)

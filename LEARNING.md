@@ -518,6 +518,16 @@ inside the clip range by luck; the Causeway is 1,056 m long and framed from 1,30
 preview came back blank rather than wrong. Worth remembering that an empty render is a camera
 problem far more often than a geometry one — the glTF had all 992 triangles in it.
 
+**The one Johor Bahru photograph changed that model more than any amount of reading had.** The
+Causeway was modelled from its dimensions — 1,056 m, road, rail, a water pipeline — and looked like
+a lit road on a bank of fill. A dusk photograph from the Singapore side shows what it actually
+reads as: one continuous cool white band down the side where the pipeline's housing runs, beside
+one warm band of sodium and headlights. Two materials, both measured off that frame (the coolest
+and the warmest of its brightest clusters), and the crossing became legible from across the strait
+on the map the way it is in the photograph. Worth noting that the Singapore side has eight usable
+references and Johor Bahru has one: the same asymmetry in available material that the study
+measures directly in the mapping.
+
 **A reference photograph is worth more than a second opinion about the shape.** Two models were
 wrong in the same way and both were found by looking at a picture rather than by thinking harder.
 The ArtScience Museum is not a burst of ten equal spikes: it is a low cupped bowl with *one* finger

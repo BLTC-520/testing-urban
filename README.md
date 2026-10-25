@@ -170,7 +170,7 @@ footprint, being an embankment; it is placed instead from the KTM alignment in t
 rail layer, which measures 1,070 m against a published 1,056 m.
 
 **Its colours are measured.** The night palette is not picked by eye.
-[`analyse_refs.py`](scripts/landmarks/analyse_refs.py) k-means clusters eight reference
+[`analyse_refs.py`](scripts/landmarks/analyse_refs.py) k-means clusters nine reference
 photographs and writes out the colour of their brightest 2% of pixels — the lit windows
 themselves — and [`textures.py`](scripts/landmarks/textures.py) builds the facade textures from
 those numbers, along with the Merlion's scales, which are a texture for the same reason the
