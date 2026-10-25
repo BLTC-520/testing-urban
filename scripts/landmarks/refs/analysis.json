@@ -69,6 +69,7 @@
       }
     ],
     "sky": "#0a1743",
+    "credit": null,
     "mean_luminance": 0.181,
     "profile": [
       0.0,
@@ -166,6 +167,7 @@
       }
     ],
     "sky": "#0a1743",
+    "credit": null,
     "mean_luminance": 0.1792,
     "profile": [
       0.0,
@@ -263,6 +265,7 @@
       }
     ],
     "sky": "#2960c3",
+    "credit": null,
     "mean_luminance": 0.3622,
     "profile": [
       0.204,
@@ -360,6 +363,7 @@
       }
     ],
     "sky": "#9acbef",
+    "credit": null,
     "mean_luminance": 0.6082,
     "profile": [
       0.101,
@@ -457,6 +461,7 @@
       }
     ],
     "sky": "#061a2a",
+    "credit": null,
     "mean_luminance": 0.2932,
     "profile": [
       0.0,
@@ -554,6 +559,7 @@
       }
     ],
     "sky": "#02091b",
+    "credit": null,
     "mean_luminance": 0.2531,
     "profile": [
       0.016,
@@ -651,6 +657,7 @@
       }
     ],
     "sky": "#01a5f7",
+    "credit": null,
     "mean_luminance": 0.3105,
     "profile": [
       0.905,
@@ -750,6 +757,7 @@
       }
     ],
     "sky": "#00186f",
+    "credit": null,
     "mean_luminance": 0.1963,
     "profile": [
       0.001,
@@ -787,7 +795,8 @@
         "sultan-iskandar-ciq",
         "komtar-jbcc",
         "astaka-towers"
-      ]
+      ],
+      "credit": "EXIF Copyright: Kokkai Ng. A stock photograph; the repository that hosts it states no licence, which is why nothing here redistributes it."
     },
     "size": [
       612,
@@ -850,6 +859,10 @@
       }
     ],
     "sky": "#487da7",
+    "credit": {
+      "copyright": "Kokkai Ng",
+      "imagedescription": "The Malaysian city of Johor Bahru, with heavy traffic on the Johor-Singapore Causeway at dusk."
+    },
     "mean_luminance": 0.4039,
     "profile": [
       0.052,

@@ -11,6 +11,7 @@ import importlib.util
 import json
 import math
 import pathlib
+import struct
 
 import numpy as np
 import pytest
@@ -243,6 +244,32 @@ def test_no_landmark_stands_in_the_sea():
     allowed = {m["id"] for m in specs if m.get("expect_water")}
     wet = {k for k, v in feet.items() if v.get("on_water")}
     assert wet <= allowed, f"standing in water without saying so: {sorted(wet - allowed)}"
+
+
+def test_every_model_is_a_readable_gltf_binary():
+    """Parse the header and the JSON chunk of each .glb.
+
+    The models are committed binaries that almost nothing in CI exercises — the
+    front ends load them in a browser, which no test here runs. Reading the
+    container back costs nothing and catches a truncated write, a file saved
+    through a text-mode pipe, or a model that was deleted and replaced by an
+    LFS pointer.
+    """
+    for path in sorted(MODELS.glob("*.glb")):
+        raw = path.read_bytes()
+        magic, version, length = struct.unpack_from("<4sII", raw, 0)
+        assert magic == b"glTF", f"{path.name}: not a glTF binary"
+        assert version == 2, f"{path.name}: glTF version {version}"
+        assert length == len(raw), f"{path.name}: header says {length} bytes, file is {len(raw)}"
+
+        chunk_len, chunk_type = struct.unpack_from("<II", raw, 12)
+        assert chunk_type == 0x4E4F534A, f"{path.name}: first chunk is not JSON"
+        doc = json.loads(raw[20 : 20 + chunk_len])
+        assert doc["meshes"], f"{path.name}: no meshes"
+        assert doc["materials"], f"{path.name}: no materials"
+        # Every mesh should be reachable from the scene, or it is dead weight.
+        used = {n.get("mesh") for n in doc["nodes"] if "mesh" in n}
+        assert len(used) == len(doc["meshes"]), f"{path.name}: unreferenced meshes"
 
 
 def test_models_stay_small_enough_to_ship():

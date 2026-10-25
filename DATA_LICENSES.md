@@ -38,11 +38,17 @@ Machine-readable details — URLs, mirrors, checksums and retrieval times — ar
 
 ## Reference photographs for the 3D landmarks
 
-The twelve landmark models on the command-centre map are modelled from published dimensions, from
-the OpenStreetMap footprints already listed above, and from the colours of a handful of night
-photographs. **The photographs are not redistributed in this repository**: they are hosted in
+The landmark models on the command-centre and Explorer maps are modelled from published
+dimensions, from the OpenStreetMap footprints already listed above, and from the colours of nine
+night photographs. **The photographs are not redistributed in this repository**: they are hosted in
 third-party GitHub repositories that state no licence, so only the URLs and the numbers derived
 from them are committed, in `scripts/landmarks/sources.json` and `scripts/landmarks/refs/`.
+
+That is not a precaution in the abstract. `analyse_refs.py` reads each file's EXIF and reports any
+credit it carries, and one of the nine — the dusk view of the Causeway — turns out to be a stock
+photograph carrying `Copyright: Kokkai Ng`, redistributed by its host with no licence to do so.
+What this repository takes from it is two colours: the cool white of the pipeline duct and the warm
+sodium of the carriageway.
 
 The Johor Bahru side is thinner than the Singapore side, which is worth saying rather than hiding:
 one usable night photograph of the Causeway and the city behind it, against eight for Marina Bay.

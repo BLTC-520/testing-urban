@@ -1,6 +1,7 @@
 {
   "_comment": [
     "Reference photographs used to set the night colours and proportions of the",
+    "Run analyse_refs.py and it prints any credit it finds in each file's EXIF.",
     "3D landmarks. The files themselves are not committed \u2014 their licences are",
     "not stated by the repositories that host them \u2014 so only these URLs and the",
     "numbers derived from them in refs/analysis.json live here.",
@@ -74,7 +75,8 @@
         "sultan-iskandar-ciq",
         "komtar-jbcc",
         "astaka-towers"
-      ]
+      ],
+      "credit": "EXIF Copyright: Kokkai Ng. A stock photograph; the repository that hosts it states no licence, which is why nothing here redistributes it."
     }
   }
 }

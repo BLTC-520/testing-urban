@@ -20,6 +20,11 @@ So this script reads a few night photographs, and writes out:
 * ``profile``    a width-vs-height silhouette profile of the lit structure,
                  normalised to 0..1. Used to check a model's proportions
                  against the photograph it was modelled from.
+* ``credit``     whatever the file's own EXIF says about who made it. Reported
+                 rather than assumed: one of these references turned out to
+                 carry ``Copyright: Kokkai Ng``, a stock photograph that the
+                 repository hosting it had no licence to redistribute. That is
+                 the whole reason none of them are committed here.
 
 The photographs themselves are NOT committed: they come from third-party
 repositories with unclear licences. Only these derived numbers are, together
@@ -42,7 +47,7 @@ import pathlib
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import ExifTags, Image
 
 # Pixels are subsampled before clustering: a 1 MP photograph has far more
 # pixels than k-means needs, and the full array makes the step minutes long.
@@ -131,8 +136,32 @@ def profile(a: np.ndarray, rows: int = 24) -> list[float]:
     return [round(v / top, 3) for v in out]
 
 
+CREDIT_TAGS = ("Artist", "Copyright", "ImageDescription")
+_TAG_ID = {name: num for num, name in ExifTags.TAGS.items()}
+
+
+def credit(img: Image.Image) -> dict | None:
+    """Whatever the file says about who made it.
+
+    Worth surfacing because a photograph found in a third-party repository may
+    be anyone's, and the only thing in the file that knows is the EXIF.
+    """
+    exif = img.getexif()
+    if not exif:
+        return None
+    out = {}
+    for tag in CREDIT_TAGS:
+        value = exif.get(_TAG_ID.get(tag, -1))
+        if isinstance(value, bytes):
+            value = value.decode("utf-16-le", "ignore").strip("\x00")
+        if value:
+            out[tag.lower()] = str(value).strip()[:160]
+    return out or None
+
+
 def analyse(path: pathlib.Path) -> dict:
     img = Image.open(path).convert("RGB")
+    cred = credit(Image.open(path))
     a = np.asarray(img, dtype=np.float64)
     h, w, _ = a.shape
     flat = a.reshape(-1, 3)
@@ -157,6 +186,7 @@ def analyse(path: pathlib.Path) -> dict:
             {"hex": hexcolor(ec[i]), "share": round(float(es[i]), 3)} for i in eorder
         ],
         "sky": hexcolor(sky),
+        "credit": cred,
         "mean_luminance": round(float(lum.mean()) / 255, 4),
         "profile": profile(a),
     }
@@ -179,6 +209,8 @@ def main() -> int:
             continue
         print(f"  {key} <- {found[0].name}", file=sys.stderr)
         out[key] = {"source": meta, **analyse(found[0])}
+        if out[key].get("credit"):
+            print(f"      credit in the file: {out[key]['credit']}", file=sys.stderr)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out, indent=2) + "\n")

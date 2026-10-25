@@ -18,6 +18,10 @@ for k, v in src.items():
     print(k, v["url"])
 PY
   echo "  $key"
-  curl -fsSL --retry 3 -o "$dir/$key.jpg" "$url"
+  # Keep whatever extension the source has: one of these is a PNG, and saving
+  # it as .jpg works only because every reader here sniffs the format.
+  ext="${url##*.}"
+  case "$ext" in jpg|jpeg|png|webp) ;; *) ext=jpg ;; esac
+  curl -fsSL --retry 3 -o "$dir/$key.$ext" "$url"
 done
 echo "references in $dir"

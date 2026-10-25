@@ -28,7 +28,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "matplotlib>=3.8", "networkx>=3.2"]
+# pmtiles and mapbox-vector-tile are here rather than only in [landmarks] so
+# that CI actually runs the footprint tests: they are a couple of megabytes,
+# where bpy is a couple of hundred, and without them six tests silently skip.
+dev = ["pytest>=8", "matplotlib>=3.8", "networkx>=3.2", "pmtiles>=3.4", "mapbox-vector-tile>=2.1"]
 # The 3D landmarks in the dashboard map (see scripts/landmarks/). Separate from
 # the pipeline because bpy is Blender — a few hundred megabytes — and nothing in
 # the analysis needs it. `pip install bpy` only resolves on the exact CPython
