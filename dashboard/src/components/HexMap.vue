@@ -39,6 +39,7 @@ import {
 } from "../map/walkFocus.ts";
 import { STUDY_AREA } from "../map/studyArea.ts";
 import { useWalkFocusController } from "../composables/useWalkFocus.ts";
+import FamousLandmarksBar from "./FamousLandmarksBar.vue";
 import LandmarkCallouts from "./LandmarkCallouts.vue";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
@@ -317,6 +318,7 @@ const legendStops = computed(() => {
     <div class="canvas-wrap">
       <div ref="container" class="canvas" />
       <LandmarkCallouts :map="map" />
+      <FamousLandmarksBar />
 
       <div class="legend">
         <span class="legend-label">
@@ -412,7 +414,7 @@ const legendStops = computed(() => {
 .chip.on { color: var(--paper-0); border-color: var(--line-strong); background: var(--ink-4); }
 
 .credit {
-  position: absolute; left: 12px; top: 12px;
+  position: absolute; left: 12px; bottom: 66px;
   background: rgba(7, 9, 12, 0.82); border: 1px solid var(--line);
   border-radius: 5px; padding: 3px 8px;
   font-size: 9px; color: var(--paper-3);
