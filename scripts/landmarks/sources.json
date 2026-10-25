@@ -1,8 +1,8 @@
 {
   "_comment": [
     "Reference photographs used to set the night colours and proportions of the",
-    "3D landmarks. The files themselves are not committed — their licences are",
-    "not stated by the repositories that host them — so only these URLs and the",
+    "3D landmarks. The files themselves are not committed \u2014 their licences are",
+    "not stated by the repositories that host them \u2014 so only these URLs and the",
     "numbers derived from them in refs/analysis.json live here.",
     "fetch_refs.sh re-downloads them into a scratch directory."
   ],
@@ -10,22 +10,61 @@
     "mbs_night": {
       "shows": "Marina Bay Sands and the ArtScience Museum from across the bay, after dark",
       "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/Singapore.jpg",
-      "feeds": ["marina-bay-sands", "artscience-museum"]
+      "feeds": [
+        "marina-bay-sands",
+        "artscience-museum"
+      ]
     },
     "mbs_wide": {
       "shows": "the same view, smaller, with more of the podium roof visible",
       "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/Singapore_new.jpg",
-      "feeds": ["marina-bay-sands"]
+      "feeds": [
+        "marina-bay-sands"
+      ]
     },
     "supertrees_night": {
       "shows": "Supertree Grove lit at blue hour, with the OCBC Skyway",
       "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/garden%20by%20the%20bay.jpg",
-      "feeds": ["supertree-grove"]
+      "feeds": [
+        "supertree-grove"
+      ]
     },
     "flyer_day": {
       "shows": "the Singapore Flyer from Marina Barrage: rim, spokes, capsules, A-frame",
       "url": "https://raw.githubusercontent.com/GFG-GLAU/Travel-in-Hacktober/HEAD/images/singaporeGallery.jpg",
-      "feeds": ["singapore-flyer"]
+      "feeds": [
+        "singapore-flyer"
+      ]
+    },
+    "merlion_night": {
+      "shows": "the Merlion lit at night from the promenade, with the jet, the mane plates and the scaled body all legible",
+      "url": "https://raw.githubusercontent.com/AzfarHanif/PASII/HEAD/assets/index/singapore_merlion.jpg",
+      "feeds": [
+        "merlion"
+      ]
+    },
+    "merlion_close": {
+      "shows": "the Merlion from the water, close: the layered mane, the open mouth, the pectoral fin",
+      "url": "https://raw.githubusercontent.com/AzfarHanif/PASII/HEAD/assets/index/merlion.png",
+      "feeds": [
+        "merlion"
+      ]
+    },
+    "supertrees_dusk": {
+      "shows": "Supertree Grove at dusk: flared trunks, flat lattice canopies, the Skyway between two of them",
+      "url": "https://raw.githubusercontent.com/AzfarHanif/PASII/HEAD/assets/index/singapore_supertree.jpg",
+      "feeds": [
+        "supertree-grove"
+      ]
+    },
+    "skyline_night": {
+      "shows": "the Marina Bay skyline after dark \u2014 the city's own colour, away from any one building",
+      "url": "https://raw.githubusercontent.com/AzfarHanif/PASII/HEAD/assets/index/singapore_skyline_night.png",
+      "feeds": [
+        "marina-bay-sands",
+        "komtar-jbcc",
+        "astaka-towers"
+      ]
     }
   }
 }

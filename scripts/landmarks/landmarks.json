@@ -113,6 +113,19 @@
       "bearing_note": "the two shells sit side by side along Esplanade Drive"
     },
     {
+      "id": "fullerton",
+      "name": "The Fullerton",
+      "city": "sg",
+      "lat": 1.28633,
+      "lon": 103.85278,
+      "anchor_source": "published location at the river mouth",
+      "height_m": 36.0,
+      "confidence": "estimated",
+      "facts": "The 1928 General Post Office at the mouth of the Singapore River, a Doric colonnade facing the water. It stands directly behind the Merlion in every photograph of it.",
+      "bearing_deg": 118.0,
+      "bearing_note": "the colonnade faces the river mouth"
+    },
+    {
       "id": "sultan-ibrahim-building",
       "name": "Bangunan Sultan Ibrahim",
       "city": "jb",
@@ -192,6 +205,22 @@
       "facts": "Singapore's end of the Causeway. Paired with the CIQ building, the two mark the only land crossing in the study area.",
       "bearing_deg": 178.5,
       "bearing_note": "near square in plan"
+    },
+    {
+      "id": "johor-causeway",
+      "name": "Johor-Singapore Causeway",
+      "city": "jb",
+      "lat": 1.4542,
+      "lon": 103.76885,
+      "anchor_source": "midpoint of the KTM alignment across the strait, read out of the basemap archive",
+      "height_m": 17.0,
+      "length_m": 1056.0,
+      "width_m": 40.0,
+      "confidence": "derived",
+      "facts": "The 1,056 m embankment of 1923 carrying road, railway and a water pipeline between Woodlands and Johor Bahru - the only land crossing in the study area, and the thing every cross-border walk in this dashboard has to pass through.",
+      "bearing_deg": 161.8,
+      "bearing_note": "the KTM track's heading across the strait, 1.4496,103.7703 to 1.4588,103.7673 in the basemap's rail layer",
+      "note": "'height' is the lamp standards, not the deck: the deck itself sits about 6 m above the water."
     }
   ]
 }

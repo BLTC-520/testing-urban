@@ -95,6 +95,22 @@
     "anchor_offset_m": 71.6,
     "bearing_trusted": false
   },
+  "fullerton": {
+    "centroid": [
+      103.853055,
+      1.286231
+    ],
+    "area_m2": 6693.3,
+    "bearing_deg": 1.9,
+    "length_m": 128.0,
+    "width_m": 79.4,
+    "elongation": 1.61,
+    "vertices": 33,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 38.2,
+    "bearing_trusted": true
+  },
   "sultan-ibrahim-building": {
     "centroid": [
       103.76111,
@@ -190,5 +206,8 @@
     "match": "nearest-large",
     "anchor_offset_m": 96.8,
     "bearing_trusted": false
+  },
+  "johor-causeway": {
+    "matched": false
   }
 }

@@ -450,6 +450,10 @@ from a script, and putting them there forced three changes to the map that were 
 | `dashboard/scripts/shot_landmarks.mjs` | drives that page headless and leaves twelve screenshots |
 | `tests/test_landmarks.py` | the footprint maths, the clustering, and the manifest |
 
+Fourteen landmarks: six in Singapore, four in Johor Bahru, and the Causeway with a checkpoint at
+each end — the crossing being the one piece of infrastructure this whole study's cross-border
+numbers depend on.
+
 ### Decisions
 
 **Procedural, not sculpted.** Nobody can review a `.blend`. A script that says "three 194 m slabs,
@@ -497,6 +501,22 @@ completeness at every zoom.
 around 1–3 on large flat surfaces, which in glTF multiplies into `emissiveFactor` and turns a
 dark SkyPark into a tan plate. Halving them and letting the window textures carry the light fixed
 it. The reference photographs are the arbiter: a night photograph of a tower is mostly dark.
+
+**The first Merlion was modelled from memory and it showed.** Three things were wrong and all
+three are visible in any close photograph of the statue: the body is near vertical (a fish
+standing on its tail, not lying down with a head on the front), the mane is a collar of flat
+plates sweeping down and out from the neck rather than a crown of spikes, and the body is
+*scaled*. The fix for the first two was eight lines; the third needed a new primitive, because
+everything in the file until then was built by lofting plan sections upwards, which is right for
+buildings and gives vertical fins for anything that sticks out sideways. `plate()` builds an
+oriented box from a point and a direction, and the mane, the fins, the fluke and the ears are all
+one call to it. The scales are a generated texture, not geometry.
+
+**A kilometre of causeway rendered as an empty frame.** Blender's default camera far clip is
+100 m. Every landmark up to that point was a building a few hundred metres across and framed from
+inside the clip range by luck; the Causeway is 1,056 m long and framed from 1,300 m away, so the
+preview came back blank rather than wrong. Worth remembering that an empty render is a camera
+problem far more often than a geometry one — the glTF had all 992 triangles in it.
 
 **Blender's `bpy` module needs an exact CPython.** `pip install bpy` only resolves against the
 interpreter version a given Blender embeds — 5.2 is built for 3.13. It is a separate optional

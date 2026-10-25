@@ -89,6 +89,36 @@ def facade(
     return base, emit.filter(ImageFilter.GaussianBlur(0.6))
 
 
+def scales(pale: tuple[int, int, int], line: tuple[int, int, int], rows: int = 11) -> tuple[Image.Image, Image.Image]:
+    """Overlapping fish scales, for the Merlion's body.
+
+    The scales are the thing the statue is recognised by after its head: the
+    close reference photograph is almost entirely scale. Drawn as rows of
+    offset arcs rather than modelled, because a scale is two triangles of
+    silhouette and a hundred of them would be the most expensive thing on the
+    map.
+
+    The emission map is a dimmed copy rather than black: the statue is floodlit
+    from below, so the whole body glows a little, and the scale outlines read as
+    shadow in that glow.
+    """
+    base = Image.new("RGB", (SIZE, SIZE), pale)
+    db = ImageDraw.Draw(base)
+    step = SIZE / rows
+    r = step * 0.92
+    for row in range(rows + 1):
+        y = row * step
+        offset = (row % 2) * step * 0.5
+        for col in range(-1, rows + 2):
+            x = col * step + offset
+            # Each scale is the lower arc of a circle: draw the outline only,
+            # so the rows read as overlapping rather than as a grid of discs.
+            db.arc([x - r / 2, y - r / 2, x + r / 2, y + r / 2], start=20, end=160,
+                   fill=line, width=max(1, int(step * 0.09)))
+    emit = base.point(lambda v: int(v * 0.55))
+    return base, emit.filter(ImageFilter.GaussianBlur(0.4))
+
+
 def strip(colour: tuple[int, int, int], seed: int) -> tuple[Image.Image, Image.Image]:
     """Horizontal LED banding, for podium roofs and the checkpoint canopies."""
     rnd = random.Random(seed)
@@ -138,6 +168,12 @@ def main() -> int:
         "facade_block": facade(mix(wall, (30, 28, 24), 0.6), warm, 8, 5, 0.3, seed=17),
         "led_blue": strip((70, 150, 255), seed=5),
         "led_warm": strip(warm[-1], seed=9),
+        # The Merlion's body, from the close reference rather than the Sands:
+        # the statue's cement-and-porcelain skin reads cool, not warm.
+        "scales": scales(
+            rgb(an["merlion_night"]["palette"][3]["hex"]),
+            mix(rgb(an["merlion_night"]["palette"][1]["hex"]), (0, 0, 0), 0.45),
+        ),
     }
 
     for name, (base, emit) in specs.items():

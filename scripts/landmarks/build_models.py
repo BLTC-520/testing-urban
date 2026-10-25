@@ -163,6 +163,36 @@ def tube(name: str, r0: float, r1: float, h: float, z0: float = 0.0, at=(0.0, 0.
     )
 
 
+def plate(name: str, origin, direction, length: float, width: float, thick: float,
+          mat=None, taper: float = 0.6):
+    """A flat plate starting at a point and pointing in a direction.
+
+    Everything built with ``solid`` rises along z, which is right for buildings
+    and wrong for anything that sticks out sideways. The Merlion's mane is a
+    collar of plates sweeping down and outwards from the neck; built as lofts
+    they came out as a crown of vertical fins, which is not the same animal.
+    """
+    d = Vector(direction).normalized()
+    # A stable pair of axes across the plate: "across" is horizontal wherever
+    # the plate is not pointing straight up.
+    ref = Vector((0, 0, 1)) if abs(d.z) < 0.95 else Vector((1, 0, 0))
+    across = d.cross(ref).normalized()
+    up = across.cross(d).normalized()
+    o = Vector(origin)
+    verts, faces = [], []
+    for step, (hw, ht) in enumerate(((width / 2, thick / 2),
+                                     (width / 2 * taper, thick / 2 * taper))):
+        c = o + d * (length * step)
+        for sx, sy in ((1, 1), (1, -1), (-1, -1), (-1, 1)):
+            verts.append(tuple(c + across * (hw * sx) + up * (ht * sy)))
+    for i in range(4):
+        j = (i + 1) % 4
+        faces.append([i, j, 4 + j, 4 + i])
+    faces.append([3, 2, 1, 0])
+    faces.append([4, 5, 6, 7])
+    return add_mesh(name, verts, faces, mat)
+
+
 def dome(name: str, r: float, h: float, z0: float = 0.0, at=(0.0, 0.0), n: int = 16,
          rings: int = 5, mat=None):
     """Half an ellipsoid, as a stack of rings. Used for domes and petal tips."""
@@ -264,10 +294,17 @@ def torus(name: str, radius: float, thickness: float, major: int = 48, minor: in
     return add_mesh(name, verts, faces, mat)
 
 
-def arc_tube(name: str, pts: list[tuple[float, float, float]], r: float, n: int = 6, mat=None):
-    """A tube swept along a polyline — walkways, the Skyway, the water jet."""
+def arc_tube(name: str, pts: list[tuple[float, float, float]], r: float, n: int = 6, mat=None,
+             radii: list[float] | None = None):
+    """A tube swept along a polyline — walkways, the Skyway, the water jet.
+
+    ``radii`` gives a radius per point instead of one for the whole sweep, which
+    is what turns a tube into a tail: thick where it leaves the body, thin at
+    the tip.
+    """
     verts, faces = [], []
     for k, p in enumerate(pts):
+        rk = radii[k] if radii else r
         nxt = pts[min(k + 1, len(pts) - 1)]
         prv = pts[max(k - 1, 0)]
         d = Vector(nxt) - Vector(prv)
@@ -279,7 +316,7 @@ def arc_tube(name: str, pts: list[tuple[float, float, float]], r: float, n: int 
         v = d.cross(u).normalized()
         for i in range(n):
             a = TAU * i / n
-            verts.append(tuple(Vector(p) + u * (r * math.cos(a)) + v * (r * math.sin(a))))
+            verts.append(tuple(Vector(p) + u * (rk * math.cos(a)) + v * (rk * math.sin(a))))
     for k in range(len(pts) - 1):
         for i in range(n):
             j = (i + 1) % n
@@ -542,60 +579,82 @@ def build_artscience_museum(spec, pal, tex):
         for k in range(steps + 1):
             t = k / steps
             # The petal leans out as it rises and tapers to a skylit tip.
-            out = 13.0 + 26.0 * t**1.25
-            width = 10.5 * (1.0 - 0.74 * t)
+            out = 14.0 + 30.0 * t**1.35
+            width = 13.0 * (1.0 - 0.80 * t)
             z = 6.0 + (reach - 6.0) * math.sin(t * math.pi / 2)
-            sections.append((z, ring(out * math.cos(a), out * math.sin(a), width, width * 0.72, 8, a)))
+            # The petal is a flattened section, not a tube: a lotus petal is a
+            # blade. 0.42 across the radius is what the reference photograph of
+            # the building shows.
+            sections.append(
+                (z, ring(out * math.cos(a), out * math.sin(a), width, width * 0.42, 8, a))
+            )
         petals.append(solid(f"petal-{i}", sections, skin, cap_bottom=False))
     merge(petals, "petals", skin)
 
 
 def build_supertree_grove(spec, pal, tex):
-    """Twelve steel trees and the walkway slung between two of them."""
+    """Twelve steel trees and the walkway slung between two of them.
+
+    The reference photograph settles the proportions: the canopy is a wide,
+    nearly flat lattice, not a dome, and the trunk flares out into it like a
+    wine glass. A solid cone canopy — the first attempt — turns the grove into
+    a field of mushrooms, which is exactly what it looked like.
+    """
     tall, short, count = spec["height_m"], spec["min_height_m"], spec["count"]
-    trunk_mat = material("st-trunk", pal["foliage"], rough=0.85,
-                         emit=pal["magenta"], strength=0.35)
-    canopy = material("st-canopy", (0.17, 0.15, 0.20), rough=0.45, metallic=0.6,
-                      emit=pal["magenta"], strength=0.85)
+    trunk_mat = material("st-trunk", (0.09, 0.17, 0.11), rough=0.85,
+                         emit=pal["magenta"], strength=0.5)
+    canopy = material("st-canopy", (0.18, 0.12, 0.22), rough=0.45, metallic=0.5,
+                      emit=pal["magenta"], strength=1.0)
+    rim = material("st-rim", (0.5, 0.35, 0.5), rough=0.3,
+                   emit=pal["magenta"], strength=2.0)
     walk = material("st-skyway", (0.38, 0.36, 0.31), rough=0.5,
                     emit=(1.0, 0.85, 0.55), strength=0.9)
 
     # A deterministic scatter: an ellipse of trees, the tall ones in the middle,
-    # which is how the grove actually reads from across the bay.
+    # which is how the grove reads from across the bay.
     placed = []
-    trunks, canopies = [], []
+    trunks, lattice, rims = [], [], []
     for i in range(count):
         a = TAU * i / count + 0.4
         rad = 34.0 + 20.0 * ((i * 7) % 5) / 4.0
         x, y = rad * math.cos(a) * 1.35, rad * math.sin(a) * 0.8
         hgt = short + (tall - short) * (0.35 + 0.65 * ((i * 5) % 4) / 3.0)
         placed.append((x, y, hgt))
-        trunk_h = hgt * 0.72
-        trunks.append(tube(f"trunk-{i}", 1.9, 3.0, trunk_h, at=(x, y), n=8, mat=trunk_mat))
-        # Canopy: a shallow dish, wide and thin. The real ones are mostly air —
-        # a thick cone turns the grove into a field of mushrooms.
-        crown = 9.0 + 5.0 * (hgt - short) / max(tall - short, 1e-6)
-        canopies.append(solid(
-            f"canopy-{i}",
-            [
-                (trunk_h, ring(x, y, 3.2, 3.2, 10)),
-                (trunk_h + (hgt - trunk_h) * 0.55, ring(x, y, crown, crown, 10)),
-                (hgt, ring(x, y, crown * 0.52, crown * 0.52, 10)),
-            ],
-            canopy,
-        ))
-        # Six branches out to the canopy rim. Cheap, and they are the reason a
-        # Supertree looks built rather than grown.
-        for b in range(6):
-            ba = TAU * b / 6 + i * 0.5
-            canopies.append(tube(
-                f"branch-{i}-{b}", 0.75, 0.25, (hgt - trunk_h) * 0.9,
-                z0=trunk_h - 1.0, at=(x, y), n=4,
-                shift=(crown * 0.95 * math.cos(ba), crown * 0.95 * math.sin(ba)),
+        crown = 10.0 + 6.0 * (hgt - short) / max(tall - short, 1e-6)
+        flare = hgt * 0.70  # where the trunk stops being a trunk
+
+        # Trunk: narrow at the base, flaring out towards the canopy.
+        trunks.append(solid(f"trunk-{i}", [
+            (0.0, ring(x, y, 2.6, 2.6, 8)),
+            (flare * 0.55, ring(x, y, 2.1, 2.1, 8)),
+            (flare, ring(x, y, 4.2, 4.2, 8)),
+        ], trunk_mat))
+
+        # Canopy: a thin dish, and the spokes that hold it out. Both are mostly
+        # air in reality; here the dish is 1.6 m thick and the spokes are the
+        # only other geometry, which is as close as a few hundred triangles get.
+        lattice.append(solid(f"canopy-{i}", [
+            (hgt - 1.6, ring(x, y, crown * 0.35, crown * 0.35, 12)),
+            (hgt - 0.6, ring(x, y, crown, crown, 12)),
+            (hgt, ring(x, y, crown * 0.96, crown * 0.96, 12)),
+        ], canopy))
+        for b in range(8):
+            ba = TAU * b / 8 + i * 0.4
+            lattice.append(tube(
+                f"spoke-{i}-{b}", 0.9, 0.3, hgt - flare + 0.4,
+                z0=flare - 0.4, at=(x, y), n=4,
+                shift=(crown * 0.9 * math.cos(ba), crown * 0.9 * math.sin(ba)),
                 mat=canopy,
             ))
+        # The lit rim is what the eye actually catches at a distance.
+        rims.append(solid(f"rim-{i}", [
+            (hgt - 0.9, ring(x, y, crown * 0.99, crown * 0.99, 12)),
+            (hgt - 0.2, ring(x, y, crown * 1.02, crown * 1.02, 12)),
+        ], rim, cap_bottom=False, cap_top=False))
+
     merge(trunks, "trunks", trunk_mat)
-    merge(canopies, "canopies", canopy)
+    merge(lattice, "canopies", canopy)
+    merge(rims, "rims", rim)
 
     # The OCBC Skyway: a curved walkway between the two tallest trees, at the
     # published 22 m. Drawn as an arc because it is one — it bows out from the
@@ -673,115 +732,230 @@ def build_esplanade(spec, pal, tex):
     which is most of what stops the pair reading as a pair of domes.
     """
     h = spec["height_m"]
-    spikes = material("es-shell", (0.30, 0.31, 0.34), rough=0.26, metallic=0.9,
-                      emit=(0.95, 0.80, 0.55), strength=0.07)
+    spikes = material("es-shell", (0.38, 0.40, 0.43), rough=0.22, metallic=0.95,
+                      emit=(0.85, 0.80, 0.65), strength=0.05)
     base = material("es-base", pal["concrete"], rough=0.7,
                     emit=pal["warm"], strength=0.3)
     led = material("es-led", pal["warm"], rough=0.3, emit=pal["warm"], strength=1.0)
     prism("base", 168.0, 92.0, h * 0.30, chamfer=26.0, mat=base)
     edge_lights("base-led", 170.0, 94.0, h * 0.30, 3.0, led, height=1.0)
-    spiky_dome("shell-0", 41.0, h * 0.80, h * 0.26, (-44.0, -5.0), spikes)
-    spiky_dome("shell-1", 35.0, h * 0.70, h * 0.26, (46.0, 9.0), spikes)
+    spiky_dome("shell-0", 41.0, h * 0.86, h * 0.24, (-46.0, -7.0), spikes)
+    spiky_dome("shell-1", 34.0, h * 0.74, h * 0.24, (48.0, 11.0), spikes)
 
 
 def build_merlion(spec, pal, tex):
-    """The 8.6 m statue: fish behind, lion in front, water out of the mouth.
+    """The 8.6 m statue: fish below, lion above, water out of the mouth.
 
-    Everything is written in the statue's own metres and then scaled by its
-    published height, so the proportions stay fixed if that number is ever
-    corrected. The parts that carry the silhouette are the curled tail, the
-    halo of mane and the jet — in that order. The face does not: at map range
-    it is four pixels.
+    Built against the two close reference photographs, which settle three
+    things that were wrong when this was modelled from memory:
+
+    * the body is near vertical and broad — a fish standing on its tail, not a
+      fish lying down with a head stuck on the front;
+    * the mane is a *collar* of flat plates sweeping down and out from the neck,
+      not a crown of spikes rising from the skull;
+    * the body is scaled, and the scales are a texture. They are most of what
+      the statue looks like, and a hundred modelled scales would cost more
+      triangles than every other landmark on this map put together.
+
+    Written in the statue's own metres and scaled by its published height, so
+    the proportions survive a correction to that figure.
     """
     h = spec["height_m"]
     S = h / 8.6  # the model below is drawn at the statue's real size
 
-    body_mat = material("me-body", (0.82, 0.82, 0.80), rough=0.28,
-                        emit=(0.95, 0.96, 1.0), strength=0.55)
-    stone = material("me-plinth", pal["stone"], rough=0.85)
-    jet = material("me-jet", (0.75, 0.92, 1.0), rough=0.05,
-                   emit=(0.6, 0.9, 1.0), strength=1.3, alpha=0.6)
+    body_mat = textured("me-body", tex, "scales", tile_m=0.65 * S)
+    body_mat.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"].default_value = 0.8
+    plain = material("me-plain", (0.86, 0.88, 0.86), rough=0.3,
+                     emit=(0.90, 0.94, 0.95), strength=0.6)
+    stone = material("me-plinth", (0.24, 0.32, 0.40), rough=0.7,
+                     emit=(0.22, 0.62, 0.95), strength=0.8)
+    dark = material("me-mouth", (0.04, 0.05, 0.06), rough=0.9)
+    jet = material("me-jet", (0.80, 0.93, 1.0), rough=0.05,
+                   emit=(0.62, 0.90, 1.0), strength=1.3, alpha=0.6)
 
-    # Plinth: the statue stands on a stepped base in the water, not on ground.
-    solid("plinth", [(0.0, ring(0, 0, 4.6 * S, 4.2 * S, 12)),
-                     (1.2 * S, ring(0, 0, 4.0 * S, 3.6 * S, 12)),
-                     (1.8 * S, ring(0, 0, 3.2 * S, 2.9 * S, 12))], stone)
+    # The plinth: the statue stands in the water on a wave, uplit blue, which
+    # in every photograph is the second brightest thing in frame.
+    solid("plinth", [
+        (0.0, ring(0, 0, 5.4 * S, 4.6 * S, 14)),
+        (1.0 * S, ring(0, 0, 4.8 * S, 4.1 * S, 14)),
+        (1.8 * S, ring(0.2 * S, 0, 3.6 * S, 3.1 * S, 14)),
+    ], stone)
 
-    # The body is one loft along a spine that starts low and behind, as a fish,
-    # and finishes high and forward, as a chest. (x forward, z up, radius)
+    # The body: broad at the plinth, narrowing to the neck, leaning back a
+    # little. (forward offset, height, half-width across, half-depth)
     spine = [
-        (-2.70, 2.00, 0.95, 0.80),
-        (-2.20, 2.55, 1.25, 1.00),
-        (-1.40, 3.20, 1.45, 1.15),
-        (-0.50, 4.10, 1.50, 1.20),
-        (0.25, 5.15, 1.40, 1.15),
-        (0.80, 6.15, 1.20, 1.05),
-        (1.10, 6.90, 1.00, 0.95),
+        (-0.70, 1.60, 1.95, 1.70),
+        (-0.45, 2.50, 2.05, 1.80),
+        (-0.15, 3.60, 1.95, 1.75),
+        (0.15, 4.70, 1.70, 1.55),
+        (0.40, 5.70, 1.35, 1.30),
+        (0.55, 6.40, 1.10, 1.10),
     ]
-    solid("body", [
-        (z * S, ring(x * S, 0.0, rx * S, ry * S, 10)) for x, z, rx, ry in spine
+    body = solid("body", [
+        (z * S, ring(fx * S, 0.0, rx * S, ry * S, 14)) for fx, z, rx, ry in spine
     ], body_mat)
+    project_uvs(body, 0.65 * S)
 
-    # The tail: a flat fin curling up behind the body. Thin in plan, which is
-    # what makes it read as a fin rather than another limb.
-    solid("tail", [
-        (2.4 * S, rect(2.6 * S, 0.8 * S, -2.9 * S, 0.0)),
-        (4.6 * S, rect(2.2 * S, 0.5 * S, -3.5 * S, 0.0)),
-        (6.4 * S, rect(1.5 * S, 0.35 * S, -4.0 * S, 0.0)),
-    ], body_mat)
-    # ... and the fluke at its tip, splayed sideways.
-    solid("fluke", [
-        (6.2 * S, rect(1.4 * S, 0.35 * S, -4.0 * S, 0.0)),
-        (7.4 * S, rect(0.9 * S, 2.6 * S, -4.4 * S, 0.0)),
-    ], body_mat)
+    # The tail: a tapering sweep that leaves the body low at the back, curls up
+    # behind it, and ends in a fluke turned across. Half the silhouette.
+    curl = [
+        (-1.6, 2.1, 1.05), (-2.5, 2.8, 0.95), (-3.2, 3.9, 0.80),
+        (-3.5, 5.1, 0.62), (-3.4, 6.1, 0.46), (-3.1, 6.8, 0.34),
+    ]
+    tail = arc_tube(
+        "tail",
+        [(x * S, 0.0, z * S) for x, z, _ in curl],
+        0.0, n=8, mat=body_mat,
+        radii=[r * S for _, _, r in curl],
+    )
+    project_uvs(tail, 0.65 * S)
+    # The fluke, a flat fan across the tip of that curl.
+    for sy in (-1, 1):
+        plate(f"fluke-{sy}", (-3.1 * S, 0.0, 6.8 * S), (0.35, sy * 0.55, 0.76),
+              1.7 * S, 0.45 * S, 0.16 * S, plain, taper=1.5)
 
-    head_x, head_z = 1.75 * S, 7.55 * S
-    ellipsoid("head", 1.15 * S, 1.05 * S, 1.15 * S, at=(head_x, 0.0, head_z), n=12, mat=body_mat)
-    ellipsoid("muzzle", 0.75 * S, 0.62 * S, 0.55 * S,
-              at=(head_x + 0.95 * S, 0.0, head_z - 0.25 * S), n=10, mat=body_mat)
+    # Pectoral fins, one each side, swept back and down.
+    fins = []
+    for sy in (-1, 1):
+        fins.append(plate(f"fin-{sy}", (-0.1 * S, sy * 1.6 * S, 3.6 * S),
+                          (-0.55, sy * 0.7, -0.45), 2.0 * S, 1.1 * S, 0.22 * S,
+                          plain, taper=0.45))
+    merge(fins, "fins", plain)
 
-    # The mane: a halo of short cones around the back of the head, set in the
-    # plane across the body. This is the lion half's whole signature.
+    # --- the lion half ----------------------------------------------------
+    head_x, head_z = 0.85 * S, 7.45 * S
+    ellipsoid("head", 1.45 * S, 1.30 * S, 1.45 * S, at=(head_x, 0.0, head_z), n=12, mat=plain)
+    ellipsoid("muzzle", 0.95 * S, 0.85 * S, 0.72 * S,
+              at=(head_x + 1.15 * S, 0.0, head_z - 0.40 * S), n=10, mat=plain)
+    # The open mouth, set into the front of the muzzle: the one dark thing on a
+    # floodlit white statue, and where the jet starts.
+    ellipsoid("mouth", 0.34 * S, 0.38 * S, 0.30 * S,
+              at=(head_x + 1.85 * S, 0.0, head_z - 0.45 * S), n=8, mat=dark)
+
+    # The mane: two rows of flat plates forming a collar round the neck,
+    # sweeping outwards and down. The lion half's whole signature.
     mane = []
-    for i in range(12):
-        a = TAU * i / 12
-        dy, dz = math.cos(a), math.sin(a)
-        mane.append(tube(
-            f"mane-{i}", 0.46 * S, 0.06 * S, 0.1 * S,
-            z0=head_z + dz * 0.9 * S,
-            at=(head_x - 0.45 * S, dy * 0.9 * S), n=5,
-            shift=(-0.55 * S, dy * 1.15 * S),
-            mat=body_mat,
-        ))
-    merge(mane, "mane", body_mat)
-    # The mane cones are built short and then stretched outward by the shift,
-    # so each one points away from the head rather than straight up.
+    for row, (count, length, drop, wide, rise) in enumerate((
+        (13, 2.15, -0.50, 1.00, 0.20),
+        (11, 1.60, -0.90, 0.85, -0.45),
+    )):
+        for i in range(count):
+            # A fan over 280 degrees: open at the front, where the face is.
+            a = math.radians(40.0 + 280.0 * i / (count - 1))
+            dy, dz = math.sin(a), math.cos(a)
+            base = (head_x - 0.45 * S, dy * 0.95 * S, head_z + dz * 0.85 * S + rise * S)
+            direction = (-0.40, dy * 1.1, dz * 0.85 + drop)
+            # taper 0.85, not 0.5: the locks are broad plates that round off,
+            # not spikes. Tapering them to points turns the mane into a crown.
+            mane.append(plate(f"mane-{row}-{i}", base, direction,
+                              length * S, wide * S, 0.22 * S, plain, taper=0.85))
+    merge(mane, "mane", plain)
 
     ears = []
     for sy in (-1, 1):
-        ears.append(tube(f"ear-{sy}", 0.3 * S, 0.04 * S, 0.8 * S,
-                         z0=head_z + 0.8 * S, at=(head_x - 0.1 * S, sy * 0.55 * S),
-                         n=5, shift=(0.0, sy * 0.25 * S), mat=body_mat))
-    merge(ears, "ears", body_mat)
+        ears.append(plate(f"ear-{sy}", (head_x - 0.1 * S, sy * 0.75 * S, head_z + 1.05 * S),
+                          (-0.2, sy * 0.45, 0.87), 1.0 * S, 0.6 * S, 0.16 * S, plain, taper=0.3))
+    merge(ears, "ears", plain)
 
-    # Front paws on the plinth, which is where the body's weight visibly lands.
+    # Forepaws on the plinth, which is where the body's weight visibly lands.
     paws = []
     for sy in (-1, 1):
-        paws.append(prism(f"paw-{sy}", 1.5 * S, 0.8 * S, 0.7 * S, z0=1.8 * S,
-                          at=(1.9 * S, sy * 0.95 * S), chamfer=0.25 * S, mat=body_mat))
         paws.append(solid(f"foreleg-{sy}", [
-            (1.8 * S, ring(1.75 * S, sy * 0.95 * S, 0.55 * S, 0.55 * S, 8)),
-            (4.6 * S, ring(1.15 * S, sy * 0.95 * S, 0.62 * S, 0.62 * S, 8)),
-        ], body_mat))
-    merge(paws, "forelegs", body_mat)
+            (1.8 * S, ring(1.95 * S, sy * 1.05 * S, 0.70 * S, 0.60 * S, 8)),
+            (3.4 * S, ring(1.50 * S, sy * 1.10 * S, 0.62 * S, 0.58 * S, 8)),
+            (5.0 * S, ring(0.95 * S, sy * 1.15 * S, 0.70 * S, 0.65 * S, 8)),
+        ], plain))
+        paws.append(solid(f"paw-{sy}", [
+            (1.75 * S, ring(2.15 * S, sy * 1.05 * S, 0.85 * S, 0.65 * S, 8)),
+            (2.35 * S, ring(2.05 * S, sy * 1.05 * S, 0.72 * S, 0.58 * S, 8)),
+        ], plain))
+    merge(paws, "forepaws", plain)
 
-    # The jet, out of the mouth and down into the bay on a ballistic curve.
-    mx, mz = head_x + 1.55 * S, head_z - 0.15 * S
-    pts = []
-    for k in range(7):
-        t = k / 6
-        pts.append((mx + 7.5 * S * t, 0.0, mz - 7.2 * S * t * t))
-    arc_tube("jet", pts, 0.3 * S, n=5, mat=jet)
+    # The jet: out of the mouth on a ballistic curve, into the bay, thinning as
+    # it goes the way a real jet does.
+    mx, mz = head_x + 1.80 * S, head_z - 0.35 * S
+    ts = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.25]
+    arc_tube(
+        "jet",
+        [(mx + 8.0 * S * t, 0.0, mz - 7.5 * S * t * t) for t in ts],
+        0.0, n=6, mat=jet,
+        radii=[(0.32 - 0.12 * t) * S for t in ts],
+    )
+
+
+def build_johor_causeway(spec, pal, tex):
+    """The 1,056 m embankment that is the only land crossing in the study area.
+
+    Road, rail and a water pipeline on one bank of fill. Everything the two
+    cities' accessibility numbers have to cross is here, which is reason enough
+    to draw it even though nobody calls it a landmark.
+    """
+    length = spec["length_m"]
+    width = spec["width_m"]
+    fill = material("cw-fill", (0.19, 0.19, 0.20), rough=0.9)
+    deck = material("cw-deck", (0.13, 0.14, 0.16), rough=0.8)
+    lane = material("cw-lane", (0.34, 0.31, 0.26), rough=0.6,
+                    emit=(1.0, 0.84, 0.5), strength=0.65)
+    rail = material("cw-rail", (0.30, 0.31, 0.34), rough=0.5, metallic=0.6)
+    lamp = material("cw-lamp", (0.9, 0.85, 0.7), rough=0.3,
+                    emit=(1.0, 0.88, 0.6), strength=1.5)
+    pipe = material("cw-pipe", (0.26, 0.28, 0.30), rough=0.7, metallic=0.4)
+
+    # The embankment: wider under water than above it, like any bank of fill.
+    solid("embankment", [
+        (-7.0, rect(length, width + 26.0)),
+        (0.0, rect(length, width + 8.0)),
+        (4.5, rect(length, width)),
+    ], fill)
+    prism("deck", length, width - 3.0, 1.2, z0=4.5, mat=deck)
+
+    # Two carriageways and, between them, the lit centre of the crossing.
+    for sy in (-1, 1):
+        prism(f"carriageway-{sy}", length, 10.0, 0.5, z0=5.7, at=(0.0, sy * 7.0), mat=lane)
+    # The KTM track down one side — the alignment this landmark was placed from.
+    prism("track", length, 4.4, 0.7, z0=5.7, at=(0.0, -17.0), mat=rail)
+    # The water pipeline along the other, which is the other thing the Causeway
+    # carries and the reason it is an embankment rather than a bridge.
+    arc_tube("pipeline", [(-length / 2, 17.5, 6.6), (length / 2, 17.5, 6.6)], 1.1, n=6, mat=pipe)
+
+    lamps = []
+    count = int(length // 55)
+    for i in range(count):
+        x = -length / 2 + length * (i + 0.5) / count
+        for sy in (-1, 1):
+            lamps.append(tube(f"post-{i}-{sy}", 0.4, 0.3, 11.0, z0=5.7,
+                              at=(x, sy * 13.0), n=4, mat=rail))
+            lamps.append(prism(f"lamp-{i}-{sy}", 1.0, 2.4, 0.5, z0=16.4,
+                               at=(x, sy * 12.0), mat=lamp))
+    merge(lamps, "lamps", lamp)
+
+
+def build_fullerton(spec, pal, tex):
+    """The old General Post Office: a colonnaded block at the river mouth."""
+    h = spec["height_m"]
+    stone = material("fu-stone", (0.54, 0.50, 0.43), rough=0.75,
+                     emit=(1.0, 0.80, 0.45), strength=0.45)
+    glass = textured("fu-glass", tex, "facade_block", tile_m=12.0)
+    roof = material("fu-roof", (0.22, 0.21, 0.20), rough=0.85)
+
+    body = prism("block", 96.0, 60.0, h * 0.82, chamfer=5.0, mat=glass)
+    project_uvs(body, 12.0)
+    prism("cornice", 100.0, 64.0, h * 0.08, z0=h * 0.82, chamfer=6.0, mat=stone)
+    prism("attic", 72.0, 44.0, h * 0.14, z0=h * 0.90, chamfer=4.0, mat=roof)
+
+    # The colonnade: Doric columns down both long faces, as the building has.
+    # Running it on one face only would make the model depend on getting the
+    # yaw exactly right, and the footprint this landmark is oriented from is
+    # the whole complex rather than the 1928 block.
+    cols = []
+    for sy in (-1, 1):
+        for i in range(14):
+            x = -42.0 + 84.0 * i / 13
+            cols.append(tube(f"column-{sy}-{i}", 1.9, 1.7, h * 0.62, z0=h * 0.10,
+                             at=(x, sy * 30.5), n=8, mat=stone))
+        prism(f"portico-{sy}", 90.0, 4.0, h * 0.09, z0=h * 0.72, at=(0.0, sy * 30.5), mat=stone)
+    merge(cols, "colonnade", stone)
+    prism("steps", 92.0, 10.0, h * 0.10, at=(0.0, 34.0), chamfer=2.0, mat=stone)
 
 
 def hip_roof(name: str, w: float, d: float, h: float, z0: float, at=(0.0, 0.0), mat=None):
@@ -962,6 +1136,8 @@ BUILDERS = {
     "astaka-towers": build_astaka_towers,
     "sultan-iskandar-ciq": build_sultan_iskandar_ciq,
     "woodlands-checkpoint": build_woodlands_checkpoint,
+    "johor-causeway": build_johor_causeway,
+    "fullerton": build_fullerton,
 }
 
 
@@ -1044,10 +1220,15 @@ def render_preview(path: pathlib.Path, size: float) -> None:
     centre, radius = scene_bounds()
     cam_data = bpy.data.cameras.new("cam")
     cam_data.lens = 55
+    # Blender's default far clip is 100 m, which is fine for a teapot and not
+    # for a kilometre of causeway seen from thirteen hundred metres away. The
+    # first render of it came back empty, not wrong.
+    cam_data.clip_start = 0.5
+    cam_data.clip_end = max(10_000.0, radius * 20)
     cam = bpy.data.objects.new("cam", cam_data)
     # Frame whatever was built, not whatever the landmark's height says: the
     # Sands' deck is 340 m long and its height is 194 m.
-    d = radius * 2.4
+    d = radius * 2.9
     cam.location = (centre.x + d * 0.62, centre.y - d * 0.78, centre.z + d * 0.42)
     direction = centre - Vector(cam.location)
     cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()

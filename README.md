@@ -141,17 +141,21 @@ interview.
 ### Decision: 3D landmarks, built from numbers
 
 The hex map answers the dashboard's question. It does not answer "where am I?", and on a wall
-display that is the question a passer-by asks first. So the map carries twelve landmarks — the
+display that is the question a passer-by asks first. So the map carries fourteen landmarks — the
 Merlion, Marina Bay Sands, the ArtScience Museum, the Supertree Grove, the Singapore Flyer, the
-Esplanade on one side; Bangunan Sultan Ibrahim, the state mosque, Komtar JBCC, The Astaka and
-both ends of the Causeway on the other.
+Esplanade and the Fullerton on one side; Bangunan Sultan Ibrahim, the state mosque, Komtar JBCC
+and The Astaka on the other; and across the strait between them, both checkpoints and the
+Causeway itself — the only land crossing in the study area, and the thing every cross-border
+walking time in this dashboard has to pass through.
 
 They are modelled in Blender, headless, from a Python script
 ([`scripts/landmarks/build_models.py`](scripts/landmarks/build_models.py)). Not sculpted and not
 scanned: **the script is the model**. That matters for three reasons.
 
 **It is reviewable.** A `.blend` file in a pull request is a binary nobody can read. A script that
-says the Sands are three 194 m slabs under a 340 m deck with a 67 m overhang is a diff.
+says the Sands are three 194 m slabs under a 340 m deck with a 67 m overhang is a diff. When a
+reference photograph says the Merlion's mane is a collar of flat plates rather than a crown of
+spikes, the fix is eight lines.
 
 **Its inputs are sourced.** Every dimension lives in
 [`landmarks.json`](scripts/landmarks/landmarks.json) with a confidence field saying whether it is
@@ -159,13 +163,18 @@ published, derived from published figures, or estimated off a photograph. Positi
 not typed in at all: [`footprints.py`](scripts/landmarks/footprints.py) reads the OSM building
 outline out of the basemap archive this repository already ships, and takes the centroid and the
 long axis of the footprint. The Sands' footprint comes back as 339 m long — against a published
-SkyPark of 340 m — which is the check that the right building was found.
+SkyPark of 340 m — which is the check that the right building was found. The Causeway has no
+footprint, being an embankment; it is placed instead from the KTM alignment in the same archive's
+rail layer, which measures 1,070 m against a published 1,056 m.
 
 **Its colours are measured.** The night palette is not picked by eye.
-[`analyse_refs.py`](scripts/landmarks/analyse_refs.py) k-means clusters reference photographs and
-writes out the colour of their brightest 2% of pixels — the lit windows themselves — and
-[`textures.py`](scripts/landmarks/textures.py) builds the facade textures from those numbers. The
-photographs are not committed (unclear licences); the URLs and the derived numbers are.
+[`analyse_refs.py`](scripts/landmarks/analyse_refs.py) k-means clusters eight reference
+photographs and writes out the colour of their brightest 2% of pixels — the lit windows
+themselves — and [`textures.py`](scripts/landmarks/textures.py) builds the facade textures from
+those numbers, along with the Merlion's scales, which are a texture for the same reason the
+windows are: a hundred modelled scales would cost more triangles than every other landmark put
+together. The photographs are not committed (unclear licences); the URLs and the derived numbers
+are.
 
 Three things fell out of putting real buildings on the map that were worth fixing anyway:
 
@@ -187,14 +196,14 @@ normal. One that is not to scale and does not say so is not.
 
 **Checking it.** None of this is assertable. "Is the Sands pointing along the bay or across it" is a
 question about pixels, so the dashboard ships a page that puts one landmark at a time on the real
-basemap — `npm --prefix dashboard run shots:landmarks` leaves twelve screenshots to look at. That
+basemap — `npm --prefix dashboard run shots:landmarks` leaves fourteen screenshots to look at. That
 page is what caught the one real bug in the layer: deck.gl composes its orientation as
 Rz(yaw)·Ry(pitch)·Rx(roll), so after the fixed roll that turns glTF's Y-up into Z-up, a model's own
 axis points *east*, not north. Every landmark was quietly rotated by the same wrong amount and
 still looked like a building. Pointing the camera north and looking at the Merlion's water jet
 found it in one frame.
 
-Total cost: 638 kB of glTF, about 10,300 triangles across all twelve, and no measurable frame time.
+Total cost: 836 kB of glTF, about 13,500 triangles across all fourteen, and no measurable frame time.
 
 ### How this was built
 
