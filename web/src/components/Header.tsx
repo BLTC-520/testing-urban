@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
+import { dashboardUrl } from "../lib/dashboard";
 import { href } from "../lib/router";
 import "./header.css";
+
+// Resolved once at build time; null hides the link (see lib/dashboard.ts).
+const DASHBOARD_URL = dashboardUrl(import.meta.env);
 
 const LINKS = [
   { href: href("/"), label: "Story", path: "/" },
@@ -39,6 +43,19 @@ export function Header({ path, overlay = false }: { path: string; overlay?: bool
             {l.label}
           </a>
         ))}
+        {DASHBOARD_URL && (
+          // A separate app, so a new tab: the reader keeps their place here.
+          <a
+            className="nav-cta"
+            href={DASHBOARD_URL}
+            target="_blank"
+            rel="noopener"
+            aria-label="Command Centre (opens in a new tab)"
+          >
+            <span className="cta-long">Command Centre</span>
+            <span className="cta-short">Dashboard</span> <span aria-hidden>↗</span>
+          </a>
+        )}
       </nav>
     </header>
   );

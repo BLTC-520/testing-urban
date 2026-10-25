@@ -71,7 +71,44 @@
   background: var(--paper-0);
 }
 
+/* The one link that leaves the site: outlined, so it reads as a different kind of place. */
+.site-header nav a.nav-cta {
+  margin-left: 6px;
+  color: var(--ramp-6);
+  border: 1px solid var(--line-strong);
+}
+
+.site-header nav a.nav-cta:hover {
+  color: var(--ink-0);
+  background: var(--ramp-6);
+  border-color: var(--ramp-6);
+}
+
+.site-header nav a {
+  white-space: nowrap;
+}
+
+.nav-cta .cta-short {
+  display: none;
+}
+
 @media (max-width: 640px) {
+  .site-header nav a.nav-cta {
+    margin-left: 2px;
+  }
+  .nav-cta .cta-long {
+    display: none;
+  }
+  .nav-cta .cta-short {
+    display: inline;
+  }
+}
+
+/* A phone shows the 1920×1080 wall at under a fifth of its size: not worth the header room. */
+@media (max-width: 480px) {
+  .site-header nav a.nav-cta {
+    display: none;
+  }
   .wm-text span {
     display: none;
   }

@@ -32,6 +32,10 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build:site
+        env:
+          # Where the header's Command Centre link points. Unset = no link on the live site.
+          # Settings → Secrets and variables → Actions → Variables → DASHBOARD_URL
+          VITE_DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
       - run: npm run check:site
       - uses: actions/upload-pages-artifact@v3
         with:

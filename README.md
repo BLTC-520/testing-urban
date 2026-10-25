@@ -77,6 +77,11 @@ build, same tests, same deploy.
 
 **Run it:** `npm run setup` once, then `npm run dev` — API on :8787, dashboard on :5174.
 
+The React site links to it from a **Command Centre ↗** button in its header. In development that
+button opens `http://localhost:5174`; a production build shows it only when `VITE_DASHBOARD_URL`
+is set (the `DASHBOARD_URL` repository variable on the Pages deploy), because the dashboard needs
+its Node API and GitHub Pages can only serve static files.
+
 The screen is one fixed 1920×1080 stage scaled to whatever display it lands on, so it keeps 16:9
 from a laptop to a 4K wall. Top bar switches city, walk budget and walking speed; a left column of
 KPI tiles; a 3D H3 hex map in the middle with colour for access and height for population; four
