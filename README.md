@@ -68,6 +68,66 @@ as `window.sgjb`. Without WebGL the pages keep working: the Story shows a still 
 the Explorer a table of neighbourhoods. Every Explorer view has
 its own URL, e.g. [healthcare within 10 minutes for slower walkers](https://sgjburbansideprojects.brianhar.site/explore/?metric=healthcare&minutes=10&speed=slow).
 
+## Command centre dashboard
+
+A 1920×1080 large-screen dashboard on the same data, built in the stack a 3D digital-twin team
+actually runs: Vue 3, ECharts, deck.gl and MapLibre on the front, Node and SQLite behind it. It
+lives in [`dashboard/`](dashboard/) and [`server/`](server/). The React site is untouched — same
+build, same tests, same deploy.
+
+### Decision: the server aggregates, it does not just serve
+
+The analysis outputs are static files. The React site reads them straight out of `/data` with no
+backend at all, and for that site it was the right call. So before writing any of this I had to
+answer whether a server earns its place here, or whether I was adding one because the job ad
+mentions Node.
+
+It earns it, for two reasons.
+
+**Payload.** There are 91,357 hexagons across the two cities. Served raw at resolution 10 that is
+5.5 MB of JSON for Singapore and 7.8 MB for Johor Bahru. Rolled up to H3 resolution 8 in SQL it is
+746 and 1,117 hexagons — 35 KB and 51 KB. That is 150× less data over the wire for a surface that
+reads identically on a wall-mounted screen, and it is work a database is better at than a browser.
+
+**Order of operations, which matters more.** Completeness is "all six essentials within 15 minutes".
+You have to test that for each small hexagon and *then* average over population. Do it the other
+way round — average the distances into a big hexagon, then test the average — and the answer is
+wrong, not approximate. A district where half the residents are 200 m from a clinic and half are
+3 km away averages to 1.6 km, which passes; the truth is that half those people cannot walk it. On
+this data that mistake overstates Singapore's completeness by 4.6 points and understates Johor
+Bahru's by 0.5. Putting the aggregation in SQL means there is one place where the order is fixed and
+correct, instead of every client getting it right by hoping.
+
+So: each cell's resolution-8 and resolution-7 parent hexagons are precomputed at ingest, and
+`/api/cells` is one `GROUP BY` that thresholds first and aggregates second. 23–36 ms per query. It
+is the one choice in the schema that would be expensive to undo, which is why I made it before
+writing the rest.
+
+The cost I accepted: moving the minutes slider is now an HTTP request rather than a local
+recompute. That is fine. The response is a pure function of city, minutes and speed — three values
+from a small fixed set — so it debounces and caches cleanly, and the SQL takes one bound integer,
+which leaves no injection surface.
+
+### Two things in the data that are easy to get wrong
+
+I had Claude Code check the ingest against the pipeline's own published numbers rather than trust
+it (`cd server && npm run verify` — 20 checks, every threshold and walking speed). They agree to
+within 0.1 percentage point, not exactly, and the two reasons are worth stating because any
+consumer of these files inherits them, the React site included.
+
+**`65535` is not zero.** The binary tables store walking distance as a 16-bit integer with 65535
+meaning "nothing of this kind within reach". Read as a number it says a shop is on the doorstep, in
+exactly the under-served places this whole study is about. It has to become SQL `NULL`.
+
+**The export conflates two different kinds of nothing.** The pipeline distinguishes "this cell is
+not on the walk network" from "on the network, but nothing within the search cap". Quantising to
+`uint16` maps both to 65535, so after the round trip they are indistinguishable. That drops 1,060
+Johor Bahru residents from the denominator and nudges its completeness up by 0.02 points. The other
+gap is rounding: distances are stored as whole metres, so cells sitting within half a metre of the
+threshold land on the wrong side of it — about 260–290 residents per city. Neither is fixable
+downstream, both are small, and I would rather have them written down than discover them in an
+interview.
+
 ## My contribution
 
 **[Brian Har](https://brianhar.site)**. Role: concept and brief, research questions, choice of cities and scenarios, design direction, and review of the results. Built with
@@ -125,6 +185,8 @@ src/sgjb/          the pipeline (acquire → networks → access → form → sc
 tests/             pytest: graph kernels, OSM parsing, metrics, export format, output integrity
 data/derived/      versioned results (summary.json, neighbourhoods, sensitivity grid, sites)
 web/               Vite + React + TypeScript site: Story, Explorer, Methods
+server/            Node + SQLite: ingest of the pipeline outputs, read-only dashboard API
+dashboard/         Vue 3 + ECharts + deck.gl large-screen command centre
 docs/              case study and architecture
 ```
 
