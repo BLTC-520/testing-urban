@@ -502,6 +502,40 @@ def palette(analysis: dict) -> dict:
     }
 
 
+def ribbon(name: str, pts: list[tuple[float, float, float]], width: float, thick: float,
+           mat=None):
+    """A flat strip following a polyline — a bridge deck, a walkway, a rib.
+
+    ``solid`` lofts plan sections upwards, which is right for buildings and
+    useless for anything whose axis is horizontal. ``arc_tube`` sweeps a circle,
+    which is right for cables and wrong for decks. This sweeps a rectangle, and
+    between the three of them every horizontal thing on this map is one call.
+    """
+    verts, faces = [], []
+    for k, p in enumerate(pts):
+        nxt = pts[min(k + 1, len(pts) - 1)]
+        prv = pts[max(k - 1, 0)]
+        d = Vector(nxt) - Vector(prv)
+        if d.length < 1e-9:
+            d = Vector((1, 0, 0))
+        d.normalize()
+        across = d.cross(Vector((0, 0, 1)))
+        across = across.normalized() if across.length > 1e-6 else Vector((0, 1, 0))
+        up = across.cross(d).normalized()
+        c = Vector(p)
+        for sx, sz in ((1, 1), (1, -1), (-1, -1), (-1, 1)):
+            verts.append(tuple(c + across * (width / 2 * sx) + up * (thick / 2 * sz)))
+    n = 4
+    for k in range(len(pts) - 1):
+        for i in range(n):
+            j = (i + 1) % n
+            faces.append([k * n + i, k * n + j, (k + 1) * n + j, (k + 1) * n + i])
+    faces.append([3, 2, 1, 0])
+    off = (len(pts) - 1) * n
+    faces.append([off, off + 1, off + 2, off + 3])
+    return add_mesh(name, verts, faces, mat)
+
+
 def merge(objs: list, name: str, mat=None, uv_tile: float | None = None):
     """Combine several objects into one mesh, honouring their locations.
 
@@ -1113,6 +1147,279 @@ def build_cbd_tower(spec, pal, tex):
               chamfer=top * 0.12, mat=crown)
 
 
+def build_pinnacle_duxton(spec, pal, tex):
+    """Seven towers of public housing, tied together twice on the way up.
+
+    The skybridges are the building. Seven slabs of the same height are seven
+    slabs; seven slabs threaded at the 26th and 50th floors are the Pinnacle,
+    and at map range the two horizontal lines are what the eye picks up.
+    """
+    h = spec["height_m"]
+    n = spec["towers"]
+    facade = textured("pd-facade", tex, "facade_tower", tile_m=21.0)
+    bridge = material("pd-bridge", (0.60, 0.62, 0.60), rough=0.5,
+                      emit=(1.0, 0.92, 0.72), strength=0.8)
+    base = material("pd-base", pal["concrete"], rough=0.8,
+                    emit=pal["warm"], strength=0.3)
+
+    # Two rows, four blocks and three, set at a slight angle to each other as
+    # the real plan is. Row offsets are in the model's own frame; the layer
+    # turns the whole thing to the bearing of the rows on the ground.
+    rows = [
+        (28.0, [-78.0, -26.0, 26.0, 78.0], 6.0),
+        (-30.0, [-52.0, 0.0, 52.0], -6.0),
+    ]
+    blocks = []
+    for r, (y, xs, skew) in enumerate(rows):
+        for i, x in enumerate(xs):
+            blocks.append(solid(
+                f"block-{r}-{i}",
+                [
+                    (0.0, rect(38.0, 21.0, x, y, 3.0)),
+                    (h, rect(37.0, 20.0, x + skew, y, 3.0)),
+                ],
+                facade,
+            ))
+    merge(blocks, "blocks", facade, uv_tile=21.0)
+    assert len(blocks) == 0 or n == 7  # the rows above are the published seven
+
+    for z, label in ((h * spec["skybridge_floors"][0] / spec["floors"], "lower"),
+                     (h - 3.0, "upper")):
+        for r, (y, xs, skew) in enumerate(rows):
+            lo, hi = min(xs) - 19.0, max(xs) + 19.0
+            k = skew * (z / h)
+            ribbon(f"skybridge-{label}-{r}",
+                   [(lo + k, y, z + 2.0), (hi + k, y, z + 2.0)], 9.0, 2.2, bridge)
+    prism("podium", 210.0, 96.0, 9.0, chamfer=16.0, mat=base)
+
+
+def build_sultan_mosque(spec, pal, tex):
+    """One great golden dome, four small ones, two minarets."""
+    h = spec["height_m"]
+    wall = material("sm-wall", (0.72, 0.70, 0.62), rough=0.7,
+                    emit=(1.0, 0.90, 0.66), strength=0.6)
+    gold = material("sm-dome", (0.62, 0.46, 0.14), rough=0.25, metallic=0.85,
+                    emit=(1.0, 0.76, 0.26), strength=1.1)
+    trim = material("sm-trim", (0.30, 0.28, 0.24), rough=0.8)
+
+    prism("hall", 54.0, 46.0, h * 0.45, chamfer=3.0, mat=wall)
+    prism("parapet", 56.0, 48.0, h * 0.06, z0=h * 0.45, chamfer=3.0, mat=wall)
+    # The dome sits on a drum, which is what gives it its height; a dome set
+    # straight on the roof reads as a bowl.
+    tube("drum", 11.0, 10.5, h * 0.16, z0=h * 0.51, n=16, mat=gold)
+    dome("dome", 11.5, h * 0.26, z0=h * 0.67, n=16, rings=6, mat=gold)
+    tube("finial", 0.7, 0.15, h * 0.09, z0=h * 0.92, n=5, mat=gold)
+
+    small = []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            at = (sx * 21.0, sy * 17.0)
+            small.append(tube(f"sdrum-{sx}-{sy}", 3.6, 3.4, h * 0.07, z0=h * 0.51,
+                              at=at, n=10, mat=gold))
+            small.append(dome(f"sdome-{sx}-{sy}", 3.8, h * 0.11, z0=h * 0.58,
+                              at=at, n=10, rings=4, mat=gold))
+    merge(small, "corner-domes", gold)
+
+    mins = []
+    for sx in (-1, 1):
+        at = (sx * 30.0, -24.0)
+        mins.append(tube(f"minaret-{sx}", 2.3, 1.9, h * 0.80, at=at, n=8, mat=wall))
+        mins.append(tube(f"mgallery-{sx}", 3.0, 3.0, h * 0.04, z0=h * 0.80, at=at, n=8, mat=trim))
+        mins.append(dome(f"mcap-{sx}", 2.1, h * 0.12, z0=h * 0.84, at=at, n=8, rings=4, mat=gold))
+    merge(mins, "minarets", wall)
+
+
+def build_national_gallery(spec, pal, tex):
+    """City Hall and the old Supreme Court, under one canopy."""
+    h = spec["height_m"]
+    stone = material("ng-stone", (0.58, 0.56, 0.50), rough=0.75,
+                     emit=(1.0, 0.86, 0.56), strength=0.5)
+    dome_mat = material("ng-dome", (0.34, 0.40, 0.38), rough=0.4, metallic=0.5,
+                        emit=(0.75, 0.85, 0.80), strength=0.35)
+    veil = material("ng-canopy", (0.52, 0.54, 0.56), rough=0.3, metallic=0.6,
+                    emit=(0.9, 0.86, 0.74), strength=0.45, alpha=0.75)
+
+    # Two blocks of almost the same size, a gap between them, colonnades facing
+    # the Padang. The gap is the atrium the two were joined across.
+    for i, x in ((0, -46.0), (1, 46.0)):
+        prism(f"wing-{i}", 78.0, 62.0, h * 0.62, at=(x, 0.0), chamfer=3.0, mat=stone)
+        prism(f"cornice-{i}", 82.0, 66.0, h * 0.07, z0=h * 0.62, at=(x, 0.0),
+              chamfer=4.0, mat=stone)
+        cols = []
+        for k in range(12):
+            cx = x - 33.0 + 66.0 * k / 11
+            cols.append(tube(f"col-{i}-{k}", 1.8, 1.6, h * 0.46, z0=h * 0.12,
+                             at=(cx, 32.0), n=8, mat=stone))
+        merge(cols, f"colonnade-{i}", stone)
+
+    # The dome of the old Supreme Court, on the eastern block.
+    tube("drum", 13.0, 12.5, h * 0.12, z0=h * 0.69, at=(46.0, 0.0), n=16, mat=stone)
+    dome("dome", 13.0, h * 0.30, z0=h * 0.81, at=(46.0, 0.0), n=16, rings=6, mat=dome_mat)
+    tube("lantern", 2.2, 1.8, h * 0.10, z0=h * 1.06, at=(46.0, 0.0), n=10, mat=dome_mat)
+
+    # The 2015 canopy: one plane floating over both, which is the only thing
+    # about the building that is not a hundred years old.
+    prism("canopy", 184.0, 74.0, 1.6, z0=h * 0.74, chamfer=12.0, mat=veil)
+
+
+def build_henderson_waves(spec, pal, tex):
+    """A deck on seven ribs that alternate above and below it."""
+    length = spec["length_m"]
+    ribs = spec["ribs"]
+    deck_mat = material("hw-deck", (0.36, 0.26, 0.17), rough=0.85,
+                        emit=(1.0, 0.80, 0.45), strength=0.5)
+    rib_mat = material("hw-rib", (0.42, 0.30, 0.19), rough=0.8,
+                       emit=(1.0, 0.78, 0.42), strength=0.35)
+    pier = material("hw-pier", pal["concrete"], rough=0.9)
+
+    # The deck itself rises and falls gently; the ribs do the shouting.
+    steps = 48
+    deck_pts = []
+    for k in range(steps + 1):
+        t = k / steps
+        x = (t - 0.5) * length
+        z = 3.0 + 1.6 * math.sin(t * math.pi * ribs)
+        deck_pts.append((x, 0.0, z))
+    ribbon("deck", deck_pts, 6.0, 1.1, deck_mat)
+
+    # Seven ribs, each a half-cycle of the same wave, alternating sides. Where a
+    # rib is above the deck it is a shelter; where it is below, a beam.
+    for r in range(ribs):
+        pts = []
+        for k in range(13):
+            t = k / 12
+            x = (-0.5 + (r + t) / ribs) * length
+            phase = math.sin(t * math.pi)
+            z = 3.0 + 1.6 * math.sin((r + t) / ribs * math.pi * ribs)
+            z += (7.5 if r % 2 == 0 else -5.5) * phase
+            pts.append((x, 0.0, z))
+        for sy in (-1, 1):
+            arc_tube(f"rib-{r}-{sy}", [(x, sy * 3.1, z) for x, _, z in pts], 0.9, n=5, mat=rib_mat)
+        # The slats between the two rib edges, which is what makes it a shell
+        # rather than two arches.
+        ribbon(f"shell-{r}", pts, 6.4, 0.5, rib_mat)
+
+    # Two piers down to the road it crosses.
+    for sx in (-1, 1):
+        tube(f"pier-{sx}", 3.4, 2.6, 34.0, z0=-34.0, at=(sx * length * 0.22, 0.0), n=8, mat=pier)
+
+
+def build_chinese_garden(spec, pal, tex):
+    """A seven-storey pagoda, which is the one tall thing in the western half.
+
+    Each storey is a body and a roof wider than it, and each roof flares. That
+    flare is the whole silhouette: without it a pagoda is a wedding cake.
+    """
+    h = spec["height_m"]
+    n = spec["storeys"]
+    wall = material("cg-wall", (0.66, 0.26, 0.20), rough=0.75,
+                    emit=(1.0, 0.52, 0.30), strength=0.45)
+    roof = material("cg-roof", (0.22, 0.28, 0.24), rough=0.6, metallic=0.3,
+                    emit=(0.85, 0.80, 0.45), strength=0.3)
+    base = material("cg-base", pal["stone"], rough=0.85)
+
+    solid("terrace", [(0.0, ring(0, 0, 14.0, 14.0, 16)),
+                      (2.2, ring(0, 0, 12.0, 12.0, 16))], base)
+    body_h = h * 0.085
+    for i in range(n):
+        t = i / (n - 1)
+        z = 2.2 + (h - 2.2) * (i / n)
+        r = 7.4 * (1.0 - 0.52 * t)
+        tube(f"storey-{i}", r, r * 0.96, body_h, z0=z, n=8, mat=wall)
+        # The roof: a disc wider than the body below it, flaring as it drops.
+        solid(f"roof-{i}", [
+            (z + body_h, ring(0, 0, r * 0.98, r * 0.98, 8)),
+            (z + body_h + h * 0.022, ring(0, 0, r * 1.52, r * 1.52, 8)),
+            (z + body_h + h * 0.012, ring(0, 0, r * 1.62, r * 1.62, 8)),
+        ], roof)
+    tube("finial", 1.1, 0.2, h * 0.09, z0=h * 0.95, n=6, mat=roof)
+
+
+def build_jewel_changi(spec, pal, tex):
+    """A glass doughnut with a waterfall through the hole in it."""
+    h = spec["height_m"]
+    r_out = spec["span_m"] / 2
+    glass = material("jw-glass", (0.16, 0.21, 0.24), rough=0.12, metallic=0.25,
+                     emit=(0.80, 0.90, 0.95), strength=0.5, alpha=0.9)
+    frame = material("jw-frame", (0.55, 0.58, 0.60), rough=0.35, metallic=0.7,
+                     emit=(0.85, 0.90, 0.95), strength=0.4)
+    water = material("jw-water", (0.75, 0.90, 1.0), rough=0.05,
+                     emit=(0.55, 0.85, 1.0), strength=1.6, alpha=0.55)
+    floor = material("jw-floor", (0.30, 0.27, 0.22), rough=0.8,
+                     emit=pal["warm"], strength=0.9)
+
+    # The toroid in section: out at the rim, up to a ridge, back down to the
+    # oculus. Radii and heights as fractions of the published span and the
+    # published 40 m of the Rain Vortex.
+    profile = [
+        (1.00, 0.10), (0.86, 0.46), (0.68, 0.78), (0.50, 0.93),
+        (0.34, 0.84), (0.22, 0.68), (0.14, 0.58),
+    ]
+    shell = [(h * z, ring(0, 0, r_out * r, r_out * r * 0.76, 24)) for r, z in profile]
+    solid("shell", shell, glass, cap_bottom=False, cap_top=False)
+    # A ring of mullions, so the roof reads as glazed rather than as a dome.
+    for i, (r, z) in enumerate(profile[1:-1], start=1):
+        solid(f"mullion-{i}", [
+            (h * z - 0.5, ring(0, 0, r_out * r * 1.004, r_out * r * 0.763, 24)),
+            (h * z + 0.5, ring(0, 0, r_out * r * 1.004, r_out * r * 0.763, 24)),
+        ], frame, cap_bottom=False, cap_top=False)
+
+    prism("floorplate", r_out * 1.7, r_out * 1.3, 5.0, chamfer=r_out * 0.3, mat=floor)
+    # The Rain Vortex: 40 m from the oculus down through the floor.
+    tube("vortex", r_out * 0.12, r_out * 0.10, h, z0=0.0, n=14, mat=water)
+
+
+def build_kota_iskandar(spec, pal, tex):
+    """The Johor assembly at Iskandar Puteri: a dome, two wings, four towers."""
+    h = spec["height_m"]
+    wall = material("ki-wall", (0.74, 0.70, 0.60), rough=0.7,
+                    emit=(1.0, 0.88, 0.62), strength=0.55)
+    dome_mat = material("ki-dome", (0.28, 0.34, 0.42), rough=0.35, metallic=0.5,
+                        emit=(0.55, 0.75, 0.95), strength=0.6)
+    roof = material("ki-roof", (0.30, 0.26, 0.24), rough=0.85)
+
+    prism("plinth", 118.0, 92.0, 4.0, z0=-1.0, chamfer=9.0, mat=roof)
+    prism("centre", 46.0, 44.0, h * 0.52, z0=3.0, chamfer=3.0, mat=wall)
+    for sx in (-1, 1):
+        prism(f"wing-{sx}", 34.0, 62.0, h * 0.40, z0=3.0, at=(sx * 40.0, 0.0),
+              chamfer=3.0, mat=wall)
+        hip_roof(f"wing-roof-{sx}", 36.0, 64.0, h * 0.12, 3.0 + h * 0.40,
+                 at=(sx * 40.0, 0.0), mat=roof)
+
+    tube("drum", 14.0, 13.0, h * 0.14, z0=3.0 + h * 0.52, n=16, mat=wall)
+    dome("dome", 14.0, h * 0.30, z0=3.0 + h * 0.66, n=16, rings=6, mat=dome_mat)
+    tube("finial", 0.9, 0.2, h * 0.10, z0=3.0 + h * 0.94, n=5, mat=dome_mat)
+
+    towers = []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            at = (sx * 50.0, sy * 36.0)
+            towers.append(prism(f"tower-{sx}-{sy}", 9.0, 9.0, h * 0.68, z0=3.0,
+                                at=at, chamfer=1.4, taper=0.9, mat=wall))
+            towers.append(dome(f"tcap-{sx}-{sy}", 5.0, h * 0.14, z0=3.0 + h * 0.68,
+                               at=at, n=10, rings=4, mat=dome_mat))
+    merge(towers, "corner-towers", wall)
+
+
+def build_jb_city_square(spec, pal, tex):
+    """A long mall with a 36-storey office tower over one end."""
+    h = spec["height_m"]
+    facade = textured("cs-facade", tex, "facade_tower", tile_m=22.0)
+    podium = textured("cs-podium", tex, "facade_block", tile_m=17.0)
+    led = material("cs-led", pal["street"], rough=0.3, emit=pal["street"], strength=1.1)
+
+    mall = prism("mall", 206.0, 64.0, 30.0, chamfer=11.0, mat=podium)
+    project_uvs(mall, 17.0)
+    edge_lights("mall-led", 208.0, 66.0, 29.4, 3.2, led, height=1.2)
+    tower = solid("tower", [
+        (26.0, rect(40.0, 40.0, -56.0, 0.0, 5.0)),
+        (h * 0.6, rect(37.0, 37.0, -56.0, 0.0, 5.0)),
+        (h, rect(32.0, 32.0, -56.0, 0.0, 4.0)),
+    ], facade)
+    project_uvs(tower, 22.0)
+    prism("crown", 26.0, 26.0, 5.0, z0=h, at=(-56.0, 0.0), chamfer=3.0, taper=0.8, mat=led)
+
+
 def build_sultan_ibrahim_building(spec, pal, tex):
     """Bukit Timbalan: a colonial range with a Saracenic tower over its middle."""
     h = spec["height_m"]
@@ -1285,6 +1592,14 @@ BUILDERS = {
     "johor-causeway": build_johor_causeway,
     "fullerton": build_fullerton,
     # The four tallest towers of the central area, all one builder.
+    "pinnacle-duxton": build_pinnacle_duxton,
+    "chinese-garden": build_chinese_garden,
+    "jewel-changi": build_jewel_changi,
+    "kota-iskandar": build_kota_iskandar,
+    "jb-city-square": build_jb_city_square,
+    "sultan-mosque": build_sultan_mosque,
+    "national-gallery": build_national_gallery,
+    "henderson-waves": build_henderson_waves,
     "guoco-tower": build_cbd_tower,
     "one-raffles-place": build_cbd_tower,
     "republic-plaza": build_cbd_tower,

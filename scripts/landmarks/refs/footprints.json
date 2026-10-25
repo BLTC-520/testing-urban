@@ -186,6 +186,95 @@
     "bearing_trusted": false,
     "on_water": false
   },
+  "pinnacle-duxton": {
+    "centroid": [
+      103.841593,
+      1.275496
+    ],
+    "area_m2": 1089.0,
+    "bearing_deg": 176.8,
+    "length_m": 73.4,
+    "width_m": 25.8,
+    "elongation": 2.84,
+    "vertices": 25,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 94.7,
+    "bearing_trusted": false,
+    "on_water": false
+  },
+  "sultan-mosque": {
+    "centroid": [
+      103.858997,
+      1.302223
+    ],
+    "area_m2": 2070.2,
+    "bearing_deg": 112.5,
+    "length_m": 60.2,
+    "width_m": 54.0,
+    "elongation": 1.11,
+    "vertices": 37,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 5.8,
+    "bearing_trusted": false,
+    "on_water": false
+  },
+  "national-gallery": {
+    "centroid": [
+      103.851232,
+      1.289776
+    ],
+    "area_m2": 5065.1,
+    "bearing_deg": 4.1,
+    "length_m": 100.4,
+    "width_m": 90.1,
+    "elongation": 1.11,
+    "vertices": 16,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 22.4,
+    "bearing_trusted": false,
+    "on_water": false
+  },
+  "henderson-waves": {
+    "matched": false,
+    "on_water": false
+  },
+  "chinese-garden": {
+    "centroid": [
+      103.730152,
+      1.338397
+    ],
+    "area_m2": 37.6,
+    "bearing_deg": 151.0,
+    "length_m": 10.2,
+    "width_m": 6.5,
+    "elongation": 1.57,
+    "vertices": 9,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 68.2,
+    "bearing_trusted": false,
+    "on_water": false
+  },
+  "jewel-changi": {
+    "centroid": [
+      103.989748,
+      1.360219
+    ],
+    "area_m2": 24404.7,
+    "bearing_deg": 117.5,
+    "length_m": 202.8,
+    "width_m": 152.2,
+    "elongation": 1.33,
+    "vertices": 42,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 13.9,
+    "bearing_trusted": false,
+    "on_water": false
+  },
   "sultan-ibrahim-building": {
     "centroid": [
       103.76111,
@@ -252,6 +341,40 @@
     "match": "nearest-large",
     "anchor_offset_m": 94.2,
     "bearing_trusted": false,
+    "on_water": false
+  },
+  "kota-iskandar": {
+    "centroid": [
+      103.649804,
+      1.423503
+    ],
+    "area_m2": 6174.0,
+    "bearing_deg": 131.1,
+    "length_m": 113.2,
+    "width_m": 85.2,
+    "elongation": 1.33,
+    "vertices": 37,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 3.5,
+    "bearing_trusted": false,
+    "on_water": false
+  },
+  "jb-city-square": {
+    "centroid": [
+      103.764507,
+      1.463224
+    ],
+    "area_m2": 11546.5,
+    "bearing_deg": 145.7,
+    "length_m": 221.8,
+    "width_m": 69.7,
+    "elongation": 3.18,
+    "vertices": 29,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 20.7,
+    "bearing_trusted": true,
     "on_water": false
   },
   "sultan-iskandar-ciq": {

@@ -15,6 +15,7 @@ Anyone republishing the site or its data must keep these attributions.
 | Master Plan 2019 Planning Area Boundary (No Sea) | URA via data.gov.sg | Singapore Open Data Licence v1.0 | Contains information from Master Plan 2019 Planning Area Boundary (No Sea) accessed from data.gov.sg |
 | Census of Population 2020, residents by subzone | SingStat via data.gov.sg | Singapore Open Data Licence v1.0 | Contains information from the Census of Population 2020 accessed from data.gov.sg |
 | Singapore residents by subzone and age group, June 2020 | SingStat | Singapore Open Data Licence v1.0 | Singapore Department of Statistics |
+| Tourist Attractions | Singapore Tourism Board via data.gov.sg | Singapore Open Data Licence v1.0 | Contains information from Tourist Attractions accessed from data.gov.sg |
 | Rapid Transit System Station layer (April 2025) | LTA DataMall | Singapore Open Data Licence v1.0 | Contains information from LTA DataMall |
 | Master Plan 2019 Rail Station layer | URA via data.gov.sg | Singapore Open Data Licence v1.0 | Contains information from Master Plan 2019 Rail Station layer accessed from data.gov.sg |
 | Bus stops (sgbusdata compilation of LTA DataMall) | LTA DataMall / sgbusdata | Singapore Open Data Licence v1.0 | Contains information from LTA DataMall |
@@ -22,6 +23,11 @@ Anyone republishing the site or its data must keep these attributions.
 | Overture Maps Places, release 2026-09-23.1 | Overture Maps Foundation | CDLA-Permissive-2.0 | © Overture Maps Foundation (Places: Meta, Microsoft, Foursquare and others) |
 | myBAS Johor Bahru GTFS Static | data.gov.my (Malaysia Official Open API) | Malaysia Open Data terms (attribution) | Malaysia Official Open API (data.gov.my) |
 | KTMB GTFS Static | data.gov.my (Malaysia Official Open API) | Malaysia Open Data terms (attribution) | Malaysia Official Open API (data.gov.my) |
+
+The Tourist Attractions layer is used only to anchor the 3D landmarks on the command-centre map —
+it supplies the published point for a dozen of them, which `scripts/landmarks/footprints.py` then
+snaps to an OpenStreetMap footprint where one contains it. It plays no part in the accessibility
+analysis.
 
 **Share-alike.** Files derived from OpenStreetMap (street-graph tiles, destination tables, the basemap
 and the accessibility tables computed from them) are a *Derivative Database* under the ODbL and are

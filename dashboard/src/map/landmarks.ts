@@ -51,7 +51,7 @@ export const LANDMARKS: Landmark[] = manifest.landmarks;
  * Below this zoom the layer is not drawn at all.
  *
  * At zoom 12 one pixel is about 38 m on the ground near the equator, so a 200 m
- * tower is five pixels tall and a cluster of eighteen landmarks is noise over the
+ * tower is five pixels tall and a cluster of twenty-six landmarks is noise over the
  * data. They fade in over the next three-quarters of a zoom level rather than
  * appearing all at once, which on a wall display reads as the map gaining
  * detail instead of something switching on.
@@ -62,18 +62,18 @@ const FADE_ZOOM = 0.75;
 /**
  * Nothing is drawn smaller than this across its largest dimension.
  *
- * 80 m is about where a model stops being a smudge at the zoom the layer fades
+ * 65 m is about where a model stops being a smudge at the zoom the layer fades
  * in at. The measure is the model's *extent*, not its height: the Causeway is
  * 17 m tall and 1,056 m long, and a height-based rule decided it needed
  * enlarging three-fold, which would have put a 3.4 km embankment across a
  * 1 km strait.
  *
- * In practice only the Merlion is affected: 8.6 m of statue on an 11 m plinth
- * measures 18 m across, and everything else on the map is at least 100 m. The
- * hover card says so. A map symbol that is not to scale is
+ * In practice it catches two of twenty-six: the Merlion, 18 m across including
+ * its plinth and its jet, and the Chinese Garden pagoda at 42 m. Everything
+ * else is at least 66 m and drawn true. The hover card says which is which. A map symbol that is not to scale is
  * ordinary; one that does not admit it is not.
  */
-const MIN_DRAWN_M = 80;
+const MIN_DRAWN_M = 65;
 
 /** How much a landmark is enlarged to reach MIN_DRAWN_M. 1 means true scale. */
 export const exaggeration = (l: Landmark): number =>
@@ -94,16 +94,16 @@ export interface LandmarkLayerOptions {
 /**
  * One ScenegraphLayer per model file.
  *
- * deck.gl loads one scenegraph per layer, so eighteen models means eighteen
+ * deck.gl loads one scenegraph per layer, so twenty-six models means twenty-six
  * layers. That is cheaper than it sounds: each is a single instance of a few
  * hundred triangles, and deck.gl's layer overhead is far smaller than the draw
  * it replaces. The alternative — one layer with an instanced mesh — would need
- * all eighteen landmarks to share one geometry, which is the opposite of the
+ * all twenty-six landmarks to share one geometry, which is the opposite of the
  * point.
  *
  * It also fails well, which was checked rather than assumed: deleting one .glb
  * and loading the map leaves that one landmark absent, one console error from
- * deck.gl's loader, and everything else — the other seventeen, the hexagons,
+ * deck.gl's loader, and everything else — the other twenty-five, the hexagons,
  * the basemap — drawing normally. Decoration that can take the map down with
  * it would not be worth shipping.
  */
@@ -174,11 +174,14 @@ const median = (xs: number[]): number => {
  * which makes a feature nobody can find. Switching the landmarks on from the
  * overview now takes the camera to them.
  *
- * The centre is the *median* landmark, not the mean: Singapore's set is seven
- * buildings around Marina Bay and one checkpoint eighteen kilometres north at
- * Woodlands, and a mean lands the camera in the middle of the island looking
- * at nothing. The zoom then fits whatever sits within 3 km of that median,
- * which is the cluster rather than the outlier.
+ * The centre is the *median* landmark, not the mean. Singapore's set is a dozen
+ * buildings around Marina Bay and then a pagoda at Jurong Lake, a bridge on the
+ * Southern Ridges, Jewel out at Changi and a checkpoint at Woodlands — spread
+ * deliberately, so that zooming into any part of the island lands on something.
+ * A mean of that set puts the camera in the middle of the island looking at
+ * nothing; the median puts it where most of them are. The zoom then fits
+ * whatever sits within 3 km of that median, which is the cluster rather than
+ * the outliers.
  */
 export function landmarkView(
   city: string,

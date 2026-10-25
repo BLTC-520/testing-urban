@@ -186,16 +186,17 @@ def test_every_landmark_has_a_model_where_the_manifest_says():
         assert m["position_from"] and m["bearing_from"]
 
 
-def test_only_the_smallest_landmark_is_drawn_out_of_scale():
-    """The scale policy is "nothing under 80 m across"; check what that catches.
+def test_only_the_smallest_landmarks_are_drawn_out_of_scale():
+    """The scale policy is "nothing under 65 m across"; check what that catches.
 
-    The point is not the number but that it catches almost nothing: if a change
-    to the models or the threshold starts enlarging half the map, the map has
-    stopped being to scale and nobody has said so.
+    The point is not the number but that it catches almost nothing — two of
+    twenty-six, a statue and a pagoda. If a change to the models or to the
+    threshold starts enlarging half the map, the map has stopped being to scale
+    and nobody has said so.
     """
     marks = json.loads(MANIFEST.read_text())["landmarks"]
-    enlarged = [m["id"] for m in marks if m["extent_m"] < 80.0]
-    assert enlarged == ["merlion"], enlarged
+    enlarged = sorted(m["id"] for m in marks if m["extent_m"] < 65.0)
+    assert enlarged == ["chinese-garden", "merlion"], enlarged
 
 
 def test_no_landmark_stands_in_the_sea():

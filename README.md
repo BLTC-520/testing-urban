@@ -141,12 +141,19 @@ interview.
 ### Decision: 3D landmarks, built from numbers
 
 The hex map answers the dashboard's question. It does not answer "where am I?", and on a wall
-display that is the question a passer-by asks first. So the map carries eighteen landmarks — the
-Merlion, Marina Bay Sands, the ArtScience Museum, the Supertree Grove, the Singapore Flyer, the
-Esplanade, the Fullerton and the four tallest towers of the central area on one side; Bangunan
-Sultan Ibrahim, the state mosque, Komtar JBCC and The Astaka on the other; and across the strait
-between them, both checkpoints and the Causeway itself — the only land crossing in the study
-area, and the thing every cross-border walking time in this dashboard has to pass through.
+display that is the question a passer-by asks first. So the map carries twenty-six landmarks,
+spread across the study area rather than piled into the two centres.
+
+Around Marina Bay: the Merlion, Marina Bay Sands, the ArtScience Museum, the Supertree Grove, the
+Singapore Flyer, the Esplanade, the Fullerton, the National Gallery and the four tallest towers of
+the central area. Out from it: Masjid Sultan in Kampong Glam, the Pinnacle@Duxton, Henderson Waves
+on the Southern Ridges, the Chinese Garden pagoda at Jurong Lake and Jewel Changi in the east — so
+that zooming into any part of Singapore lands on something recognisable rather than on nothing.
+
+In Johor Bahru: Bangunan Sultan Ibrahim, the state mosque, Komtar JBCC, City Square, The Astaka,
+and the state assembly twenty kilometres west at Kota Iskandar. Across the strait between them,
+both checkpoints and the Causeway itself — the only land crossing in the study area, and the thing
+every cross-border walking time in this dashboard has to pass through.
 
 ![Marina Bay on the command-centre map: the Sands under its SkyPark, the ArtScience Museum behind it, the Esplanade's two shells, the Merlion and the Fullerton at the river mouth, the Singapore Flyer across the water and the Supertree Grove below — all at their real size and bearing, standing in OSM building massing with the hexagon layer flattened to a carpet beneath them](docs/img/landmarks-bay.jpg)
 
@@ -196,15 +203,15 @@ Three things fell out of putting real buildings on the map that were worth fixin
   more than the landmarks do.
 
 Everything is drawn at its real size, with one exception the hover card admits to: nothing is drawn
-smaller than 80 m across its largest dimension, so the Merlion — 18 m including its plinth and its
-jet — appears at 4.4×. Nothing else on the map qualifies. The measure is the model's *extent*, not
+smaller than 65 m across its largest dimension, which catches two of the twenty-six: the Merlion at
+18 m including its plinth and its jet, and the Chinese Garden pagoda at 42 m. The measure is the model's *extent*, not
 its height, and measured in Blender rather than declared: a height-based rule decided the Causeway
 needed enlarging three-fold, which would have put a 3.4 km embankment across a 1 km strait. A map
 symbol that is not to scale is normal. One that is not to scale and does not say so is not.
 
 **Checking it.** None of this is assertable. "Is the Sands pointing along the bay or across it" is a
 question about pixels, so the dashboard ships a page that puts one landmark at a time on the real
-basemap — `npm --prefix dashboard run shots:landmarks` leaves eighteen screenshots to look at. That
+basemap — `npm --prefix dashboard run shots:landmarks` leaves twenty-six screenshots to look at. That
 page is what caught the one real bug in the layer: deck.gl composes its orientation as
 Rz(yaw)·Ry(pitch)·Rx(roll), so after the fixed roll that turns glTF's Y-up into Z-up, a model's own
 axis points *east*, not north. Every landmark was quietly rotated by the same wrong amount and
@@ -214,15 +221,17 @@ found it in one frame.
 Where the sources give less, the model says less. The four central-area towers — Guoco Tower at
 290 m and the three 280 m towers of Raffles Place, all three at exactly the height limit of their
 day — share one builder, because what is published about them is a height, a floor count, a
-roughly square plan and a kind of top. Four bespoke models would be four inventions.
+roughly square plan and a kind of top. Four bespoke models would be four inventions. Where a
+figure could not be found at all — the dome of Masjid Sultan, the height of the Chinese Garden
+pagoda — the landmark says `estimated` and a note says what the number was read off.
 
 `make landmarks` rebuilds all of it from the committed numbers, byte for byte: every random draw
 in the texture generator and the grove's scatter is seeded, so a reviewer can check the committed
 binaries by regenerating them and finding no diff. The photographs are only needed to redo the
 colour analysis itself.
 
-Total cost: 844 kB of glTF, about 12,500 triangles across all eighteen, and no measurable frame
-time.
+Total cost: 1.26 MB of glTF, about 20,000 triangles across all twenty-six, and no measurable
+frame time.
 
 ### How this was built
 

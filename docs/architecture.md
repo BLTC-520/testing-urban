@@ -127,7 +127,7 @@ A second front end on the same analysis, for a 1920x1080 wall display: Vue 3 + E
 deck.gl/MapLibre against a Node + SQLite API that aggregates the pipeline's outputs
 (`server/src/ingest.ts` → `sgjb.db`, `/api/cells` thresholds first and aggregates second).
 
-**3D landmarks.** The map carries eighteen generated landmark models.
+**3D landmarks.** The map carries twenty-six generated landmark models.
 `scripts/landmarks/build_models.py` runs Blender headless (`bpy`) and writes one glTF binary per
 landmark into `dashboard/public/models/`, plus a manifest the dashboard imports. Nothing about
 them is hand-placed:
@@ -138,12 +138,12 @@ them is hand-placed:
 | position, bearing | the OSM `buildings` layer of `web/public/tiles/basemap.pmtiles` (`footprints.py`) |
 | night colours | k-means over reference photographs (`analyse_refs.py`), chosen by rule, never by index |
 | facade and scale textures | generated from those colours (`textures.py`) |
-| drawn scale | the model's own measured extent; nothing under 80 m across is drawn to scale |
+| drawn scale | the model's own measured extent; nothing under 65 m across is drawn to scale |
 
 The same archive's `buildings` layer is also extruded as uniform 9 m massing from zoom 13, and the
 hexagon columns collapse and their fill thins over the zoom level in which the landmarks fade in,
 so the data does not stand in front of the city. A model that fails to load takes only itself out:
-one `ScenegraphLayer` logs and draws nothing, the other seventeen and the rest of the map are
+one `ScenegraphLayer` logs and draws nothing, the other twenty-five and the rest of the map are
 unaffected (checked by deleting one and loading the page). `make landmarks` rebuilds the lot, deterministically: every random draw is seeded, so re-running it on an unchanged checkout leaves no diff and the committed binaries can be verified by regenerating them.
 
 ## Testing
@@ -165,4 +165,4 @@ unaffected (checked by deleting one and loading the page). `make landmarks` rebu
   colour clustering they are painted from, and the manifest the dashboard imports. Their
   *appearance* is not assertable — `dashboard/landmarks.html` with
   `npm --prefix dashboard run shots:landmarks` puts each one on the real basemap and leaves
-  eighteen screenshots for a person to look at.
+  twenty-six screenshots for a person to look at.
