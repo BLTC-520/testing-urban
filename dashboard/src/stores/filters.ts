@@ -30,6 +30,8 @@ export const useFilters = defineStore("filters", {
     showDelta: false,
     /** H3 resolution the map aggregates to. */
     res: 8,
+    /** Cesium OSM Buildings under flattened hexagons (needs an ion token). */
+    buildings: false,
     selection: null as Selection | null,
   }),
 
@@ -67,6 +69,7 @@ export const useFilters = defineStore("filters", {
       if (scenario === null) this.showDelta = false;
     },
     toggleDelta() { this.showDelta = !this.showDelta; },
+    toggleBuildings() { this.buildings = !this.buildings; },
     select(sel: Selection | null) {
       // Clicking the selected hexagon again clears it.
       this.selection = sel && sel.hex === this.selection?.hex ? null : sel;

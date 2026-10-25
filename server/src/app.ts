@@ -61,16 +61,20 @@ export interface AppOptions {
  *     inline styles; scripts stay strictly 'self'
  *   · blob: workers: MapLibre starts its tile workers from a blob URL
  *   · data:/blob: images: deck.gl and MapLibre upload textures that way
+ *   · 'wasm-unsafe-eval': loaders.gl decodes compressed building meshes in
+ *     WebAssembly. It permits compiling WASM only; JavaScript eval stays blocked
+ *   · Cesium ion: api.cesium.com swaps the token for the tileset's address,
+ *     assets.ion.cesium.com serves the 3D building tiles (dashboard/src/map/buildings.ts)
  */
 const DASHBOARD_CSP = {
   useDefaults: false,
   directives: {
     defaultSrc: ["'self'"],
-    scriptSrc: ["'self'"],
+    scriptSrc: ["'self'", "'wasm-unsafe-eval'"],
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com"],
     imgSrc: ["'self'", "data:", "blob:"],
-    connectSrc: ["'self'", "data:", "blob:"],
+    connectSrc: ["'self'", "data:", "blob:", "https://api.cesium.com", "https://assets.ion.cesium.com"],
     workerSrc: ["'self'", "blob:"],
     childSrc: ["blob:"],
     objectSrc: ["'none'"],

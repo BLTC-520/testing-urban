@@ -39,3 +39,27 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build:site
       - run: npm run check:site
+
+  # The command centre: API + dashboard. Node 24 matches the Docker image,
+  # which runs the server's TypeScript directly with Node's type stripping.
+  command-centre:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            dashboard/package-lock.json
+      - run: npm --prefix server ci
+      - run: npm --prefix server run ingest
+      - run: npm --prefix server run verify
+      - run: npm --prefix server run typecheck
+      - run: npm --prefix server test
+      - run: npm --prefix dashboard ci
+      - run: npm --prefix dashboard test
+      # vue-tsc -b + vite build; no token here, so the 3D buildings switch is left out.
+      - run: npm --prefix dashboard run build
+      - run: docker build -t sgjb-command-centre .

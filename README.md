@@ -77,6 +77,15 @@ build, same tests, same deploy.
 
 **Run it:** `npm run setup` once, then `npm run dev` — API on :8787, dashboard on :5174.
 
+**3D buildings (optional):** a *3D buildings* switch drops the hexagons flat and stands Cesium OSM
+Buildings on them — OpenStreetMap's buildings as 3D Tiles, streamed by deck.gl's `Tile3DLayer`.
+It needs a free [Cesium ion](https://ion.cesium.com/) token in `dashboard/.env.local` as
+`VITE_CESIUM_ION_TOKEN=…` (for Docker: `--build-arg VITE_CESIUM_ION_TOKEN=…`, or `CESIUM_ION_TOKEN`
+in `deploy/.env`). The token ends up in the page's JavaScript, so in ion restrict it to asset 96188
+and the dashboard's URLs. Without one, the switch is simply not there. loaders.gl mis-sizes the
+bounding boxes of very large tiles (visgl/loaders.gl#3144), which leaves the whole tileset culled;
+`dashboard/src/map/buildings.ts` works around it.
+
 The React site links to it from a **Command Centre ↗** button in its header. In development that
 button opens `http://localhost:5174`; a production build shows it only when `VITE_DASHBOARD_URL`
 is set (the `DASHBOARD_URL` repository variable on the Pages deploy), because the dashboard needs

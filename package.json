@@ -11,8 +11,7 @@
     "dev:server": "npm --prefix server run dev",
     "dev:dashboard": "npm --prefix dashboard run dev",
     "build": "npm --prefix dashboard run build",
-    "test": "npm --prefix server test",
+    "test": "npm --prefix server test && npm --prefix dashboard test",
     "typecheck": "npm --prefix server run typecheck && npm --prefix dashboard run typecheck"
-  },
-  "devDependencies": {}
+  }
 }

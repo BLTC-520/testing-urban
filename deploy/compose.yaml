@@ -9,6 +9,9 @@ services:
   app:
     build:
       context: ..
+      args:
+        # Optional: 3D buildings. Put it in deploy/.env (gitignored) or the shell.
+        VITE_CESIUM_ION_TOKEN: ${CESIUM_ION_TOKEN:-}
     restart: unless-stopped
     environment:
       SGJB_TRUST_PROXY: "true"

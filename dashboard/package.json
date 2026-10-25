@@ -8,13 +8,15 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc -b",
+    "test": "vitest run"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",
     "@deck.gl/geo-layers": "^9.4.0",
     "@deck.gl/layers": "^9.4.0",
     "@deck.gl/mapbox": "^9.4.0",
+    "@loaders.gl/3d-tiles": "^4.5.4",
     "echarts": "^5.6.0",
     "h3-js": "^4.5.0",
     "maplibre-gl": "^5.24.0",
@@ -28,6 +30,7 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
+    "vitest": "^5.0.5",
     "vue-tsc": "^3.2.0"
   }
 }

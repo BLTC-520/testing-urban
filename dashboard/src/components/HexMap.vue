@@ -31,11 +31,16 @@ import { useData } from "../stores/data.ts";
 import { useFilters } from "../stores/filters.ts";
 import { basemapStyle, registerPmtiles } from "../map/basemapStyle.ts";
 import { rampAt, hexToRGB } from "../map/colors.ts";
+import { BUILDINGS_VIEW, buildingsFocus, buildingsLayer, hexStyle, ionToken } from "../map/buildings.ts";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
 
 const d = useData();
 const f = useFilters();
+
+/** Resolved at build time; null hides the 3D buildings switch entirely. */
+const ION_TOKEN = ionToken(import.meta.env);
+const showBuildings = computed(() => ION_TOKEN !== null && f.buildings);
 
 const container = ref<HTMLDivElement | null>(null);
 /*
@@ -68,13 +73,15 @@ function buildLayers() {
   const selected = f.selection?.hex ?? null;
   const base = baselineByHex.value;
   const delta = mode.value === "delta";
+  const style = hexStyle(showBuildings.value);
 
-  return [
+  const hexLayer =
     new H3HexagonLayer<Hex>({
       id: "completeness",
       data: hexes,
       getHexagon: (h) => h.hex,
-      extruded: true,
+      extruded: style.extruded,
+      opacity: style.opacity,
       /*
        * Height encodes population, colour encodes accessibility. Two different
        * measures on two different channels — never the same measure twice,
@@ -118,8 +125,25 @@ function buildLayers() {
         if (!info.object) return;
         void selectHex(info.object);
       },
-    }),
-  ];
+    });
+
+  // Buildings after hexagons, so they draw over the flattened ground plane.
+  return showBuildings.value && ION_TOKEN ? [hexLayer, buildingsLayer(ION_TOKEN)] : [hexLayer];
+}
+
+/**
+ * Buildings are only legible up close, so switching them on moves the camera
+ * in and tilts it; switching off returns to the whole-city view.
+ */
+function frameBuildings(on: boolean) {
+  if (!map.value) return;
+  if (!on) return flyToCity();
+  map.value.easeTo({
+    center: buildingsFocus(f.city, f.selection ? cellToLatLng(f.selection.hex) : null),
+    zoom: BUILDINGS_VIEW.zoom,
+    pitch: BUILDINGS_VIEW.pitch,
+    duration: 1200,
+  });
 }
 
 /**
@@ -194,12 +218,13 @@ onBeforeUnmount(() => {
 
 /** Push new layers whenever the data or the encoding changes. */
 watch(
-  () => [d.cells, d.baselineCells, f.selection?.hex, mode.value] as const,
+  () => [d.cells, d.baselineCells, f.selection?.hex, mode.value, showBuildings.value] as const,
   () => { if (ready.value) overlay.value?.setProps({ layers: buildLayers() }); },
   { deep: false },
 );
 
-watch(() => f.city, () => flyToCity());
+watch(() => f.city, () => (showBuildings.value ? frameBuildings(true) : flyToCity()));
+watch(showBuildings, (on) => frameBuildings(on));
 
 const legendStops = computed(() =>
   mode.value === "delta"
@@ -223,7 +248,8 @@ const legendStops = computed(() =>
       </h2>
       <span class="panel-note">
         colour = {{ mode === "delta" ? "change vs baseline" : "share of residents" }} ·
-        height = population (cube root)
+        <template v-if="showBuildings">buildings = OpenStreetMap, via Cesium ion</template>
+        <template v-else>height = population (cube root)</template>
       </span>
     </div>
 
@@ -247,6 +273,19 @@ const legendStops = computed(() =>
           :class="['chip', { on: f.res === r }]"
           @click="f.res = r"
         >r{{ r }}</button>
+        <button
+          v-if="ION_TOKEN"
+          :class="['chip', { on: f.buildings }]"
+          :aria-pressed="f.buildings"
+          @click="f.toggleBuildings()"
+        >3D buildings</button>
+      </div>
+
+      <!-- Cesium ion's terms ask for visible credit wherever its data is shown. -->
+      <div v-if="showBuildings" class="credit">
+        3D buildings:
+        <a href="https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/" target="_blank" rel="noopener">Cesium OSM Buildings</a>
+        · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors
       </div>
 
       <!-- Hover tooltip: the per-mark hover layer the dataviz rules require. -->
@@ -304,6 +343,14 @@ const legendStops = computed(() =>
   font-size: 10px; font-family: var(--font-mono); color: var(--paper-3);
 }
 .chip.on { color: var(--paper-0); border-color: var(--line-strong); background: var(--ink-4); }
+
+.credit {
+  position: absolute; left: 12px; top: 12px;
+  background: rgba(7, 9, 12, 0.82); border: 1px solid var(--line);
+  border-radius: 5px; padding: 3px 8px;
+  font-size: 9px; color: var(--paper-3);
+}
+.credit a { color: var(--paper-2); }
 
 .tip {
   position: absolute; z-index: 5; pointer-events: none;

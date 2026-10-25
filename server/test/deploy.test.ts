@@ -46,6 +46,21 @@ describe("serving the built dashboard", () => {
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 
+  it("allows WebAssembly for the mesh decoders, but never JavaScript eval", async () => {
+    const r = await api.app.inject({ method: "GET", url: "/" });
+    const script = String(r.headers["content-security-policy"]).match(/script-src ([^;]*)/)?.[1] ?? "";
+    expect(script).toContain("'wasm-unsafe-eval'");
+    expect(script).not.toMatch(/'unsafe-eval'/);
+  });
+
+  it("lets the map fetch 3D buildings from Cesium ion, and nothing broader", async () => {
+    const r = await api.app.inject({ method: "GET", url: "/" });
+    const connect = String(r.headers["content-security-policy"]).match(/connect-src ([^;]*)/)?.[1] ?? "";
+    expect(connect).toContain("https://api.cesium.com");
+    expect(connect).toContain("https://assets.ion.cesium.com");
+    expect(connect).not.toMatch(/(^|\s)(https:|\*)(\s|$)/);
+  });
+
   it("keeps the API, and its JSON 404s, working alongside", async () => {
     const health = await api.app.inject({ method: "GET", url: "/api/health" });
     expect(health.statusCode).toBe(200);

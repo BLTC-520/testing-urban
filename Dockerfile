@@ -17,7 +17,12 @@ WORKDIR /app/dashboard
 COPY dashboard/package.json dashboard/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY dashboard/ ./
-RUN npm run build
+# The Cesium ion token for 3D buildings is compiled into the page (Vite reads
+# VITE_* at build time), so it arrives as a build argument. It is a browser
+# token: every visitor can read it in the JavaScript anyway, so restrict it in
+# Cesium ion to asset 96188 and to the dashboard's URL. Unset = no buildings.
+ARG VITE_CESIUM_ION_TOKEN=""
+RUN VITE_CESIUM_ION_TOKEN="$VITE_CESIUM_ION_TOKEN" npm run build
 
 # --- 2. server: dependencies + the database ----------------------------------
 FROM ${NODE_IMAGE} AS server
