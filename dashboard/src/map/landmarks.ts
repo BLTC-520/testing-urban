@@ -35,6 +35,8 @@ export interface Landmark {
   /** Degrees clockwise from north: which way the model's long axis points. */
   bearing: number;
   height_m: number;
+  /** The model's largest dimension, measured in Blender rather than declared. */
+  extent_m: number;
   model: string;
   facts: string;
   /** How well sourced the dimensions are: published / derived / estimated. */
@@ -58,18 +60,24 @@ export const MIN_ZOOM = 12.3;
 const FADE_ZOOM = 0.75;
 
 /**
- * Nothing is drawn shorter than this, so the small landmarks stay findable.
+ * Nothing is drawn smaller than this across its largest dimension.
  *
- * 55 m is the height at which a model is still a few dozen pixels tall at the
- * zoom where the layer fades in. It makes the Merlion six times its real size,
- * which is why the hover card says so: a map symbol that is not to scale is
- * normal, a map symbol that is not to scale and does not admit it is not.
+ * 80 m is about where a model stops being a smudge at the zoom the layer fades
+ * in at. The measure is the model's *extent*, not its height: the Causeway is
+ * 17 m tall and 1,056 m long, and a height-based rule decided it needed
+ * enlarging three-fold, which would have put a 3.4 km embankment across a
+ * 1 km strait.
+ *
+ * In practice only the Merlion is affected: 8.6 m of statue on an 11 m plinth
+ * measures 18 m across, and everything else on the map is at least 100 m. The
+ * hover card says so. A map symbol that is not to scale is
+ * ordinary; one that does not admit it is not.
  */
-const MIN_DRAWN_M = 55;
+const MIN_DRAWN_M = 80;
 
 /** How much a landmark is enlarged to reach MIN_DRAWN_M. 1 means true scale. */
 export const exaggeration = (l: Landmark): number =>
-  Math.max(1, MIN_DRAWN_M / l.height_m);
+  Math.max(1, MIN_DRAWN_M / (l.extent_m || l.height_m));
 
 export const opacityAt = (zoom: number): number =>
   Math.max(0, Math.min(1, (zoom - MIN_ZOOM) / FADE_ZOOM));
@@ -143,6 +151,52 @@ export function landmarkLayers(opts: LandmarkLayerOptions) {
   );
 }
 
-/** Metres per pixel at a zoom and latitude — used by the hover card's "drawn at". */
+/** Metres per pixel at a zoom and latitude. The Web Mercator ground resolution. */
 export const metresPerPixel = (lat: number, zoom: number): number =>
   (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** zoom;
+
+const median = (xs: number[]): number => {
+  const v = [...xs].sort((a, b) => a - b);
+  return v[Math.floor(v.length / 2)];
+};
+
+/**
+ * The camera that brings a city's landmarks into view.
+ *
+ * Needed because the layer is invisible at the zoom the dashboard opens at,
+ * which makes a feature nobody can find. Switching the landmarks on from the
+ * overview now takes the camera to them.
+ *
+ * The centre is the *median* landmark, not the mean: Singapore's set is seven
+ * buildings around Marina Bay and one checkpoint eighteen kilometres north at
+ * Woodlands, and a mean lands the camera in the middle of the island looking
+ * at nothing. The zoom then fits whatever sits within 3 km of that median,
+ * which is the cluster rather than the outlier.
+ */
+export function landmarkView(
+  city: string,
+  viewportPx = 900,
+): { center: [number, number]; zoom: number } | null {
+  const marks = LANDMARKS.filter((l) => l.city === city);
+  if (!marks.length) return null;
+
+  const lon = median(marks.map((m) => m.lon));
+  const lat = median(marks.map((m) => m.lat));
+  const mPerLon = 111_320 * Math.cos((lat * Math.PI) / 180);
+  const near = marks.filter(
+    (m) => Math.hypot((m.lon - lon) * mPerLon, (m.lat - lat) * 110_540) < 3_000,
+  );
+
+  const spanM = Math.max(
+    200,
+    (Math.max(...near.map((m) => m.lon)) - Math.min(...near.map((m) => m.lon))) * mPerLon,
+    (Math.max(...near.map((m) => m.lat)) - Math.min(...near.map((m) => m.lat))) * 110_540,
+  );
+  // 1.5x the span, so the cluster has air around it rather than touching the
+  // panel edges, and then a third of a zoom level back on top: the map is
+  // pitched, so the far half of the frame is horizon and the usable width at
+  // the centre is less than the panel's.
+  const fitted =
+    Math.log2((156543.03392 * Math.cos((lat * Math.PI) / 180) * viewportPx) / (spanM * 1.5)) - 0.35;
+  return { center: [lon, lat], zoom: Math.min(14.8, Math.max(MIN_ZOOM + 0.9, fitted)) };
+}

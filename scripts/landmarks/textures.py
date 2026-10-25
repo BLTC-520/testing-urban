@@ -40,6 +40,30 @@ def mix(a: tuple[int, int, int], b: tuple[int, int, int], t: float) -> tuple[int
     return tuple(int(round(x + (y - x) * t)) for x, y in zip(a, b))  # type: ignore[return-value]
 
 
+def _lum(hexstr: str) -> float:
+    r, g, b = rgb(hexstr)
+    return r * 0.2126 + g * 0.7152 + b * 0.0722
+
+
+def darkest(clusters: list[dict], min_share: float = 0.05) -> tuple[int, int, int]:
+    """The darkest colour the photograph has a real amount of.
+
+    Chosen by brightness and share rather than by index: the analysis clusters
+    to a fixed k, and raising that k reshuffles the ordering. A rule survives
+    the change; "the second entry" does not — it silently became a different
+    colour when k went from six to ten, which is how the Merlion's skin nearly
+    turned slate grey.
+    """
+    return rgb(min((c for c in clusters if c["share"] >= min_share),
+                   key=lambda c: _lum(c["hex"]))["hex"])
+
+
+def lightest(clusters: list[dict], min_share: float = 0.04) -> tuple[int, int, int]:
+    """The lightest colour the photograph has a real amount of."""
+    return rgb(max((c for c in clusters if c["share"] >= min_share),
+                   key=lambda c: _lum(c["hex"]))["hex"])
+
+
 def facade(
     wall: tuple[int, int, int],
     lights: list[tuple[int, int, int]],
@@ -156,9 +180,10 @@ def main() -> int:
     # the ones after it carry the actual colour of the light.
     warm = [rgb(e["hex"]) for e in an["mbs_night"]["emissive"][1:]]
     warm += [mix(warm[0], (255, 170, 60), 0.35)]  # the sodium end of the range
-    # The unlit facade: the photograph's second-largest cluster, the dark side
-    # of the towers, darkened a little further because the map is darker again.
-    wall = mix(rgb(an["mbs_night"]["palette"][1]["hex"]), (0, 0, 0), 0.35)
+    # The unlit facade: the darkest well-represented colour in the frame — the
+    # shaded side of the towers — darkened a little further because the map's
+    # own background is darker again.
+    wall = mix(darkest(an["mbs_night"]["palette"]), (0, 0, 0), 0.35)
 
     specs = {
         # cols/rows are chosen so one tile covers roughly 8 floors by 10 bays,
@@ -171,8 +196,11 @@ def main() -> int:
         # The Merlion's body, from the close reference rather than the Sands:
         # the statue's cement-and-porcelain skin reads cool, not warm.
         "scales": scales(
-            rgb(an["merlion_night"]["palette"][3]["hex"]),
-            mix(rgb(an["merlion_night"]["palette"][1]["hex"]), (0, 0, 0), 0.45),
+            # The statue's lit skin, and the shadow between two scales: the same
+            # colour, darkened. Taking the shadow from another cluster picks up
+            # whatever happened to be behind the statue in that frame.
+            lightest(an["merlion_night"]["palette"]),
+            mix(lightest(an["merlion_night"]["palette"]), (0, 0, 0), 0.72),
         ),
     }
 

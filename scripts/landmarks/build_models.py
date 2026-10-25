@@ -430,16 +430,50 @@ def palette(analysis: dict) -> dict:
         h = hexstr.lstrip("#")
         return tuple(min(1.0, (int(h[i : i + 2], 16) / 255.0) * scale) for i in (0, 2, 4))
 
+    def hue_pick(clusters: list[dict], lo: float, hi: float, scale: float = 1.0) -> tuple:
+        """The most saturated cluster whose hue falls in a window.
+
+        Picking a cluster by index is brittle — the Supertrees' uplighting is
+        the fourth cluster in one frame and the eighth in another — and picking
+        the most saturated cluster outright returns the night sky, which in a
+        blue-hour photograph is both saturated and most of the frame. Naming
+        the hue says what is being looked for: "the magenta in this picture",
+        which is a claim about the lighting rather than about the picture.
+        """
+        def hsv(hexstr: str) -> tuple[float, float, float]:
+            r, g, b = srgb(hexstr)
+            hi_, lo_ = max(r, g, b), min(r, g, b)
+            d = hi_ - lo_
+            if d == 0:
+                h = 0.0
+            elif hi_ == r:
+                h = (60 * ((g - b) / d)) % 360
+            elif hi_ == g:
+                h = 60 * ((b - r) / d) + 120
+            else:
+                h = 60 * ((r - g) / d) + 240
+            return h, (0.0 if hi_ == 0 else d / hi_), hi_
+
+        def inside(h: float) -> bool:
+            return lo <= h <= hi if lo <= hi else (h >= lo or h <= hi)
+
+        window = [c for c in clusters if inside(hsv(c["hex"])[0])]
+        if not window:
+            return srgb("#b05ec0", scale)  # stated fallback, not a silent one
+        best = max(window, key=lambda c: hsv(c["hex"])[1] * (0.3 + c["share"]))
+        return srgb(best["hex"], scale)
+
     mbs = analysis["mbs_night"]
-    trees = analysis["supertrees_night"]
+    trees = analysis.get("supertrees_dusk", analysis["supertrees_night"])
     return {
         # The warm window light, straight off the photograph.
         "warm": srgb(mbs["emissive"][2]["hex"]),
         # The blue LED strips along the Sands podium roof, from the same frame's
         # palette rather than its highlights (the strips are not blown out).
         "blue": (0.18, 0.46, 0.95),
-        # Supertree uplighting: the magenta cluster in the grove photograph.
-        "magenta": srgb(trees["palette"][3]["hex"], 2.2),
+        # Supertree uplighting: the magenta in the grove photograph, lifted
+        # because a photograph of a lit thing is darker than the thing looks.
+        "magenta": hue_pick(trees["palette"], 270.0, 340.0, 1.5),
         # Unlit surfaces. Dark, because the basemap behind them is darker still.
         "concrete": srgb(mbs["palette"][1]["hex"], 1.25),
         "steel": (0.32, 0.34, 0.38),
@@ -732,8 +766,8 @@ def build_esplanade(spec, pal, tex):
     which is most of what stops the pair reading as a pair of domes.
     """
     h = spec["height_m"]
-    spikes = material("es-shell", (0.38, 0.40, 0.43), rough=0.22, metallic=0.95,
-                      emit=(0.85, 0.80, 0.65), strength=0.05)
+    spikes = material("es-shell", (0.46, 0.48, 0.50), rough=0.22, metallic=0.95,
+                      emit=(0.80, 0.82, 0.86), strength=0.06)
     base = material("es-base", pal["concrete"], rough=0.7,
                     emit=pal["warm"], strength=0.3)
     led = material("es-led", pal["warm"], rough=0.3, emit=pal["warm"], strength=1.0)
@@ -894,8 +928,8 @@ def build_johor_causeway(spec, pal, tex):
     width = spec["width_m"]
     fill = material("cw-fill", (0.19, 0.19, 0.20), rough=0.9)
     deck = material("cw-deck", (0.13, 0.14, 0.16), rough=0.8)
-    lane = material("cw-lane", (0.34, 0.31, 0.26), rough=0.6,
-                    emit=(1.0, 0.84, 0.5), strength=0.65)
+    lane = material("cw-lane", (0.22, 0.21, 0.19), rough=0.6,
+                    emit=(1.0, 0.84, 0.5), strength=0.3)
     rail = material("cw-rail", (0.30, 0.31, 0.34), rough=0.5, metallic=0.6)
     lamp = material("cw-lamp", (0.9, 0.85, 0.7), rough=0.3,
                     emit=(1.0, 0.88, 0.6), strength=1.5)
@@ -1172,6 +1206,26 @@ def export_glb(path: pathlib.Path) -> None:
     )
 
 
+def scene_extent() -> float:
+    """The model's largest dimension in metres.
+
+    Written into the manifest because the dashboard needs it to decide whether
+    a landmark is too small to see. Height alone is the wrong measure: the
+    Causeway is 17 m tall and 1,056 m long, and a rule that reads only its
+    height decides it needs enlarging three-fold.
+    """
+    lo = Vector((1e9, 1e9, 1e9))
+    hi = Vector((-1e9, -1e9, -1e9))
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH":
+            continue
+        for corner in obj.bound_box:
+            pnt = obj.matrix_world @ Vector(corner)
+            lo = Vector((min(lo[i], pnt[i]) for i in range(3)))
+            hi = Vector((max(hi[i], pnt[i]) for i in range(3)))
+    return max(hi[i] - lo[i] for i in range(3))
+
+
 def scene_bounds() -> tuple[Vector, float]:
     """Centre and radius of everything built, for framing the preview camera."""
     lo = Vector((1e9, 1e9, 1e9))
@@ -1239,7 +1293,7 @@ def render_preview(path: pathlib.Path, size: float) -> None:
     bpy.ops.render.render(write_still=True)
 
 
-def resolve_placement(spec: dict, foot: dict) -> dict:
+def resolve_placement(spec: dict, foot: dict, extent_m: float) -> dict:
     """Where the model goes, and which number decided it.
 
     Position comes from the footprint when one contains the anchor — the OSM
@@ -1269,6 +1323,8 @@ def resolve_placement(spec: dict, foot: dict) -> dict:
         "lat": round(lat, 6),
         "bearing": round(float(bearing), 1),
         "height_m": spec["height_m"],
+        # The model's own largest dimension, measured rather than declared.
+        "extent_m": round(extent_m, 1),
         "model": f"{spec['id']}.glb",
         "facts": spec["facts"],
         "confidence": spec["confidence"],
@@ -1310,12 +1366,16 @@ def main(argv: list[str]) -> int:
         reset_scene()
         builder(spec, pal, tex)
         tris = triangle_count()
+        extent = scene_extent()
         out = args.out / f"{spec['id']}.glb"
         export_glb(out)
         if args.preview:
             render_preview(args.preview / f"{spec['id']}.png", spec["height_m"])
-        placements.append(resolve_placement(spec, feet.get(spec["id"], {})))
-        print(f"  {spec['id']:24s} {tris:6d} tris  {out.stat().st_size / 1024:7.1f} kB")
+        placements.append(resolve_placement(spec, feet.get(spec["id"], {}), extent))
+        print(
+            f"  {spec['id']:24s} {tris:6d} tris  {out.stat().st_size / 1024:7.1f} kB"
+            f"  {extent:6.0f} m across"
+        )
 
     if not args.only:
         args.manifest.parent.mkdir(parents=True, exist_ok=True)

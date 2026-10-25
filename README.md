@@ -173,8 +173,11 @@ photographs and writes out the colour of their brightest 2% of pixels — the li
 themselves — and [`textures.py`](scripts/landmarks/textures.py) builds the facade textures from
 those numbers, along with the Merlion's scales, which are a texture for the same reason the
 windows are: a hundred modelled scales would cost more triangles than every other landmark put
-together. The photographs are not committed (unclear licences); the URLs and the derived numbers
-are.
+together. Colours are selected from the clusters by *rule* — the darkest well-represented one for
+an unlit wall, the magenta one for the Supertrees' uplighting — never by index, because raising
+the cluster count from six to ten silently turned the Merlion's skin from white to slate the one
+time they were. The photographs are not committed (unclear licences); the URLs and the derived
+numbers are.
 
 Three things fell out of putting real buildings on the map that were worth fixing anyway:
 
@@ -190,9 +193,12 @@ Three things fell out of putting real buildings on the map that were worth fixin
   from the north-east, a warm fill standing in for the city's own glow — which the hexagons need
   more than the landmarks do.
 
-Everything is drawn at its real size, with one exception that the hover card admits to: nothing is
-drawn shorter than 55 m, so the 8.6 m Merlion appears at 6.4×. A map symbol that is not to scale is
-normal. One that is not to scale and does not say so is not.
+Everything is drawn at its real size, with one exception the hover card admits to: nothing is drawn
+smaller than 80 m across its largest dimension, so the Merlion — 18 m including its plinth and its
+jet — appears at 4.4×. Nothing else on the map qualifies. The measure is the model's *extent*, not
+its height, and measured in Blender rather than declared: a height-based rule decided the Causeway
+needed enlarging three-fold, which would have put a 3.4 km embankment across a 1 km strait. A map
+symbol that is not to scale is normal. One that is not to scale and does not say so is not.
 
 **Checking it.** None of this is assertable. "Is the Sands pointing along the bay or across it" is a
 question about pixels, so the dashboard ships a page that puts one landmark at a time on the real

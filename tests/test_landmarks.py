@@ -176,11 +176,26 @@ def test_every_landmark_has_a_model_where_the_manifest_says():
         assert BBOX[0] < m["lon"] < BBOX[2], f"{m['id']}: longitude outside the study area"
         assert BBOX[1] < m["lat"] < BBOX[3], f"{m['id']}: latitude outside the study area"
         assert 0.0 <= m["bearing"] < 360.0
+        # The measured extent is what the dashboard scales from; a missing or
+        # zero one would silently enlarge the landmark by a factor of infinity.
+        assert m["extent_m"] > 1.0
         assert m["city"] in ("sg", "jb")
         assert m["confidence"] in ("published", "derived", "estimated")
         # Every placement says where its position and bearing came from. That
         # is the whole provenance contract of this layer.
         assert m["position_from"] and m["bearing_from"]
+
+
+def test_only_the_smallest_landmark_is_drawn_out_of_scale():
+    """The scale policy is "nothing under 80 m across"; check what that catches.
+
+    The point is not the number but that it catches almost nothing: if a change
+    to the models or the threshold starts enlarging half the map, the map has
+    stopped being to scale and nobody has said so.
+    """
+    marks = json.loads(MANIFEST.read_text())["landmarks"]
+    enlarged = [m["id"] for m in marks if m["extent_m"] < 80.0]
+    assert enlarged == ["merlion"], enlarged
 
 
 def test_models_stay_small_enough_to_ship():

@@ -15,27 +15,43 @@
     "palette": [
       {
         "hex": "#0e193f",
-        "share": 0.558
+        "share": 0.53
       },
       {
-        "hex": "#1b1714",
-        "share": 0.232
+        "hex": "#141317",
+        "share": 0.19
       },
       {
-        "hex": "#57461d",
-        "share": 0.089
+        "hex": "#352812",
+        "share": 0.085
       },
       {
-        "hex": "#736e66",
-        "share": 0.047
+        "hex": "#52462d",
+        "share": 0.051
       },
       {
-        "hex": "#c1ac4d",
-        "share": 0.038
+        "hex": "#787471",
+        "share": 0.035
       },
       {
-        "hex": "#f4f1c2",
-        "share": 0.037
+        "hex": "#80681d",
+        "share": 0.028
+      },
+      {
+        "hex": "#bca543",
+        "share": 0.024
+      },
+      {
+        "hex": "#faf9db",
+        "share": 0.024
+      },
+      {
+        "hex": "#e4d786",
+        "share": 0.023
+      },
+      {
+        "hex": "#1e1e78",
+        "share": 0.011
       }
     ],
     "emissive": [
@@ -95,28 +111,44 @@
     ],
     "palette": [
       {
-        "hex": "#0e193f",
-        "share": 0.554
+        "hex": "#0d193f",
+        "share": 0.522
       },
       {
-        "hex": "#191614",
-        "share": 0.211
+        "hex": "#141317",
+        "share": 0.186
       },
       {
-        "hex": "#483b1f",
+        "hex": "#342916",
         "share": 0.098
       },
       {
-        "hex": "#766c4c",
-        "share": 0.067
+        "hex": "#5e4b1e",
+        "share": 0.047
       },
       {
-        "hex": "#bbad6e",
-        "share": 0.042
+        "hex": "#5c5a54",
+        "share": 0.035
       },
       {
-        "hex": "#f4f0cb",
-        "share": 0.028
+        "hex": "#9b8737",
+        "share": 0.027
+      },
+      {
+        "hex": "#d5c67b",
+        "share": 0.026
+      },
+      {
+        "hex": "#8f897d",
+        "share": 0.025
+      },
+      {
+        "hex": "#f6f5d7",
+        "share": 0.022
+      },
+      {
+        "hex": "#1f1e6c",
+        "share": 0.011
       }
     ],
     "emissive": [
@@ -176,28 +208,44 @@
     ],
     "palette": [
       {
-        "hex": "#4278d5",
-        "share": 0.295
+        "hex": "#2c63c5",
+        "share": 0.313
       },
       {
-        "hex": "#295bba",
-        "share": 0.293
+        "hex": "#487dd8",
+        "share": 0.21
       },
       {
-        "hex": "#160f1d",
-        "share": 0.146
+        "hex": "#130d15",
+        "share": 0.114
       },
       {
-        "hex": "#332c64",
-        "share": 0.14
+        "hex": "#254399",
+        "share": 0.085
       },
       {
-        "hex": "#e8dfe4",
-        "share": 0.069
+        "hex": "#13155d",
+        "share": 0.067
       },
       {
-        "hex": "#93838f",
-        "share": 0.058
+        "hex": "#4b3242",
+        "share": 0.063
+      },
+      {
+        "hex": "#f6f1f2",
+        "share": 0.044
+      },
+      {
+        "hex": "#664f8c",
+        "share": 0.04
+      },
+      {
+        "hex": "#c6b6c5",
+        "share": 0.038
+      },
+      {
+        "hex": "#95907c",
+        "share": 0.027
       }
     ],
     "emissive": [
@@ -257,28 +305,44 @@
     ],
     "palette": [
       {
-        "hex": "#817d38",
-        "share": 0.289
+        "hex": "#827e39",
+        "share": 0.281
       },
       {
-        "hex": "#d7e6e6",
-        "share": 0.231
+        "hex": "#a1ceee",
+        "share": 0.153
       },
       {
-        "hex": "#a7d1ed",
-        "share": 0.21
+        "hex": "#c3dfee",
+        "share": 0.147
       },
       {
-        "hex": "#4d606b",
-        "share": 0.111
+        "hex": "#4f626f",
+        "share": 0.085
       },
       {
-        "hex": "#7b8a8e",
-        "share": 0.091
+        "hex": "#6d818b",
+        "share": 0.076
       },
       {
-        "hex": "#262d27",
+        "hex": "#dbe1d5",
         "share": 0.069
+      },
+      {
+        "hex": "#3b463b",
+        "share": 0.067
+      },
+      {
+        "hex": "#e8f2f0",
+        "share": 0.064
+      },
+      {
+        "hex": "#a8aa9a",
+        "share": 0.031
+      },
+      {
+        "hex": "#151513",
+        "share": 0.029
       }
     ],
     "emissive": [
@@ -338,28 +402,44 @@
     ],
     "palette": [
       {
-        "hex": "#151f2c",
-        "share": 0.394
+        "hex": "#101a27",
+        "share": 0.268
       },
       {
-        "hex": "#4e4950",
-        "share": 0.204
+        "hex": "#0a334f",
+        "share": 0.183
       },
       {
-        "hex": "#0b405f",
-        "share": 0.191
+        "hex": "#3b3235",
+        "share": 0.145
       },
       {
-        "hex": "#d8e5db",
-        "share": 0.087
+        "hex": "#4b5061",
+        "share": 0.122
       },
       {
-        "hex": "#b9926e",
-        "share": 0.064
+        "hex": "#0c5a7c",
+        "share": 0.072
       },
       {
-        "hex": "#2a94ad",
-        "share": 0.061
+        "hex": "#daece7",
+        "share": 0.068
+      },
+      {
+        "hex": "#809d9c",
+        "share": 0.04
+      },
+      {
+        "hex": "#e3b788",
+        "share": 0.037
+      },
+      {
+        "hex": "#9d6e43",
+        "share": 0.036
+      },
+      {
+        "hex": "#18a0c3",
+        "share": 0.029
       }
     ],
     "emissive": [
@@ -419,28 +499,44 @@
     ],
     "palette": [
       {
-        "hex": "#080e22",
-        "share": 0.542
+        "hex": "#060d20",
+        "share": 0.494
       },
       {
-        "hex": "#24295d",
-        "share": 0.16
+        "hex": "#172155",
+        "share": 0.165
       },
       {
-        "hex": "#c7d3e0",
-        "share": 0.086
+        "hex": "#c7dbec",
+        "share": 0.061
       },
       {
-        "hex": "#926175",
-        "share": 0.073
+        "hex": "#769ede",
+        "share": 0.059
       },
       {
-        "hex": "#618bd5",
-        "share": 0.071
+        "hex": "#af8c6f",
+        "share": 0.049
       },
       {
-        "hex": "#e8dc52",
-        "share": 0.068
+        "hex": "#5e4532",
+        "share": 0.046
+      },
+      {
+        "hex": "#445fa9",
+        "share": 0.041
+      },
+      {
+        "hex": "#ede08d",
+        "share": 0.036
+      },
+      {
+        "hex": "#ece92d",
+        "share": 0.032
+      },
+      {
+        "hex": "#9515bd",
+        "share": 0.017
       }
     ],
     "emissive": [
@@ -500,28 +596,44 @@
     ],
     "palette": [
       {
-        "hex": "#161e14",
-        "share": 0.404
+        "hex": "#0e160f",
+        "share": 0.254
       },
       {
-        "hex": "#11a2ef",
-        "share": 0.237
+        "hex": "#28301f",
+        "share": 0.199
       },
       {
-        "hex": "#373f46",
-        "share": 0.171
+        "hex": "#07a5f3",
+        "share": 0.189
       },
       {
-        "hex": "#6d5b90",
-        "share": 0.114
+        "hex": "#333a4d",
+        "share": 0.087
       },
       {
-        "hex": "#dcc4d9",
-        "share": 0.042
+        "hex": "#6f5968",
+        "share": 0.081
       },
       {
-        "hex": "#bfa840",
+        "hex": "#245d9a",
+        "share": 0.05
+      },
+      {
+        "hex": "#4b9ae2",
+        "share": 0.047
+      },
+      {
+        "hex": "#a85bb6",
         "share": 0.033
+      },
+      {
+        "hex": "#e8d7dc",
+        "share": 0.031
+      },
+      {
+        "hex": "#c8b141",
+        "share": 0.028
       }
     ],
     "emissive": [
@@ -583,28 +695,44 @@
     ],
     "palette": [
       {
-        "hex": "#080f22",
-        "share": 0.335
+        "hex": "#050d20",
+        "share": 0.299
       },
       {
-        "hex": "#04256c",
-        "share": 0.29
+        "hex": "#023a97",
+        "share": 0.211
       },
       {
-        "hex": "#0750aa",
-        "share": 0.218
+        "hex": "#021f60",
+        "share": 0.21
       },
       {
-        "hex": "#614d3b",
-        "share": 0.084
+        "hex": "#066dc3",
+        "share": 0.066
       },
       {
-        "hex": "#d09842",
-        "share": 0.042
+        "hex": "#304762",
+        "share": 0.055
       },
       {
-        "hex": "#b7c8b8",
-        "share": 0.031
+        "hex": "#4c3621",
+        "share": 0.05
+      },
+      {
+        "hex": "#9c662f",
+        "share": 0.035
+      },
+      {
+        "hex": "#708d9b",
+        "share": 0.029
+      },
+      {
+        "hex": "#e4af4e",
+        "share": 0.028
+      },
+      {
+        "hex": "#dbe0c6",
+        "share": 0.017
       }
     ],
     "emissive": [

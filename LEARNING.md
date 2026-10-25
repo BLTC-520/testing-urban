@@ -518,6 +518,23 @@ inside the clip range by luck; the Causeway is 1,056 m long and framed from 1,30
 preview came back blank rather than wrong. Worth remembering that an empty render is a camera
 problem far more often than a geometry one — the glTF had all 992 triangles in it.
 
+**Picking a colour by its index in a cluster list is a latent bug.** The facade and scale textures
+originally read `palette[1]` and `palette[3]` out of the analysis. Raising the cluster count from
+six to ten — needed because the Supertrees' magenta uplighting is a thirtieth of its photograph and
+does not separate out below about eight clusters — reshuffled the ordering, and the Merlion's skin
+went from white to slate grey without a single line of the texture code changing. Colours are now
+chosen by rule: the darkest well-represented cluster for an unlit wall, the lightest for a floodlit
+statue, the one whose hue falls between 270 and 340 degrees for the Supertrees. A rule survives a
+change to k; an index does not. Picking the *most saturated* cluster outright does not work either
+— in a blue-hour photograph that is the sky, and the sky is half the frame.
+
+**The scale rule read the wrong dimension.** "Nothing is drawn shorter than 80 m" is a sensible
+policy for buildings and nonsense for a causeway: 17 m tall, 1,056 m long, and duly enlarged 3.2×
+into a 3.4 km embankment across a 1 km strait. The models now report their own largest dimension,
+measured from the Blender scene rather than declared in the JSON, and the policy reads that. It
+catches exactly one landmark, which a test now asserts — if a change starts enlarging half the map,
+the map has stopped being to scale and nobody has said so.
+
 **Blender's `bpy` module needs an exact CPython.** `pip install bpy` only resolves against the
 interpreter version a given Blender embeds — 5.2 is built for 3.13. It is a separate optional
 extra for that reason, and because it is a few hundred megabytes that no part of the analysis needs.

@@ -31,7 +31,7 @@ import { useData } from "../stores/data.ts";
 import { useFilters } from "../stores/filters.ts";
 import { basemapStyle, registerPmtiles } from "../map/basemapStyle.ts";
 import { rampAt, hexToRGB } from "../map/colors.ts";
-import { landmarkLayers, exaggeration, MIN_ZOOM, type Landmark } from "../map/landmarks.ts";
+import { landmarkLayers, landmarkView, exaggeration, MIN_ZOOM, type Landmark } from "../map/landmarks.ts";
 import { nightLighting } from "../map/lighting.ts";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
@@ -86,7 +86,14 @@ const mode = computed(() => (f.isScenario && f.showDelta ? "delta" : "level"));
  * column was never the thing being read from six hundred metres up.
  */
 const FLAT_BY = 1.0; // zoom levels over which the columns collapse
-const FLAT_FLOOR = 0.03;
+/*
+ * The floor is low enough that nothing ends up *inside* a hexagon. A column
+ * 80 m tall still swallows a 64 m heritage building, and a translucent prism
+ * in front of a landmark hides it as effectively as an opaque one. At 0.008
+ * the tallest hexagon in either city stands about 40 m, which is under every
+ * landmark on the map and still enough to read as relief.
+ */
+const FLAT_FLOOR = 0.008;
 function elevationScaleAt(z: number): number {
   if (z <= MIN_ZOOM) return 1;
   const t = Math.min(1, (z - MIN_ZOOM) / FLAT_BY);
@@ -103,7 +110,7 @@ function elevationScaleAt(z: number): number {
  */
 function fillAlphaAt(z: number): number {
   if (z <= MIN_ZOOM) return 215;
-  return Math.round(215 - 85 * Math.min(1, (z - MIN_ZOOM) / FLAT_BY));
+  return Math.round(215 - 100 * Math.min(1, (z - MIN_ZOOM) / FLAT_BY));
 }
 
 /** Baseline shares by hex id, so a delta needs no second layer. */
@@ -183,6 +190,21 @@ function buildLayers() {
       onClick: (mark) => flyToLandmark(mark),
     }),
   ];
+}
+
+/**
+ * Switching the landmarks on from the overview takes the camera to them.
+ *
+ * Without this the toggle does nothing visible at the zoom the dashboard opens
+ * at, which is the same as the feature not existing.
+ */
+function toggleLandmarks() {
+  showLandmarks.value = !showLandmarks.value;
+  if (!showLandmarks.value || zoom.value >= MIN_ZOOM) return;
+  const view = landmarkView(f.city, container.value?.clientWidth ?? 900);
+  if (view) {
+    map.value?.easeTo({ center: view.center, zoom: view.zoom, pitch: 52, duration: 1400 });
+  }
 }
 
 /** Clicking a landmark frames it: close enough to read, still pitched. */
@@ -331,9 +353,9 @@ const legendStops = computed(() =>
         <button
           :class="['chip', { on: showLandmarks }]"
           :title="zoom < MIN_ZOOM
-            ? 'Landmarks appear from zoom 12.3 — below that a tower is five pixels tall'
+            ? 'Landmarks appear from zoom 12.3 — below that a tower is five pixels tall. Switching them on from here takes the camera to them.'
             : 'Blender-built landmarks at their real size and bearing'"
-          @click="showLandmarks = !showLandmarks"
+          @click="toggleLandmarks"
         >landmarks<span v-if="showLandmarks && zoom < MIN_ZOOM" class="dim"> · zoom in</span></button>
       </div>
 

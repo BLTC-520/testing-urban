@@ -47,7 +47,11 @@ from PIL import Image
 # Pixels are subsampled before clustering: a 1 MP photograph has far more
 # pixels than k-means needs, and the full array makes the step minutes long.
 SAMPLE = 40_000
-K = 6
+# Ten clusters, not six. Six is enough to describe a photograph and not enough
+# to find the thing that makes one landmark look like itself: the Supertrees'
+# magenta uplighting is about a thirtieth of its frame and does not separate
+# from the foliage until the eighth cluster. The extra four cost a second.
+K = 10
 # "Brightest 2%" is deliberately strict. A night photograph of a lit building
 # is mostly dark; the top decile would drag in the sky glow and the water.
 EMISSIVE_Q = 0.98
@@ -95,6 +99,13 @@ def hexcolor(rgb: np.ndarray) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def saturation(flat: np.ndarray) -> np.ndarray:
+    """HSV saturation, (max - min) / max, with black left at zero."""
+    hi = flat.max(axis=1)
+    lo = flat.min(axis=1)
+    return np.divide(hi - lo, hi, out=np.zeros_like(hi), where=hi > 0)
+
+
 def luminance(a: np.ndarray) -> np.ndarray:
     """Rec. 709 relative luminance, the usual perceptual weighting."""
     return a[..., 0] * 0.2126 + a[..., 1] * 0.7152 + a[..., 2] * 0.0722
@@ -126,6 +137,7 @@ def analyse(path: pathlib.Path) -> dict:
     h, w, _ = a.shape
     flat = a.reshape(-1, 3)
 
+    sky = np.median(a[: max(1, h // 12)].reshape(-1, 3), axis=0)
     rng = np.random.default_rng(11)
     idx = rng.choice(len(flat), size=min(SAMPLE, len(flat)), replace=False)
     centres, share = kmeans(flat[idx], K)
@@ -144,7 +156,7 @@ def analyse(path: pathlib.Path) -> dict:
         "emissive": [
             {"hex": hexcolor(ec[i]), "share": round(float(es[i]), 3)} for i in eorder
         ],
-        "sky": hexcolor(np.median(a[: max(1, h // 12)].reshape(-1, 3), axis=0)),
+        "sky": hexcolor(sky),
         "mean_luminance": round(float(lum.mean()) / 255, 4),
         "profile": profile(a),
     }
