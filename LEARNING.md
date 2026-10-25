@@ -429,3 +429,106 @@ Three ways. `npm run verify` recomputes the published shares out of SQLite for e
 speed. The API tests assert the headline findings — 80.4% versus 12.0%, healthcare scarcest in both
 cities — so a regression fails a test rather than quietly changing a number on a wall. And the
 scenario deltas are the pipeline's own published figures, not ones the dashboard derived.
+
+---
+
+## Phase 8 — packaging it to deploy
+
+### Files
+
+| File | What it does |
+|---|---|
+| `Dockerfile` | Three stages: install, build + ingest + verify, runtime. |
+| `.dockerignore` | Keeps the build context to what the Dockerfile copies. |
+| `railway.json` | Builder, start command and health check path. |
+| `server/tsconfig.build.json` | Emits JavaScript so the runtime needs no TypeScript loader. |
+| `server/test/proxy.test.ts` | Pins the reverse-proxy behaviour. |
+
+### Decisions
+
+**The database is baked into the image, not kept on a volume.** This is the
+decision the whole deployment rests on. `sgjb.db` is a rebuildable cache of
+committed analysis outputs and nothing writes to it at runtime, so it is not
+state — which means the ephemeral filesystem that normally makes SQLite awkward
+on a PaaS is irrelevant here. An immutable copy per image has no backup story,
+no migration story, and a rollback automatically gets matching data. Rejected: a
+mounted volume, which would add all three of those problems in exchange for
+persistence nothing needs.
+
+**`npm run verify` runs as a build gate.** An image whose numbers disagree with
+the published study fails to build rather than being deployed and discovered
+later.
+
+**Compiled to JavaScript rather than shipping `tsx`.** TypeScript 6's
+`rewriteRelativeImportExtensions` turns the `.ts` import specifiers into `.js`
+on emit, so `node dist/server.js` runs with no loader and no dev dependencies in
+the runtime image. The alternative — moving `tsx` into `dependencies` — works
+and is one line, but it puts a build tool in the production dependency tree to
+save a compile step that takes two seconds.
+
+**The API serves the dashboard.** One service, one origin, so CORS stops
+applying to the deployment entirely and the allowlist only governs local
+development. An unknown path under `/api/` stays a JSON 404; anything else is
+handed the app shell.
+
+**Three stages, not one.** The 36 MB of pipeline outputs the ingest reads are an
+input, not a runtime dependency, so they stay in the build stage. The basemap
+archive and glyphs are copied straight into the runtime stage because they are
+served rather than consumed.
+
+### What went wrong
+
+**I wrote a `trustProxy` fix that did not work, then nearly shipped it.**
+
+Behind a platform edge every request arrives from the proxy, so `req.ip` is the
+proxy's address and the rate limiter buckets every visitor together — one user
+spending 300 requests/minute would throttle the whole dashboard. Real problem,
+worth fixing.
+
+I set `trustProxy: 1`, on the strength of Fastify's own documentation
+describing the number as a hop count, and wrote a confident comment explaining
+why a hop count was safer than `true`. Then I tested it: still one shared
+bucket. The first test used `app.inject()`, which has no socket for proxy-addr
+to inspect, so I assumed the test was the problem and retried over real
+listening sockets. Still one shared bucket.
+
+Probing each form directly showed why: with `trustProxy: 1` the forwarded
+address is never consulted at all — `req.ips` comes back as just
+`["127.0.0.1"]`. Only `true` and address forms (`"loopback"`, `"127.0.0.1"`, a
+CIDR) work. So the config was inert *and* the comment justifying it asserted
+something false, which is worse than no comment.
+
+The real answer is an address allowlist: `"loopback, uniquelocal"` believes the
+header only when the immediate peer is on a private network — the platform edge
+— and refuses it from a public client, which is the spoofing hole `true` leaves
+open. `test/proxy.test.ts` now pins all three cases, including a regression
+guard asserting that the numeric form does *not* work, so if a future Fastify
+makes it work the test fails and the comment gets corrected.
+
+Two things to carry forward. A plausible configuration value that is silently
+ignored looks exactly like a working one, so security settings need a test that
+demonstrates the behaviour rather than a comment asserting it. And when a test
+disagrees with the documentation, the test is more likely to be right.
+
+**Docker was not available in this environment,** so the Dockerfile itself is
+unverified as a Docker build. Every command inside it was run directly in the
+same layout — compile, dashboard build, ingest, verify, then `node dist/server.js`
+with the container's environment variables — and the dashboard was driven in a
+browser against that production server. The layering, the `COPY` paths and the
+`HEALTHCHECK` are the parts no one has executed.
+
+### Interview questions
+
+**SQLite on a platform with an ephemeral filesystem — isn't that a problem?**
+Only if the database is state. Here it is a derived cache of committed analysis
+outputs that nothing writes to at runtime, so it is built into the image during
+the Docker build. No volume, no backups, no migrations, and a rollback gets the
+data that matches the code. If the app took writes the answer would be
+different — a volume, or a hosted Postgres.
+
+**What breaks first when you put this behind a load balancer?**
+Per-IP rate limiting. Every request arrives from the proxy, so unless the app
+is told which peers may be believed when they send `X-Forwarded-For`, all
+traffic shares one bucket and a single user can throttle everyone. The fix is
+an address allowlist rather than trusting the header unconditionally, because
+trusting it from anyone lets a direct client fabricate their own bucket.

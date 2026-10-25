@@ -19,3 +19,5 @@ web/playwright-report/
 
 # root workspace scripts (server/ and dashboard/ keep their own lockfiles)
 /node_modules/
+server/dist/
+dashboard/dist/

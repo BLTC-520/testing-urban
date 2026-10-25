@@ -9,8 +9,10 @@
     "typecheck": "tsc --noEmit",
     "verify": "tsx src/verify.ts",
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
-    "test": "vitest run"
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json",
+    "start:ts": "tsx src/server.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",

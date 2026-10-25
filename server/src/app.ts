@@ -21,6 +21,7 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import { ZodError, type ZodType } from "zod";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { openStore, type Store, BASKET } from "./db.ts";
 import { REPO } from "./paths.ts";
@@ -38,6 +39,27 @@ export interface AppOptions {
   /** Requests per minute per IP. */
   rateLimitMax?: number;
   logger?: boolean;
+  /**
+   * Which peers may be believed when they send `X-Forwarded-For`.
+   *
+   * Behind a platform edge (Railway, Fly, a load balancer) every request
+   * arrives from the proxy, so without this `req.ip` is the proxy's address
+   * and the rate limiter collapses into one bucket shared by every visitor.
+   *
+   * Give it an address, a CIDR, or one of proxy-addr's names — the production
+   * default is "loopback, uniquelocal", which believes the header only when
+   * the immediate peer is on a private network. That is exactly the platform
+   * edge, and it means a client reaching the process directly over the public
+   * internet cannot spoof the header to get a private rate-limit bucket.
+   *
+   * Do NOT pass a number. Fastify's types accept one and its docs describe it
+   * as a hop count, but it does not behave that way: with `1` the forwarded
+   * address is never consulted at all (verified in test/proxy.test.ts). `true`
+   * works but trusts everyone, which is the spoofing hole above.
+   */
+  trustProxy?: string | boolean;
+  /** Serve the built dashboard from this directory, making it a single origin. */
+  serveDashboard?: string | false;
 }
 
 const DEV_ORIGINS = [
@@ -86,6 +108,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
 
   const app = Fastify({
     logger: opts.logger ?? false,
+    trustProxy: opts.trustProxy ?? false,
     routerOptions: {
       // Collapse duplicated params to the last value rather than handing zod an
       // array it would reject with a confusing message.
@@ -140,6 +163,31 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
     immutable: true,
     maxAge: "7d",
   });
+
+  /*
+   * The built dashboard, when there is one.
+   *
+   * Serving it from the same process makes the deployment a single origin and
+   * a single service: the browser's /api calls are same-origin, so CORS stops
+   * applying at all, and there is one thing to pay for and one thing to
+   * restart. In development Vite serves it instead and proxies /api here, so
+   * this is absent and the CORS allowlist above is what applies.
+   */
+  const dashboardRoot =
+    opts.serveDashboard === false
+      ? null
+      : (opts.serveDashboard ?? resolve(REPO, "dashboard", "dist"));
+  const hasDashboard = dashboardRoot !== null && existsSync(resolve(dashboardRoot, "index.html"));
+  if (hasDashboard) {
+    await app.register(fastifyStatic, {
+      root: dashboardRoot,
+      prefix: "/",
+      decorateReply: false,
+      // index.html must not be cached or a deploy leaves stale asset hashes
+      // pinned in browsers; the hashed assets under /assets are immutable.
+      maxAge: "5m",
+    });
+  }
 
   // --- prepared statements, built once at startup ---------------------------
   const SOURCES: Source[] = ["baseline", "scenario"];
@@ -367,6 +415,11 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
 
   // --- errors ---------------------------------------------------------------
   app.setNotFoundHandler(async (req, reply) => {
+    // An unknown /api path is a client error and must stay JSON. Anything else,
+    // when a dashboard is being served, is the single-page app's own routing.
+    if (hasDashboard && req.method === "GET" && !req.url.startsWith("/api/")) {
+      return reply.type("text/html").send(readFileSync(resolve(dashboardRoot, "index.html")));
+    }
     reply.code(404);
     return { error: "NOT_FOUND", message: `no route ${req.method} ${req.url}` };
   });

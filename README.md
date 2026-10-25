@@ -138,6 +138,79 @@ threshold land on the wrong side of it — about 260–290 residents per city. N
 downstream, both are small, and I would rather have them written down than discover them in an
 interview.
 
+### Deploying it
+
+The whole thing runs as **one container**: the API serves the built dashboard,
+so there is one service, one origin and no CORS.
+
+```bash
+npm run docker:build       # multi-stage build: compile, bundle, ingest, verify
+npm run docker:run         # → http://localhost:8787
+```
+
+The database is baked into the image rather than kept on a volume, and that is
+the decision that makes this easy to host. `server/data/sgjb.db` is a
+rebuildable cache of the analysis outputs already committed in
+`web/public/data` — nothing writes to it at runtime — so an immutable copy per
+image beats a volume: there is nothing to back up, nothing to migrate, and a
+rollback automatically gets the data that matches the code. The build also
+runs `npm run verify` as a gate, so an image whose numbers disagree with the
+published study never gets as far as being deployed.
+
+The runtime image carries the compiled server, the database, the dashboard
+build, and the basemap archive and glyphs that get served. The 36 MB of
+pipeline outputs the ingest reads are left behind in the build stage.
+
+#### On Railway
+
+`railway.json` is committed, so Railway reads the Dockerfile and the health
+check path by itself.
+
+1. **New Project → Deploy from GitHub repo**, pick this repository.
+2. Railway finds `railway.json` and builds the Dockerfile. The first build
+   takes a few minutes — most of it is `npm ci` and the dashboard bundle.
+3. **Settings → Networking → Generate Domain.** Nothing else needs setting:
+   `PORT`, `HOST`, and the proxy trust are already in the Dockerfile's `ENV`.
+4. Open the domain. The dashboard is at `/`, the API under `/api`.
+
+Two settings matter and are easy to get wrong, so they are baked in rather
+than left to the dashboard:
+
+* **`HOST=0.0.0.0`.** The dev default is `127.0.0.1` so a local run is not
+  exposed on the network. A container that keeps that default accepts nothing
+  from outside itself, the health check never connects, and the deploy is
+  rolled back with nothing in the logs explaining why. The server logs a
+  warning if it finds itself bound to loopback inside a container.
+* **`SGJB_TRUST_PROXY="loopback, uniquelocal"`.** Behind a platform edge every
+  request arrives from the proxy, so without this `req.ip` is the proxy's
+  address and the rate limiter buckets every visitor together — one user
+  exhausting 300 requests/minute would throttle everybody. This setting
+  believes `X-Forwarded-For` only when the immediate peer is on a private
+  network, which is the edge; a client reaching the process directly over the
+  public internet cannot spoof it. **Not** `true`, which trusts anyone, and
+  **not** a number: Fastify's types accept one and its docs describe it as a
+  hop count, but the forwarded address is then never consulted at all.
+  `server/test/proxy.test.ts` pins all three behaviours.
+
+Cost is around $5–10/month on Railway's Hobby plan. Fly.io fits the same shape.
+Render's free tier spins down and gives 30-second cold starts, which is the
+wrong trade for something you are sending someone a link to.
+
+#### The cheaper option, rejected on purpose
+
+The API is a pure function over a small closed set of inputs. Restricted to the
+four threshold presets it is 2 cities × 4 thresholds × 3 speeds × 2 resolutions
+× 4 scenario states — about 190 JSON files and 22 MB, generatable at build time
+and servable free from GitHub Pages next to the static site. No backend, no
+bill.
+
+I did not do that, for two reasons. It costs the continuous walk-budget slider,
+which drops back to four presets. And a live service is the honest version of
+what this project is demonstrating: the aggregation really does happen in SQL
+on request, rather than having been precomputed into files that only look like
+an API. Static generation is the better engineering answer for a public demo
+and the worse answer for showing how the thing works.
+
 ### How this was built
 
 The concept is mine: a command centre for the 15-minute-city data, in the stack a 3D digital-twin
@@ -233,6 +306,8 @@ npm run dev                # API on :8787 and the dashboard on :5174, together
 npm run verify             # recompute the study's headline numbers out of SQLite (20 checks)
 npm test                   # 67 API tests, most of them about input that should be refused
 npm run ingest             # rebuild the database from web/public/data
+npm run build              # compile the server and bundle the dashboard
+npm run docker:build       # one container serving both (see "Deploying it")
 ```
 
 Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios footpath summary export basemap`.
@@ -248,6 +323,7 @@ data/derived/      versioned results (summary.json, neighbourhoods, sensitivity 
 web/               Vite + React + TypeScript site: Story, Explorer, Methods
 server/            Node + SQLite: ingest of the pipeline outputs, read-only dashboard API
 dashboard/         Vue 3 + ECharts + deck.gl large-screen command centre
+Dockerfile         one image serving the API and the dashboard; railway.json deploys it
 docs/              case study and architecture
 ```
 

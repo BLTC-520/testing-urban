@@ -10,9 +10,12 @@
     "dev": "node scripts/dev.mjs",
     "dev:server": "npm --prefix server run dev",
     "dev:dashboard": "npm --prefix dashboard run dev",
-    "build": "npm --prefix dashboard run build",
+    "build": "npm --prefix server run build && npm --prefix dashboard run build",
     "test": "npm --prefix server test",
-    "typecheck": "npm --prefix server run typecheck && npm --prefix dashboard run typecheck"
+    "typecheck": "npm --prefix server run typecheck && npm --prefix dashboard run typecheck",
+    "start": "npm --prefix server start",
+    "docker:build": "docker build -t sgjb-command-centre .",
+    "docker:run": "docker run --rm -p 8787:8787 sgjb-command-centre"
   },
   "devDependencies": {}
 }
