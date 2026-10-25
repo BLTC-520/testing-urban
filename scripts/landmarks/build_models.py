@@ -1,12 +1,14 @@
 """Model the landmarks in Blender and export one glTF binary each.
 
-Run with Blender's Python, either the ``bpy`` module in a virtualenv or a
-Blender install:
+Writes one .glb per landmark into ``web/public/models`` — the one copy, which
+the published site serves directly and the API serves to the dashboard — and a
+manifest into both front ends. Run with Blender's Python, either the ``bpy``
+module in a virtualenv or a Blender install:
 
     pip install -e ".[landmarks]"
-    python scripts/landmarks/build_models.py --out dashboard/public/models
+    python scripts/landmarks/build_models.py
     # or
-    blender -b -P scripts/landmarks/build_models.py -- --out dashboard/public/models
+    blender -b -P scripts/landmarks/build_models.py --
 
 Why Blender, and why procedurally
 ---------------------------------
@@ -46,6 +48,21 @@ import bmesh
 from mathutils import Vector
 
 TAU = math.tau
+
+# --------------------------------------------------------------------------
+# the drawing policy, decided here rather than in either front end
+# --------------------------------------------------------------------------
+# Below this zoom the layer is not drawn at all: at zoom 12 one pixel is about
+# 38 m on the ground near the equator, so a 200 m tower is five pixels and a
+# couple of dozen landmarks are noise over the data. They fade in over the next
+# three-quarters of a level rather than appearing at once.
+MIN_ZOOM = 12.3
+FADE_ZOOM = 0.75
+# Nothing is drawn smaller than this across its largest dimension. The measure
+# is the model's measured extent, not its declared height: the Causeway is 17 m
+# tall and 1,056 m long, and a height-based rule decided it needed enlarging
+# three-fold. It catches two of twenty-six — a statue and a pagoda.
+MIN_DRAWN_M = 65.0
 
 # --------------------------------------------------------------------------
 # scene plumbing
@@ -1725,6 +1742,17 @@ def render_preview(path: pathlib.Path, size: float) -> None:
     bpy.ops.render.render(write_still=True)
 
 
+def draw_scale(extent_m: float) -> float:
+    """How much a landmark is enlarged to reach MIN_DRAWN_M. 1 is true scale.
+
+    Computed here and written into the manifest so that the two front ends do
+    not each own a copy of the policy. They differ in what they do with it —
+    the dashboard prints it in a hover card, the site does not — but not in
+    what it is.
+    """
+    return round(max(1.0, MIN_DRAWN_M / max(extent_m, 1e-6)), 3)
+
+
 def resolve_placement(spec: dict, foot: dict, extent_m: float) -> dict:
     """Where the model goes, and which number decided it.
 
@@ -1755,8 +1783,10 @@ def resolve_placement(spec: dict, foot: dict, extent_m: float) -> dict:
         "lat": round(lat, 6),
         "bearing": round(float(bearing), 1),
         "height_m": spec["height_m"],
-        # The model's own largest dimension, measured rather than declared.
+        # The model's own largest dimension, measured rather than declared,
+        # and the scale that follows from it.
         "extent_m": round(extent_m, 1),
+        "draw_scale": draw_scale(extent_m),
         "model": f"{spec['id']}.glb",
         "facts": spec["facts"],
         "confidence": spec["confidence"],
@@ -1767,12 +1797,14 @@ def resolve_placement(spec: dict, foot: dict, extent_m: float) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=pathlib.Path, default=pathlib.Path("dashboard/public/models"))
+    ap.add_argument("--out", type=pathlib.Path, default=pathlib.Path("web/public/models"))
     ap.add_argument("--textures", type=pathlib.Path, default=None,
                     help="where textures.py wrote its images "
                          "(default: scripts/landmarks/refs/tex)")
-    ap.add_argument("--manifest", type=pathlib.Path,
-                    default=pathlib.Path("dashboard/src/map/landmarks.json"))
+    ap.add_argument("--manifest", type=pathlib.Path, nargs="*",
+                    default=[pathlib.Path("dashboard/src/map/landmarks.json"),
+                             pathlib.Path("web/src/map/landmarks.json")],
+                    help="where to write the manifest; both front ends get a copy")
     ap.add_argument("--preview", type=pathlib.Path, default=None,
                     help="also render a still of each landmark into this directory")
     ap.add_argument("--only", nargs="*", default=None, help="build just these ids")
@@ -1810,9 +1842,25 @@ def main(argv: list[str]) -> int:
         )
 
     if not args.only:
-        args.manifest.parent.mkdir(parents=True, exist_ok=True)
-        args.manifest.write_text(json.dumps({"landmarks": placements}, indent=2) + "\n")
-        print(f"wrote {args.manifest} ({len(placements)} placements)")
+        # Two copies of one generated file. The dashboard and the site are
+        # separate Vite projects with separate roots and neither can import
+        # across to the other, so the manifest is emitted into both rather
+        # than hand-copied; a test asserts they match.
+        manifest = json.dumps(
+            {
+                "policy": {
+                    "min_zoom": MIN_ZOOM,
+                    "fade_zoom": FADE_ZOOM,
+                    "min_drawn_m": MIN_DRAWN_M,
+                },
+                "landmarks": placements,
+            },
+            indent=2,
+        ) + "\n"
+        for path in args.manifest:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(manifest)
+            print(f"wrote {path} ({len(placements)} placements)")
     return 0
 
 

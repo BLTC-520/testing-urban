@@ -10,6 +10,7 @@ import { replaceParams } from "../lib/router";
 import { useExplorer } from "../lib/store";
 import type { CityId, Meta, Summary } from "../lib/types";
 import { hasWebGL } from "../lib/webgl";
+import { landmarkLayers, nightLighting } from "../map/landmarks";
 import { hexLayer, isochroneLayer, markerLayer, poiLayer, unitsLayer } from "../map/layers";
 import { MapCanvas, WebGLNotice, type MapHandle } from "../map/MapCanvas";
 import { ControlPanel } from "./ControlPanel";
@@ -116,8 +117,13 @@ export function Explorer({ params }: { params: URLSearchParams }) {
       }
     }
     if (s.selection) L.push(markerLayer("marker", [s.selection.lon, s.selection.lat]));
+    // Last, so they draw over the surface rather than through it.
+    L.push(...landmarkLayers({ zoom: s.zoom, visible: s.showLandmarks }));
     return L;
-  }, [hexData, kind, k, res, units, s.showUnits, iso.iso, iso.reveal, speed, s.showPois, s.zoom, pois, poiCats, highlight, s.selection, hover?.unit]);
+  }, [hexData, kind, k, res, units, s.showUnits, iso.iso, iso.reveal, speed, s.showPois, s.showLandmarks, s.zoom, pois, poiCats, highlight, s.selection, hover?.unit]);
+
+  // Built once: the only 3D layers on this map are the landmarks.
+  const effects = useMemo(() => [nightLighting()], []);
 
   // which city a point belongs to: membership of its H3 r8 parent in each city's cells
   const cityParents = useMemo(() => {
@@ -173,6 +179,7 @@ export function Explorer({ params }: { params: URLSearchParams }) {
             ref={mapRef}
             initialView={initial}
             layers={layers}
+            effects={effects}
             onClick={onClick}
             onHover={onHover}
             onFail={(reason) => setMapDown(reason)}

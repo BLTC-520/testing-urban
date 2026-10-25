@@ -557,6 +557,16 @@ the map has stopped being to scale and nobody has said so.
 interpreter version a given Blender embeds — 5.2 is built for 3.13. It is a separate optional
 extra for that reason, and because it is a few hundred megabytes that no part of the analysis needs.
 
+**Two front ends, one policy.** The landmarks went onto the public site's Explorer after the
+dashboard, and the obvious way to do that is to copy `landmarks.ts` across and change the imports.
+That copy would have been the bug: two files each deciding what zoom to fade in at and what counts
+as too small to draw, drifting the first time either is touched. The policy now lives where the
+models are made — the builder computes each landmark's draw scale from its measured extent and
+writes the zoom thresholds into the manifest — and each front end is a layer builder that reads
+numbers. The models themselves are one copy in `web/public/models`, served by the site directly and
+by the API to the dashboard, which is the arrangement `basemap.pmtiles` already uses for the same
+reason.
+
 ### Interview questions
 
 **Why Blender rather than downloading models?**
@@ -584,6 +594,13 @@ count, a roughly square plan and a kind of top — a mast, an octagon, a pyramid
 at the range this map draws them that is the entire difference between them. One parameterised
 builder says exactly that much. Four hand-tuned models would say more than is known, and the extra
 detail would be invented.
+
+**The Explorer is a flat map. Is 3D decoration on it worth anything?**
+Less than on the pitched dashboard, and that is why the compass now carries a pitch indicator:
+from straight down the models are blobs, and tilted they are the Flyer, the Sands and the
+Supertrees. They are off-able, they only appear past zoom 12.3 where the Explorer is about a
+particular place rather than a city, and they are not pickable — a landmark that swallowed a click
+would stop the map answering its own question.
 
 **Why one layer per model rather than one instanced layer?**
 A `ScenegraphLayer` holds one scenegraph. Twenty-six landmarks are twenty-six different buildings,

@@ -140,6 +140,19 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
     immutable: true,
     maxAge: "7d",
   });
+  /*
+   * The 3D landmark models, for the same reason: one copy of each .glb, in
+   * web/public where the published site can reach it, served to the dashboard
+   * from here. They are rebuilt only when someone edits a builder, so they
+   * cache for as long as the fonts do.
+   */
+  await app.register(fastifyStatic, {
+    root: resolve(REPO, "web", "public", "models"),
+    prefix: "/models/",
+    decorateReply: false,
+    immutable: true,
+    maxAge: "7d",
+  });
 
   // --- prepared statements, built once at startup ---------------------------
   const SOURCES: Source[] = ["baseline", "scenario"];

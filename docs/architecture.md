@@ -115,6 +115,12 @@ the live map with the text hidden by `scripts/stills.mjs`) and a notice saying w
 shows; the Explorer switches to its table view, which also works as an accessible alternative to
 the map (`view=table`). The footpath chapter's map is plain SVG and needs no WebGL at all.
 
+**Landmarks.** The Explorer draws the same twenty-six generated landmark models as the command
+centre, from `web/public/models` and the manifest beside the module that reads it. They appear
+from zoom 12.3, fade in over three-quarters of a level, and are a switch in the controls next to
+the destination and outline toggles. They are not pickable: a landmark that swallowed a click
+would stop the map answering its own question.
+
 **Rendering.** MapLibre GL 5 draws the basemap from a self-hosted PMTiles archive; deck.gl 9
 (`MapboxOverlay`, interleaved) draws hexagons, walk-sheds and markers in the same WebGL context, so
 labels and analysis layers depth-sort together: area fills are inserted beneath the place labels
@@ -129,8 +135,9 @@ deck.gl/MapLibre against a Node + SQLite API that aggregates the pipeline's outp
 
 **3D landmarks.** The map carries twenty-six generated landmark models.
 `scripts/landmarks/build_models.py` runs Blender headless (`bpy`) and writes one glTF binary per
-landmark into `dashboard/public/models/`, plus a manifest the dashboard imports. Nothing about
-them is hand-placed:
+landmark into `web/public/models/` — one copy, which the published site serves directly and the
+API serves to the dashboard, as it already does for `basemap.pmtiles` — plus a manifest emitted
+into both front ends. Nothing about them is hand-placed:
 
 | Input | Source |
 |---|---|
@@ -140,9 +147,14 @@ them is hand-placed:
 | facade and scale textures | generated from those colours (`textures.py`) |
 | drawn scale | the model's own measured extent; nothing under 65 m across is drawn to scale |
 
-The same archive's `buildings` layer is also extruded as uniform 9 m massing from zoom 13, and the
-hexagon columns collapse and their fill thins over the zoom level in which the landmarks fade in,
-so the data does not stand in front of the city. A model that fails to load takes only itself out:
+The same models appear on the site's Explorer map (`web/src/map/landmarks.ts`), zoom-gated the same
+way and switchable in its controls; the Story does not draw them, because its camera never leaves
+city zoom. The drawing policy — the zoom it fades in at, the floor under which a model is enlarged
+— lives in the manifest rather than in either front end, so the two cannot disagree.
+
+The same archive's `buildings` layer is also extruded as uniform 9 m massing from zoom 13 on the
+dashboard, and its hexagon columns collapse and their fill thins over the zoom level in which the
+landmarks fade in, so the data does not stand in front of the city. A model that fails to load takes only itself out:
 one `ScenegraphLayer` logs and draws nothing, the other twenty-five and the rest of the map are
 unaffected (checked by deleting one and loading the page). `make landmarks` rebuilds the lot, deterministically: every random draw is seeded, so re-running it on an unchanged checkout leaves no diff and the committed binaries can be verified by regenerating them.
 

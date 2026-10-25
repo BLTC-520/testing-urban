@@ -23,6 +23,7 @@ export interface ExplorerState {
   scenario: ScenarioId;
   showPois: boolean;
   showUnits: boolean;
+  showLandmarks: boolean;
   zoom: number;
   selection: Selection | null;
   set: (p: Partial<ExplorerState>) => void;
@@ -39,6 +40,7 @@ export const useExplorer = create<ExplorerState>((set) => ({
   scenario: "none",
   showPois: true,
   showUnits: true,
+  showLandmarks: true,
   zoom: 10,
   selection: null,
   set: (p) => set(p),

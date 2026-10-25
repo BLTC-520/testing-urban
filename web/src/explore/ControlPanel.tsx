@@ -237,6 +237,7 @@ export function ControlPanel({
         <div className="switches">
           <Switch label="Neighbourhood outlines" checked={s.showUnits} onChange={(v) => s.set({ showUnits: v })} />
           <Switch label="Destinations (zoom in)" checked={s.showPois} onChange={(v) => s.set({ showPois: v })} />
+          <Switch label="Landmarks (zoom in)" checked={s.showLandmarks} onChange={(v) => s.set({ showLandmarks: v })} />
         </div>
       </Field>
 

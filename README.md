@@ -209,6 +209,13 @@ its height, and measured in Blender rather than declared: a height-based rule de
 needed enlarging three-fold, which would have put a 3.4 km embankment across a 1 km strait. A map
 symbol that is not to scale is normal. One that is not to scale and does not say so is not.
 
+**The same models on the public site.** The Explorer carries them too — same geometry, same
+manifest, same policy, switchable in its controls and gated at the same zoom. There is one copy of
+each `.glb`, in `web/public/models`, served directly by the site and over HTTP to the dashboard by
+the API; the drawing policy (the zoom they fade in at, the floor under which a model is enlarged)
+is computed by the builder and travels in the manifest, so two front ends cannot disagree about it.
+The Story does not draw them: its camera never leaves city zoom, where a 200 m tower is four pixels.
+
 **Checking it.** None of this is assertable. "Is the Sands pointing along the bay or across it" is a
 question about pixels, so the dashboard ships a page that puts one landmark at a time on the real
 basemap — `npm --prefix dashboard run shots:landmarks` leaves twenty-six screenshots to look at. That

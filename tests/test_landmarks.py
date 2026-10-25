@@ -158,11 +158,38 @@ def test_hexcolor_clamps(refs):
 # the manifest the dashboard imports
 # --------------------------------------------------------------------------
 
-MANIFEST = ROOT / "dashboard" / "src" / "map" / "landmarks.json"
-MODELS = ROOT / "dashboard" / "public" / "models"
+# One copy of the models, in the published site's static root, served to the
+# dashboard by the API — the same arrangement basemap.pmtiles uses.
+MODELS = ROOT / "web" / "public" / "models"
+# Two copies of the manifest, one per Vite project, written by the builder.
+MANIFESTS = [
+    ROOT / "dashboard" / "src" / "map" / "landmarks.json",
+    ROOT / "web" / "src" / "map" / "landmarks.json",
+]
+MANIFEST = MANIFESTS[0]
 # The study area, generously bounded: anything outside it is a typo, not a
 # landmark. Matches the basemap archive's own bounds.
 BBOX = (103.3, 1.1, 104.3, 1.85)
+
+
+def test_both_front_ends_get_the_same_manifest():
+    """The dashboard and the site are separate Vite projects with separate
+    roots, so neither can import the other's copy and the builder writes two.
+    Two generated copies are fine; two copies that have drifted are not.
+    """
+    texts = [p.read_text() for p in MANIFESTS]
+    assert texts[0] == texts[1], "manifests differ — rerun scripts/landmarks/build_models.py"
+
+
+def test_the_policy_travels_with_the_data():
+    """The drawing policy is decided by the builder, not by either front end."""
+    policy = json.loads(MANIFEST.read_text())["policy"]
+    assert policy["min_zoom"] > 0
+    assert 0 < policy["fade_zoom"] <= 2
+    assert policy["min_drawn_m"] > 0
+    for m in json.loads(MANIFEST.read_text())["landmarks"]:
+        expected = max(1.0, policy["min_drawn_m"] / m["extent_m"])
+        assert m["draw_scale"] == pytest.approx(expected, rel=1e-3), m["id"]
 
 
 def test_every_landmark_has_a_model_where_the_manifest_says():
@@ -195,7 +222,8 @@ def test_only_the_smallest_landmarks_are_drawn_out_of_scale():
     and nobody has said so.
     """
     marks = json.loads(MANIFEST.read_text())["landmarks"]
-    enlarged = sorted(m["id"] for m in marks if m["extent_m"] < 65.0)
+    floor = json.loads(MANIFEST.read_text())["policy"]["min_drawn_m"]
+    enlarged = sorted(m["id"] for m in marks if m["extent_m"] < floor)
     assert enlarged == ["chinese-garden", "merlion"], enlarged
 
 

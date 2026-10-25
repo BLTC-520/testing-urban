@@ -1,5 +1,5 @@
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import type { Layer, PickingInfo } from "@deck.gl/core";
+import type { Effect, Layer, PickingInfo } from "@deck.gl/core";
 // MapLibre 5.x: deck.gl 9.4's interleaved overlay reads map.transform, which
 // MapLibre 6 no longer exposes.
 import { addProtocol, Map as MLMap, NavigationControl } from "maplibre-gl";
@@ -34,6 +34,11 @@ export interface MapHandle {
 interface Props {
   initialView: ViewState;
   layers: Layer[];
+  /**
+   * deck.gl effects, which in practice means a lighting rig. Only 3D layers
+   * read it, so a map of flat fills can pass one and see no difference.
+   */
+  effects?: Effect[];
   interactive?: boolean;
   onClick?: (info: PickingInfo, lngLat: [number, number]) => void;
   onHover?: (info: PickingInfo) => void;
@@ -67,7 +72,7 @@ function underLabels(l: Layer): Layer {
  * When the map cannot start, it renders nothing and reports why through onFail.
  */
 export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
-  { initialView, layers, interactive = true, onClick, onHover, getCursor, className, showControls = true, onLoad, onFail, collapseAttributionMs },
+  { initialView, layers, effects, interactive = true, onClick, onHover, getCursor, className, showControls = true, onLoad, onFail, collapseAttributionMs },
   ref,
 ) {
   const el = useRef<HTMLDivElement>(null);
@@ -109,7 +114,12 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
         maxZoom: 17.5,
         fadeDuration: reduced ? 0 : 300,
       });
-      if (showControls && interactive) map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
+      // The compass carries the pitch indicator, and the pitch is what makes
+      // the 3D landmarks worth drawing: from straight down they are blobs.
+      // Clicking it puts the map back to north-up and flat.
+      if (showControls && interactive) {
+        map.addControl(new NavigationControl({ showCompass: true, visualizePitch: true }), "bottom-right");
+      }
       const overlay = new MapboxOverlay({
         interleaved: true,
         layers: [],
@@ -155,6 +165,12 @@ export const MapCanvas = forwardRef<MapHandle, Props>(function MapCanvas(
   useEffect(() => {
     overlayRef.current?.setProps({ layers: layers.map(underLabels) });
   }, [layers]);
+
+  // Separate from the layers effect: the rig is built once and the layers
+  // change on every filter, so pushing both together would reupload it.
+  useEffect(() => {
+    if (effects) overlayRef.current?.setProps({ effects });
+  }, [effects]);
 
   useImperativeHandle(ref, () => ({
     map: () => mapRef.current,

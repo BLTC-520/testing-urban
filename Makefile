@@ -45,7 +45,7 @@ pipeline:
 landmarks:
 	$(PY) scripts/landmarks/textures.py
 	$(PY) scripts/landmarks/footprints.py -o scripts/landmarks/refs/footprints.json
-	$(PY) scripts/landmarks/build_models.py --out dashboard/public/models
+	$(PY) scripts/landmarks/build_models.py --out web/public/models
 
 web:
 	cd web && $(NPM) run build:site

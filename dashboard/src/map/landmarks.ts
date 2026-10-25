@@ -18,13 +18,25 @@
  * Scale, honestly
  * ---------------
  * Every model is built at its real size in metres and drawn at its real size,
- * with one documented exception: anything shorter than MIN_DRAWN_M is scaled up
- * to that height, because the Merlion is 8.6 m tall and would otherwise be a
- * single pixel at any zoom this dashboard uses. The exaggeration is reported in
- * the hover card rather than hidden.
+ * with one documented exception: anything under the manifest's `min_drawn_m`
+ * across its largest dimension is scaled up to it, because the Merlion is
+ * 8.6 m tall and would otherwise be a single pixel at any zoom this dashboard
+ * uses. The exaggeration is reported in the hover card rather than hidden, and
+ * the number itself comes from the builder, not from here.
  */
 import { ScenegraphLayer } from "@deck.gl/mesh-layers";
 import manifest from "./landmarks.json";
+
+/*
+ * The models are served by the API from web/public/models, the same single
+ * copy the published site uses — see the @fastify/static registration in
+ * server/src/app.ts and the dev-server proxy in vite.config.ts. Building them
+ * into dashboard/public would have meant two copies of 1.3 MB of geometry in
+ * one repository, which is the thing basemap.pmtiles is already careful not
+ * to do.
+ */
+const API = import.meta.env.VITE_API_BASE ?? "";
+const modelUrl = (file: string) => `${API}/models/${file}`;
 
 export interface Landmark {
   id: string;
@@ -37,6 +49,8 @@ export interface Landmark {
   height_m: number;
   /** The model's largest dimension, measured in Blender rather than declared. */
   extent_m: number;
+  /** How much it is enlarged to stay visible. 1 is true scale. */
+  draw_scale: number;
   model: string;
   facts: string;
   /** How well sourced the dimensions are: published / derived / estimated. */
@@ -48,39 +62,30 @@ export interface Landmark {
 export const LANDMARKS: Landmark[] = manifest.landmarks;
 
 /**
- * Below this zoom the layer is not drawn at all.
+ * The drawing policy, decided by the builder and carried in the manifest.
  *
- * At zoom 12 one pixel is about 38 m on the ground near the equator, so a 200 m
- * tower is five pixels tall and a cluster of twenty-six landmarks is noise over the
- * data. They fade in over the next three-quarters of a zoom level rather than
- * appearing all at once, which on a wall display reads as the map gaining
- * detail instead of something switching on.
+ * It lives there rather than here because the dashboard is not the only thing
+ * that draws these: the Explorer on the published site draws the same models
+ * from the same manifest, and a policy copied into two front ends is a policy
+ * that will disagree with itself.
  */
-export const MIN_ZOOM = 12.3;
-const FADE_ZOOM = 0.75;
+export const POLICY = manifest.policy;
+
+/** Below this zoom the layer is not drawn at all; see POLICY. */
+export const MIN_ZOOM = POLICY.min_zoom;
 
 /**
- * Nothing is drawn smaller than this across its largest dimension.
+ * How much a landmark is enlarged to stay visible. 1 means true scale.
  *
- * 65 m is about where a model stops being a smudge at the zoom the layer fades
- * in at. The measure is the model's *extent*, not its height: the Causeway is
- * 17 m tall and 1,056 m long, and a height-based rule decided it needed
- * enlarging three-fold, which would have put a 3.4 km embankment across a
- * 1 km strait.
- *
- * In practice it catches two of twenty-six: the Merlion, 18 m across including
- * its plinth and its jet, and the Chinese Garden pagoda at 42 m. Everything
- * else is at least 66 m and drawn true. The hover card says which is which. A map symbol that is not to scale is
- * ordinary; one that does not admit it is not.
+ * The number is computed by the builder from the model's measured extent and
+ * carried in the manifest; this is only the accessor. The hover card prints it
+ * when it is not 1, because a map symbol that is not to scale is ordinary and
+ * one that does not admit it is not.
  */
-const MIN_DRAWN_M = 65;
-
-/** How much a landmark is enlarged to reach MIN_DRAWN_M. 1 means true scale. */
-export const exaggeration = (l: Landmark): number =>
-  Math.max(1, MIN_DRAWN_M / (l.extent_m || l.height_m));
+export const exaggeration = (l: Landmark): number => l.draw_scale;
 
 export const opacityAt = (zoom: number): number =>
-  Math.max(0, Math.min(1, (zoom - MIN_ZOOM) / FADE_ZOOM));
+  Math.max(0, Math.min(1, (zoom - MIN_ZOOM) / POLICY.fade_zoom));
 
 export interface LandmarkLayerOptions {
   zoom: number;
@@ -115,7 +120,7 @@ export function landmarkLayers(opts: LandmarkLayerOptions) {
     new ScenegraphLayer<Landmark>({
       id: `landmark-${l.id}`,
       data: [l],
-      scenegraph: `models/${l.model}`,
+      scenegraph: modelUrl(l.model),
       getPosition: () => [l.lon, l.lat, 0],
       /*
        * deck.gl takes [pitch, yaw, roll] in degrees and composes them as
@@ -133,10 +138,7 @@ export function landmarkLayers(opts: LandmarkLayerOptions) {
        * the check page with the camera facing north — see landmarksCheck.ts.
        */
       getOrientation: () => [0, 90 - l.bearing, 90],
-      getScale: () => {
-        const s = exaggeration(l);
-        return [s, s, s];
-      },
+      getScale: () => [l.draw_scale, l.draw_scale, l.draw_scale],
       sizeScale: 1,
       // The landmarks of the other city stay on the map — the Causeway pair
       // only makes sense as a pair — but they recede.
@@ -151,7 +153,7 @@ export function landmarkLayers(opts: LandmarkLayerOptions) {
       // the manifest itself changes — which is to say, on a hot reload after a
       // rebuild. They are here so that rebuild shows up without a page refresh.
       updateTriggers: {
-        getScale: [l.height_m],
+        getScale: [l.draw_scale],
         getOrientation: [l.bearing],
       },
     }),
