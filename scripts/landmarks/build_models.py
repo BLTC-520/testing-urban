@@ -1231,12 +1231,16 @@ def _checkpoint(spec, pal, tex, canopy_w: float, canopy_d: float, lanes: int, na
     recognisable part — a long lit roof with the lanes glowing underneath.
     """
     h = spec["height_m"]
-    roof = material(f"{name}-roof", (0.15, 0.16, 0.18), rough=0.5, metallic=0.35,
-                    emit=(1.0, 0.86, 0.6), strength=0.07)
+    roof = material(f"{name}-roof", (0.17, 0.17, 0.19), rough=0.5, metallic=0.35,
+                    emit=pal["street"], strength=0.07)
     rim = material(f"{name}-rim", (0.9, 0.78, 0.55), rough=0.3,
-                   emit=(1.0, 0.86, 0.6), strength=1.2)
-    lanes_mat = material(f"{name}-lanes", (0.16, 0.14, 0.11), rough=0.85,
-                         emit=(1.0, 0.8, 0.45), strength=0.55)
+                   emit=pal["street"], strength=1.3)
+    # The inspection lanes under the canopy. Brighter than anything else on the
+    # model, because a checkpoint at night is a rectangle of light with a dark
+    # lid over it — which is exactly how both ends of the Causeway read in the
+    # dusk photograph from the Singapore shore.
+    lanes_mat = material(f"{name}-lanes", (0.30, 0.26, 0.20), rough=0.85,
+                         emit=pal["street"], strength=0.95)
     block = textured(f"{name}-block", tex, "facade_block", tile_m=16.0)
     col = material(f"{name}-col", pal["concrete"], rough=0.8)
 

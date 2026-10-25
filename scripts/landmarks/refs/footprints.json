@@ -241,35 +241,35 @@
   },
   "sultan-iskandar-ciq": {
     "centroid": [
-      103.764051,
-      1.456344
+      103.766169,
+      1.460576
     ],
-    "area_m2": 162.1,
-    "bearing_deg": 163.7,
-    "length_m": 20.6,
-    "width_m": 11.4,
-    "elongation": 1.8,
-    "vertices": 8,
+    "area_m2": 7055.8,
+    "bearing_deg": 147.5,
+    "length_m": 205.9,
+    "width_m": 44.9,
+    "elongation": 4.58,
+    "vertices": 12,
     "matched": true,
-    "match": "nearest-large",
-    "anchor_offset_m": 88.0,
-    "bearing_trusted": false
+    "match": "contains-anchor",
+    "anchor_offset_m": 1.6,
+    "bearing_trusted": true
   },
   "woodlands-checkpoint": {
     "centroid": [
-      103.769193,
-      1.446726
+      103.769645,
+      1.446156
     ],
-    "area_m2": 1801.6,
-    "bearing_deg": 9.9,
-    "length_m": 89.0,
-    "width_m": 37.5,
-    "elongation": 2.37,
-    "vertices": 15,
+    "area_m2": 12495.3,
+    "bearing_deg": 21.4,
+    "length_m": 215.9,
+    "width_m": 96.7,
+    "elongation": 2.23,
+    "vertices": 24,
     "matched": true,
-    "match": "nearest-large",
-    "anchor_offset_m": 96.8,
-    "bearing_trusted": false
+    "match": "contains-anchor",
+    "anchor_offset_m": 17.3,
+    "bearing_trusted": true
   },
   "johor-causeway": {
     "matched": false

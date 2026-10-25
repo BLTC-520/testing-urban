@@ -252,27 +252,28 @@
       "id": "sultan-iskandar-ciq",
       "name": "Bangunan Sultan Iskandar (CIQ)",
       "city": "jb",
-      "lat": 1.45605,
-      "lon": 103.7648,
-      "anchor_source": "northern end of the Causeway, approximate",
+      "lat": 1.4605,
+      "lon": 103.7662,
+      "anchor_source": "the 206 x 45 m inspection hall at the north end of the Causeway in the basemap's buildings layer",
       "height_m": 55.0,
       "confidence": "estimated",
       "facts": "Malaysia's customs, immigration and quarantine complex at the north end of the Causeway: the building this whole study's cross-border travel times pass through.",
-      "bearing_deg": 70.0,
-      "bearing_note": "inspection halls run across the Causeway approach"
+      "bearing_deg": 147.5,
+      "bearing_note": "long axis of that hall",
+      "note": "The first anchor for this was 400 m out, in the strait. The footprint search found nothing containing it and fell back to the published point, which put a customs complex on the water \u2014 the failure mode the contains-anchor rule is there to make visible rather than to fix."
     },
     {
       "id": "woodlands-checkpoint",
       "name": "Woodlands Checkpoint",
       "city": "sg",
-      "lat": 1.44752,
-      "lon": 103.7688,
-      "anchor_source": "southern end of the Causeway, approximate",
+      "lat": 1.44616,
+      "lon": 103.76964,
+      "anchor_source": "the 216 x 97 m hall of the checkpoint complex in the basemap's buildings layer",
       "height_m": 40.0,
       "confidence": "estimated",
       "facts": "Singapore's end of the Causeway. Paired with the CIQ building, the two mark the only land crossing in the study area.",
-      "bearing_deg": 178.5,
-      "bearing_note": "near square in plan"
+      "bearing_deg": 21.4,
+      "bearing_note": "long axis of that hall"
     },
     {
       "id": "johor-causeway",
