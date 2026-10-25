@@ -148,6 +148,8 @@ Sultan Ibrahim, the state mosque, Komtar JBCC and The Astaka on the other; and a
 between them, both checkpoints and the Causeway itself — the only land crossing in the study
 area, and the thing every cross-border walking time in this dashboard has to pass through.
 
+![Marina Bay on the command-centre map: the Sands under its SkyPark, the ArtScience Museum behind it, the Esplanade's two shells, the Merlion and the Fullerton at the river mouth, the Singapore Flyer across the water and the Supertree Grove below — all at their real size and bearing, standing in OSM building massing with the hexagon layer flattened to a carpet beneath them](docs/img/landmarks-bay.jpg)
+
 They are modelled in Blender, headless, from a Python script
 ([`scripts/landmarks/build_models.py`](scripts/landmarks/build_models.py)). Not sculpted and not
 scanned: **the script is the model**. That matters for three reasons.
