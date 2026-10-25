@@ -255,6 +255,7 @@ docs/              case study and architecture
 
 * [Case study](docs/case-study.md) — problem, research, data, method, design, findings, limitations, next steps
 * [Architecture](docs/architecture.md) — pipeline, static artifacts, rendering, testing
+* [Deploying to AWS](docs/deploy-aws.md) — S3 + CloudFront for the site, a Lambda container for the API, and the four things to change first
 * [Methods](https://sgjburbansideprojects.brianhar.site/methods/) page in the site — formulas, data register, audits, sensitivity
 * [Data licences](DATA_LICENSES.md) — sources and required attributions
 
