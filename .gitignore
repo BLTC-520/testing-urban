@@ -16,3 +16,6 @@ web/playwright-report/
 
 # web/public/data and web/public/tiles are the published results of a full
 # real-data run (`make pipeline`); they are committed so the site builds as is.
+
+# root workspace scripts (server/ and dashboard/ keep their own lockfiles)
+/node_modules/

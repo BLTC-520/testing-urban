@@ -1,0 +1,18 @@
+{
+  "name": "sgjb-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Root scripts for running the command centre: the API and the dashboard together.",
+  "scripts": {
+    "setup": "npm --prefix server ci && npm --prefix dashboard ci && npm --prefix server run ingest",
+    "ingest": "npm --prefix server run ingest",
+    "verify": "npm --prefix server run verify",
+    "dev": "node scripts/dev.mjs",
+    "dev:server": "npm --prefix server run dev",
+    "dev:dashboard": "npm --prefix dashboard run dev",
+    "build": "npm --prefix dashboard run build",
+    "test": "npm --prefix server test",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix dashboard run typecheck"
+  },
+  "devDependencies": {}
+}

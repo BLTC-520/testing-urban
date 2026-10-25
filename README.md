@@ -75,6 +75,15 @@ actually runs: Vue 3, ECharts, deck.gl and MapLibre on the front, Node and SQLit
 lives in [`dashboard/`](dashboard/) and [`server/`](server/). The React site is untouched — same
 build, same tests, same deploy.
 
+**Run it:** `npm run setup` once, then `npm run dev` — API on :8787, dashboard on :5174.
+
+The screen is one fixed 1920×1080 stage scaled to whatever display it lands on, so it keeps 16:9
+from a laptop to a 4K wall. Top bar switches city, walk budget and walking speed; a left column of
+KPI tiles; a 3D H3 hex map in the middle with colour for access and height for population; four
+ECharts panels down the right; scenario switches along the bottom. Clicking a hexagon or a district
+row scopes every panel to that place. Every number on screen comes from the same API query as the
+map, so nothing on the wall can disagree with anything else on the wall.
+
 ### Decision: the server aggregates, it does not just serve
 
 The analysis outputs are static files. The React site reads them straight out of `/data` with no
@@ -86,8 +95,9 @@ It earns it, for two reasons.
 
 **Payload.** There are 91,357 hexagons across the two cities. Served raw at resolution 10 that is
 5.5 MB of JSON for Singapore and 7.8 MB for Johor Bahru. Rolled up to H3 resolution 8 in SQL it is
-746 and 1,117 hexagons — 35 KB and 51 KB. That is 150× less data over the wire for a surface that
-reads identically on a wall-mounted screen, and it is work a database is better at than a browser.
+746 and 1,117 hexagons — about 100 KB and 130 KB over HTTP. That is roughly 60× less data on the
+wire for a surface that reads identically on a wall-mounted screen, and it is work a database is
+better at than a browser.
 
 **Order of operations, which matters more.** Completeness is "all six essentials within 15 minutes".
 You have to test that for each small hexagon and *then* average over population. Do it the other
@@ -99,9 +109,9 @@ Bahru's by 0.5. Putting the aggregation in SQL means there is one place where th
 correct, instead of every client getting it right by hoping.
 
 So: each cell's resolution-8 and resolution-7 parent hexagons are precomputed at ingest, and
-`/api/cells` is one `GROUP BY` that thresholds first and aggregates second. 23–36 ms per query. It
-is the one choice in the schema that would be expensive to undo, which is why I made it before
-writing the rest.
+`/api/cells` is one `GROUP BY` that thresholds first and aggregates second — 23–36 ms per query,
+about 130 ms end to end including JSON serialisation. It is the one choice in the schema that would
+be expensive to undo, which is why I made it before writing the rest.
 
 The cost I accepted: moving the minutes slider is now an HTTP request rather than a local
 recompute. That is fine. The response is a pure function of city, minutes and speed — three values
@@ -127,6 +137,46 @@ gap is rounding: distances are stored as whole metres, so cells sitting within h
 threshold land on the wrong side of it — about 260–290 residents per city. Neither is fixable
 downstream, both are small, and I would rather have them written down than discover them in an
 interview.
+
+### How this was built
+
+The concept is mine: a command centre for the 15-minute-city data, in the stack a 3D digital-twin
+team actually runs, because reading about Vue is not the same as shipping something in it.
+
+**My decisions.** What the screen is for and who reads it. The layout — KPI rail left, map centre,
+charts right, scenarios along the bottom. Which six metrics earn a tile, and that the scarcest
+essential is one of them, because "healthcare is the binding constraint in both cities" is the
+study's most useful finding and a number nobody would compute for themselves. That the scenario
+switches show the pipeline's published before/after rather than figures the dashboard derives.
+That clicking a hexagon scopes everything rather than opening a separate view. That the screen is a
+fixed 1920×1080 scaled to fit, because it targets a wall and not a browser window. And the standing
+rule for the whole thing: the dashboard may never state a number the study does not support.
+
+**What Claude Code implemented under my direction.** The SQLite schema and ingest, the Fastify API
+and its tests, the Vue components, the ECharts panels, the deck.gl map, and the documentation. I
+reviewed the decisions, pushed back where the easy path was the wrong one, and asked it to prove
+things rather than assert them.
+
+That last part is most of the value. Three examples of what it caught by checking rather than
+trusting:
+
+* The ingest reproduced the study's headline share to five decimal places — but **not exactly**, and
+  every discrepancy leaned the same way. One-sided error means a cause. It turned out the binary
+  export maps both "off the walk network" and "on the network but nothing within reach" to the same
+  sentinel, which quietly drops 1,060 Johor Bahru residents out of the denominator. The existing
+  React site has carried that since it was built. It is under a tenth of a percentage point and now
+  it is written down.
+* Averaging walking distances into a bigger hexagon and *then* testing the 15-minute threshold —
+  the obvious way to make the map fast — overstates Singapore's completeness by 4.6 points. The
+  threshold has to be applied per small cell first. `npm run verify` measures the wrong answer
+  alongside the right one so the point is not rhetorical.
+* Switching city with a scenario active briefly showed a −39.5 point delta: one city's scenario
+  against the other's baseline, because a cached response can land after a newer one and win. Found
+  by driving the real UI, not by reading the code.
+
+None of those are visible without looking. That is the part of "AI native" that I think matters:
+not how fast the first version appears, but whether anyone checks it against the thing it claims to
+describe.
 
 ## My contribution
 
@@ -172,6 +222,17 @@ make dev                   # http://localhost:5173
 make web                   # static site in web/dist, every page prerendered (needs Playwright's Chromium)
 make check                 # end-to-end checks of web/dist: no-JS HTML, URLs, agent tools
 make test                  # pytest + vitest
+```
+
+Command centre dashboard (independent of the static site — it needs only the committed
+`web/public/data`, not a pipeline run):
+
+```bash
+npm run setup              # server + dashboard dependencies, then builds server/data/sgjb.db
+npm run dev                # API on :8787 and the dashboard on :5174, together
+npm run verify             # recompute the study's headline numbers out of SQLite (20 checks)
+npm test                   # 67 API tests, most of them about input that should be refused
+npm run ingest             # rebuild the database from web/public/data
 ```
 
 Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios footpath summary export basemap`.

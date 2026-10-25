@@ -1,0 +1,48 @@
+@import "./tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #app {
+  margin: 0;
+  height: 100%;
+  background: var(--ink-0);
+  color: var(--paper-1);
+  font-family: var(--font-sans);
+  /* A wall display is never scrolled; the stage scales instead. */
+  overflow: hidden;
+}
+
+/* Panel chrome — every tile and chart frame shares it. */
+.panel {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;   /* so a flex child with a chart in it can actually shrink */
+  min-width: 0;
+}
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px 6px;
+}
+.panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+.panel-note { font-size: 11px; color: var(--paper-3); }
+.panel-body { flex: 1 1 auto; min-height: 0; padding: 0 10px 8px; }
+
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Keyboard focus has to survive on a screen nobody is sitting at, but it must
+   not be visible for mouse use. */
+:focus-visible { outline: 2px solid var(--ramp-4); outline-offset: 2px; }
+
+button { font: inherit; color: inherit; cursor: pointer; }

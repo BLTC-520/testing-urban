@@ -1,0 +1,67 @@
+/*
+ * Design tokens — "night survey", carried over from the React site
+ * (web/src/styles/tokens.css) so the two read as one project.
+ *
+ * The palette was validated with the dataviz validator against the dark
+ * surface #11151b and re-checked for this dashboard:
+ *   · essentials (6, adjacent)  — all checks pass, worst CVD ΔE 9.6
+ *   · SG / JB identity pair     — all checks pass, CVD ΔE 25.6
+ *   · completeness ramp         — OKLab L 0.299 → 0.914, monotonic, ΔL ≈ 0.10
+ * --neutral-series deliberately fails the chroma floor: it is the recessive
+ * "today's baseline" reference mark, not a categorical identity slot.
+ *
+ * Sizes are in px, not rem or clamp(): the stage is a fixed 1920×1080 and is
+ * scaled as a whole to fit the viewport, so type must not reflow. See
+ * composables/useStageScale.ts.
+ */
+:root {
+  color-scheme: dark;
+
+  --ink-0: #07090c;
+  --ink-1: #0b0e12;
+  --ink-2: #11151b;
+  --ink-3: #171c24;
+  --ink-4: #222a35;
+  --line: rgba(236, 233, 226, 0.09);
+  --line-strong: rgba(236, 233, 226, 0.18);
+
+  --paper-0: #f3efe6;
+  --paper-1: #d9d4c9;
+  --paper-2: #a8a49b;
+  --paper-3: #77746d;
+
+  --sg: #e75438;
+  --sg-soft: rgba(231, 84, 56, 0.16);
+  --jb: #3b89e9;
+  --jb-soft: rgba(59, 137, 233, 0.16);
+  --neutral-series: #8a8f98;
+
+  --ramp-0: #222a51;
+  --ramp-1: #22477d;
+  --ramp-2: #10699f;
+  --ramp-3: #0b8eaf;
+  --ramp-4: #1cb4b6;
+  --ramp-5: #6ad5b6;
+  --ramp-6: #b6f4ca;
+
+  --cat-groceries: #be8609;
+  --cat-healthcare: #dc4b6e;
+  --cat-education: #5f8adf;
+  --cat-green_space: #2da962;
+  --cat-transit: #9c70d0;
+  --cat-dining: #d3772e;
+
+  --gain: #ffd166;
+  --loss: #ff4fa3;
+  --warn: #ffb547;
+
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Fixed stage geometry. */
+  --stage-w: 1920px;
+  --stage-h: 1080px;
+  --gap: 14px;
+  --radius: 10px;
+}

@@ -7,16 +7,26 @@
   "scripts": {
     "ingest": "tsx src/ingest.ts",
     "typecheck": "tsc --noEmit",
-    "verify": "tsx src/verify.ts"
+    "verify": "tsx src/verify.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.1",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/static": "^10.1.7",
     "better-sqlite3": "^11.10.0",
-    "h3-js": "^4.5.0"
+    "fastify": "^5.12.7",
+    "h3-js": "^4.5.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.13.3",
     "tsx": "^4.20.3",
-    "typescript": "~6.0.2"
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.5"
   }
 }
