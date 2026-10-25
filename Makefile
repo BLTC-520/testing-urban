@@ -36,8 +36,12 @@ pipeline:
 
 # The 3D landmarks on the command-centre map. Needs the extra dependencies:
 #   .venv/bin/pip install -e ".[landmarks]"
-# The reference photographs the colours come from are not committed; fetch_refs
-# re-downloads them if you want to redo the analysis step as well.
+#
+# Deterministic: every random draw is seeded, so re-running this on an unchanged
+# checkout leaves no diff, and the committed .glb files can be verified by
+# rebuilding them. The reference photographs the colours come from are not
+# committed; fetch_refs re-downloads them if you want to redo the analysis step
+# as well, which is the one part of the chain this target does not run.
 landmarks:
 	$(PY) scripts/landmarks/textures.py
 	$(PY) scripts/landmarks/footprints.py -o scripts/landmarks/refs/footprints.json

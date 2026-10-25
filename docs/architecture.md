@@ -142,7 +142,9 @@ them is hand-placed:
 
 The same archive's `buildings` layer is also extruded as uniform 9 m massing from zoom 13, and the
 hexagon columns collapse and their fill thins over the zoom level in which the landmarks fade in,
-so the data does not stand in front of the city. `make landmarks` rebuilds the lot.
+so the data does not stand in front of the city. A model that fails to load takes only itself out:
+one `ScenegraphLayer` logs and draws nothing, the other seventeen and the rest of the map are
+unaffected (checked by deleting one and loading the page). `make landmarks` rebuilds the lot, deterministically: every random draw is seeded, so re-running it on an unchanged checkout leaves no diff and the committed binaries can be verified by regenerating them.
 
 ## Testing
 

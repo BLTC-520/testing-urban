@@ -100,6 +100,12 @@ export interface LandmarkLayerOptions {
  * it replaces. The alternative — one layer with an instanced mesh — would need
  * all eighteen landmarks to share one geometry, which is the opposite of the
  * point.
+ *
+ * It also fails well, which was checked rather than assumed: deleting one .glb
+ * and loading the map leaves that one landmark absent, one console error from
+ * deck.gl's loader, and everything else — the other seventeen, the hexagons,
+ * the basemap — drawing normally. Decoration that can take the map down with
+ * it would not be worth shipping.
  */
 export function landmarkLayers(opts: LandmarkLayerOptions) {
   const opacity = opacityAt(opts.zoom);

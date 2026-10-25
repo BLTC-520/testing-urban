@@ -216,6 +216,11 @@ Where the sources give less, the model says less. The four central-area towers â
 day â€” share one builder, because what is published about them is a height, a floor count, a
 roughly square plan and a kind of top. Four bespoke models would be four inventions.
 
+`make landmarks` rebuilds all of it from the committed numbers, byte for byte: every random draw
+in the texture generator and the grove's scatter is seeded, so a reviewer can check the committed
+binaries by regenerating them and finding no diff. The photographs are only needed to redo the
+colour analysis itself.
+
 Total cost: 844 kB of glTF, about 12,500 triangles across all eighteen, and no measurable frame
 time.
 
