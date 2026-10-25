@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { MaskExtension } from "@deck.gl/extensions";
 import {
-  OSM_BUILDINGS_ASSET, buildingsFocus, buildingsLayer, emptyModelSafe, geodeticToEcef, hexStyle, ionToken,
+  BUILDINGS_MASK_ID, OSM_BUILDINGS_ASSET, buildingsFocus, buildingsLayer, cityMaskLayer, emptyModelSafe, geodeticToEcef, hexStyle, ionToken,
   prepareTileset, regionToSphere,
 } from "./buildings.ts";
 import { STUDY_AREA } from "./studyArea.ts";
@@ -151,8 +152,34 @@ describe("empty placeholder tiles", () => {
   });
 });
 
+describe("one city's buildings at a time", () => {
+  const sg = buildingsLayer("tok", "sg");
+  const jb = buildingsLayer("tok", "jb");
+
+  it("are separate layers, so switching city loads a tileset pruned to the new city", () => {
+    expect(sg.id).not.toBe(jb.id);
+    expect(sg.props.loaders?.[0]).not.toBe(jb.props.loaders?.[0]);
+  });
+
+  it("keep the same loader for the same city, so a re-render does not reload", () => {
+    expect(buildingsLayer("tok", "sg").props.loaders?.[0]).toBe(sg.props.loaders?.[0]);
+  });
+
+  it("are clipped on the GPU to the current city's hexagons", () => {
+    const props = sg.props as unknown as { maskId?: string };
+    expect(sg.props.extensions?.some((e) => e instanceof MaskExtension)).toBe(true);
+    expect(props.maskId).toBe(BUILDINGS_MASK_ID);
+  });
+
+  it("take their mask from a layer that only masks and never draws", () => {
+    const mask = cityMaskLayer([]);
+    expect(mask.id).toBe(BUILDINGS_MASK_ID);
+    expect(mask.props.operation).toBe("mask");
+  });
+});
+
 describe("the buildings layer", () => {
-  const layer = buildingsLayer("tok");
+  const layer = buildingsLayer("tok", "sg");
 
   it("loads Cesium OSM Buildings through the ion loader", () => {
     expect(layer.props.data).toBe(`https://assets.ion.cesium.com/${OSM_BUILDINGS_ASSET}/tileset.json`);

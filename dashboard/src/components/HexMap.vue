@@ -31,7 +31,9 @@ import { useData } from "../stores/data.ts";
 import { useFilters } from "../stores/filters.ts";
 import { basemapStyle, registerPmtiles } from "../map/basemapStyle.ts";
 import { rampAt, hexToRGB } from "../map/colors.ts";
-import { BUILDINGS_VIEW, buildingsFocus, buildingsLayer, hexStyle, ionToken } from "../map/buildings.ts";
+import {
+  BUILDINGS_VIEW, buildingsFocus, buildingsLayer, cityMaskLayer, hexStyle, ionToken,
+} from "../map/buildings.ts";
 import { STUDY_AREA } from "../map/studyArea.ts";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
@@ -128,8 +130,11 @@ function buildLayers() {
       },
     });
 
-  // Buildings after hexagons, so they draw over the flattened ground plane.
-  return showBuildings.value && ION_TOKEN ? [hexLayer, buildingsLayer(ION_TOKEN)] : [hexLayer];
+  // Buildings after hexagons, so they draw over the flattened ground plane;
+  // the mask (the same hexagons, never drawn) clips them to this city.
+  return showBuildings.value && ION_TOKEN
+    ? [cityMaskLayer(hexes), hexLayer, buildingsLayer(ION_TOKEN, f.city)]
+    : [hexLayer];
 }
 
 /**

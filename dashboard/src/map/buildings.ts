@@ -20,10 +20,11 @@
  *
  * React equivalent: none needed — this is plain deck.gl, framework-agnostic.
  */
-import { Tile3DLayer } from "@deck.gl/geo-layers";
+import { H3HexagonLayer, Tile3DLayer } from "@deck.gl/geo-layers";
+import { MaskExtension } from "@deck.gl/extensions";
 import { CesiumIonLoader } from "@loaders.gl/3d-tiles";
-import type { CityId } from "../api/types.ts";
-import { STUDY_AREA, type Bounds } from "./studyArea.ts";
+import type { CityId, Hex } from "../api/types.ts";
+import { CITY_BOUNDS, type Bounds } from "./studyArea.ts";
 
 /** Cesium OSM Buildings, available to every Cesium ion account. */
 export const OSM_BUILDINGS_ASSET = 96188;
@@ -209,15 +210,48 @@ export function emptyModelSafe<T>(content: T): T {
  * parsed tileset names this loader as its own, so tiles and any nested
  * tileset.json it links to come through here too.
  */
-const BuildingsLoader: typeof CesiumIonLoader = {
-  ...CesiumIonLoader,
-  parse: async (data, options, context) => {
-    const parsed = await CesiumIonLoader.parse(data, options, context);
-    return isTileset(parsed)
-      ? { ...prepareTileset(parsed, STUDY_AREA), loader: BuildingsLoader }
-      : emptyModelSafe(parsed);
-  },
+function makeLoader(area: Bounds): typeof CesiumIonLoader {
+  const loader: typeof CesiumIonLoader = {
+    ...CesiumIonLoader,
+    parse: async (data, options, context) => {
+      const parsed = await CesiumIonLoader.parse(data, options, context);
+      return isTileset(parsed)
+        ? { ...prepareTileset(parsed, area), loader }
+        : emptyModelSafe(parsed);
+    },
+  };
+  return loader;
+}
+
+/** One loader per city, made once: a new loader object on every render would look like a new layer. */
+const LOADERS: Record<CityId, typeof CesiumIonLoader> = {
+  sg: makeLoader(CITY_BOUNDS.sg),
+  jb: makeLoader(CITY_BOUNDS.jb),
 };
+
+/*
+ * Only the current city's buildings
+ * ---------------------------------
+ * Pruning tiles by a rectangle cannot follow a coastline: a tile that crosses
+ * the Johor Strait carries buildings from both shores, and Singapore's box
+ * still touches Batam. So the buildings are also clipped on the GPU with
+ * deck.gl's MaskExtension: the current city's hexagons are drawn, invisibly,
+ * into a mask, and any part of a building outside them is discarded. The mask
+ * is exactly where the study has data for that city.
+ */
+export const BUILDINGS_MASK_ID = "buildings-mask";
+const MASK = new MaskExtension();
+
+export function cityMaskLayer(hexes: Hex[]): H3HexagonLayer<Hex> {
+  return new H3HexagonLayer<Hex>({
+    id: BUILDINGS_MASK_ID,
+    data: hexes,
+    getHexagon: (h) => h.hex,
+    operation: "mask",
+    extruded: false,
+    stroked: false,
+  });
+}
 
 /**
  * Tint for the building meshes. OSM Buildings arrive white, which on a dark
@@ -225,11 +259,17 @@ const BuildingsLoader: typeof CesiumIonLoader = {
  */
 const BUILDING_TINT: [number, number, number, number] = [150, 162, 178, 255];
 
-export function buildingsLayer(token: string): Tile3DLayer {
+/**
+ * The current city's buildings. Each city is its own layer id, so switching
+ * city loads a tileset pruned to that city instead of reusing the other's.
+ */
+export function buildingsLayer(token: string, city: CityId): Tile3DLayer {
   return new Tile3DLayer({
-    id: "osm-buildings",
+    id: `osm-buildings-${city}`,
     data: `https://assets.ion.cesium.com/${OSM_BUILDINGS_ASSET}/tileset.json`,
-    loaders: [BuildingsLoader],
+    loaders: [LOADERS[city]],
+    extensions: [MASK],
+    maskId: BUILDINGS_MASK_ID,
     loadOptions: {
       // The loader trades this for the tileset's real URL and a short-lived
       // bearer token, then sends that as a header — the key never sits in a URL.
