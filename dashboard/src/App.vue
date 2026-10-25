@@ -19,9 +19,11 @@ import ThresholdCurve from "./components/ThresholdCurve.vue";
 import EssentialBars from "./components/EssentialBars.vue";
 import DistributionChart from "./components/DistributionChart.vue";
 import DistrictTable from "./components/DistrictTable.vue";
+import LandmarkList from "./components/LandmarkList.vue";
 import HexMap from "./components/HexMap.vue";
 import ScenarioBar from "./components/ScenarioBar.vue";
 import Inspector from "./components/Inspector.vue";
+import WalkFocusPanel from "./components/WalkFocusPanel.vue";
 import { useData } from "./stores/data.ts";
 import { useFilters } from "./stores/filters.ts";
 
@@ -59,7 +61,8 @@ watch(() => f.panelsQuery, () => void d.loadPanels(), { deep: true });
 
       <div class="area-map">
         <HexMap />
-        <Inspector v-if="f.selection" />
+        <WalkFocusPanel v-if="f.focusedLandmark" />
+        <Inspector v-else-if="f.selection" />
       </div>
 
       <div class="area-charts">
@@ -72,8 +75,28 @@ watch(() => f.panelsQuery, () => void d.loadPanels(), { deep: true });
         <ChartPanel title="Essentials reached" note="share of residents">
           <DistributionChart />
         </ChartPanel>
-        <ChartPanel title="Districts, worst first" note="click to scope">
-          <DistrictTable />
+        <ChartPanel
+          :title="f.rightTab === 'landmarks' ? 'Landmarks' : 'Districts, worst first'"
+          :note="f.rightTab === 'landmarks' ? 'click to walk from' : 'click to scope'"
+        >
+          <template #actions>
+            <div class="tab-switch" role="tablist" aria-label="Table view">
+              <button
+                role="tab"
+                :aria-selected="f.rightTab === 'districts'"
+                :class="['tab-btn', { on: f.rightTab === 'districts' }]"
+                @click="f.setRightTab('districts')"
+              >Districts</button>
+              <button
+                role="tab"
+                :aria-selected="f.rightTab === 'landmarks'"
+                :class="['tab-btn', { on: f.rightTab === 'landmarks' }]"
+                @click="f.setRightTab('landmarks')"
+              >Landmarks</button>
+            </div>
+          </template>
+          <LandmarkList v-if="f.rightTab === 'landmarks'" />
+          <DistrictTable v-else />
         </ChartPanel>
       </div>
 
@@ -112,6 +135,20 @@ watch(() => f.panelsQuery, () => void d.loadPanels(), { deep: true });
 }
 .area-charts > * { min-height: 0; }
 .area-scenarios { grid-area: scen; min-width: 0; }
+
+.tab-switch {
+  display: flex; gap: 3px; margin-left: auto;
+  background: var(--ink-1); border: 1px solid var(--line);
+  border-radius: 5px; padding: 2px;
+}
+.tab-btn {
+  background: transparent; border: 0; border-radius: 4px;
+  padding: 2px 7px; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--paper-3);
+}
+.tab-btn:hover { color: var(--paper-1); }
+.tab-btn.on { background: var(--ink-4); color: var(--paper-0); }
 
 .error {
   position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%);

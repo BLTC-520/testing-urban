@@ -1,0 +1,632 @@
+{
+  "generatedAt": "2026-10-25T14:15:53.392Z",
+  "model": "gemini-3-flash-preview",
+  "source": "OpenStreetMap contributors (ODbL), via the Overpass API",
+  "candidates": 865,
+  "landmarks": [
+    {
+      "id": "osm-way-536596463",
+      "name": "Sultan Iskandar Building",
+      "city": "jb",
+      "kind": "transport",
+      "importance": 0.95,
+      "note": "Primary customs, immigration, and quarantine complex for the Causeway.",
+      "position": [
+        103.766626,
+        1.4650166,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-943848684",
+      "name": "Senai International Airport",
+      "city": "jb",
+      "kind": "transport",
+      "importance": 0.8,
+      "note": "International airport serving Johor Bahru and the southern region.",
+      "position": [
+        103.6692894,
+        1.6418484,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-285845913",
+      "name": "Bangunan Sultan Ibrahim",
+      "city": "jb",
+      "kind": "icon",
+      "importance": 0.85,
+      "note": "Former state secretariat building and a prominent colonial-era landmark.",
+      "position": [
+        103.7611326,
+        1.4578152,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-285861174",
+      "name": "Istana Besar",
+      "city": "jb",
+      "kind": "culture",
+      "importance": 0.8,
+      "note": "The Grand Palace of the Sultan of Johor, overlooking the Straits of Johor.",
+      "position": [
+        103.7564384,
+        1.4550447,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-688380900",
+      "name": "Permaisuri Zarith Sofiah Opera House",
+      "city": "jb",
+      "kind": "icon",
+      "importance": 0.75,
+      "note": "Modern performing arts venue located at the R&F Princess Cove waterfront.",
+      "position": [
+        103.7702951,
+        1.4567398,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-369793963",
+      "name": "University of Technology, Malaysia",
+      "city": "jb",
+      "kind": "education",
+      "importance": 0.7,
+      "note": "Major public research university specializing in engineering and technology.",
+      "position": [
+        103.6379984,
+        1.5585256,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-566502798",
+      "name": "Sultanah Aminah Hospital",
+      "city": "jb",
+      "kind": "health",
+      "importance": 0.75,
+      "note": "The main public hospital in Johor Bahru, known for its colonial architecture.",
+      "position": [
+        103.7467094,
+        1.4601903,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-106590697",
+      "name": "Johor Bahru City Square",
+      "city": "jb",
+      "kind": "retail",
+      "importance": 0.7,
+      "note": "Major shopping and office complex located in the heart of the city center.",
+      "position": [
+        103.7639846,
+        1.461701,
+        18
+      ]
+    },
+    {
+      "id": "osm-way-489781430",
+      "name": "The Mall, Mid Valley Southkey",
+      "city": "jb",
+      "kind": "retail",
+      "importance": 0.7,
+      "note": "Large integrated retail and commercial hub in the Southkey district.",
+      "position": [
+        103.7772983,
+        1.5009728,
+        21
+      ]
+    },
+    {
+      "id": "osm-way-192574776",
+      "name": "Legoland Malaysia",
+      "city": "jb",
+      "kind": "leisure",
+      "importance": 0.85,
+      "note": "International theme park and resort located in Iskandar Puteri.",
+      "position": [
+        103.6288626,
+        1.4277203,
+        30
+      ]
+    },
+    {
+      "id": "osm-relation-16794716",
+      "name": "Sultan Ibrahim Stadium",
+      "city": "jb",
+      "kind": "leisure",
+      "importance": 0.75,
+      "note": "Home stadium of the Johor Darul Ta'zim football club.",
+      "position": [
+        103.6192329,
+        1.4816857,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-201941419",
+      "name": "Johor Old Chinese Temple",
+      "city": "jb",
+      "kind": "culture",
+      "importance": 0.65,
+      "note": "One of the oldest religious structures in Johor Bahru, built in the 19th century.",
+      "position": [
+        103.7630645,
+        1.4605758,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-106590670",
+      "name": "Larkin Bus Terminal",
+      "city": "jb",
+      "kind": "transport",
+      "importance": 0.7,
+      "note": "The main public transport hub for long-distance and local buses in Johor.",
+      "position": [
+        103.7425724,
+        1.495717,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-187888833",
+      "name": "Johor Bahru City Council",
+      "city": "jb",
+      "kind": "civic",
+      "importance": 0.6,
+      "note": "Administrative headquarters for the city's local government.",
+      "position": [
+        103.7611624,
+        1.4559963,
+        30
+      ]
+    },
+    {
+      "id": "osm-node-9590275022",
+      "name": "Johor Bahru Chinese Heritage Museum",
+      "city": "jb",
+      "kind": "culture",
+      "importance": 0.6,
+      "note": "Museum documenting the history and culture of the Chinese community in Johor.",
+      "position": [
+        103.7632774,
+        1.4560242,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-174037464",
+      "name": "Singapore Changi Airport",
+      "city": "sg",
+      "kind": "transport",
+      "importance": 0.95,
+      "note": "Major international aviation hub and one of the world's busiest airports.",
+      "position": [
+        103.9950913,
+        1.3512829,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-744520551",
+      "name": "Jewel Changi Airport",
+      "city": "sg",
+      "kind": "icon",
+      "importance": 0.9,
+      "note": "Nature-themed entertainment and retail complex linked to airport terminals.",
+      "position": [
+        103.9896831,
+        1.3602194,
+        37
+      ]
+    },
+    {
+      "id": "osm-way-106193385",
+      "name": "UOB Plaza",
+      "city": "sg",
+      "kind": "icon",
+      "importance": 0.85,
+      "note": "Twin tower skyscraper complex in the central business district.",
+      "position": [
+        103.8507565,
+        1.2853825,
+        33
+      ]
+    },
+    {
+      "id": "osm-way-687917300",
+      "name": "Merlion Park",
+      "city": "sg",
+      "kind": "icon",
+      "importance": 0.9,
+      "note": "Iconic waterfront site featuring the national symbol of Singapore.",
+      "position": [
+        103.8541853,
+        1.2860014,
+        30
+      ]
+    },
+    {
+      "id": "osm-relation-10231144",
+      "name": "Gardens by the Bay",
+      "city": "sg",
+      "kind": "leisure",
+      "importance": 0.95,
+      "note": "Large nature park featuring the Supertree Grove and cooled conservatories.",
+      "position": [
+        103.8649045,
+        1.2810099,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-47257476",
+      "name": "Singapore Botanic Gardens",
+      "city": "sg",
+      "kind": "leisure",
+      "importance": 0.85,
+      "note": "UNESCO World Heritage site and historic tropical garden.",
+      "position": [
+        103.8160569,
+        1.3146697,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-54519165",
+      "name": "National University of Singapore",
+      "city": "sg",
+      "kind": "education",
+      "importance": 0.8,
+      "note": "Leading global research university and the oldest in Singapore.",
+      "position": [
+        103.7773116,
+        1.2962828,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-115105262",
+      "name": "Nanyang Technological University",
+      "city": "sg",
+      "kind": "education",
+      "importance": 0.8,
+      "note": "Major research university known for its engineering and technology programs.",
+      "position": [
+        103.6830404,
+        1.3483213,
+        30
+      ]
+    },
+    {
+      "id": "osm-relation-7096822",
+      "name": "Singapore Management University",
+      "city": "sg",
+      "kind": "education",
+      "importance": 0.75,
+      "note": "Specialized university focused on business, law, and social sciences.",
+      "position": [
+        103.8504115,
+        1.2983299,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-75468299",
+      "name": "Singapore General Hospital",
+      "city": "sg",
+      "kind": "health",
+      "importance": 0.85,
+      "note": "The largest and oldest hospital in Singapore, located at Outram Park.",
+      "position": [
+        103.8347388,
+        1.2794979,
+        30
+      ]
+    },
+    {
+      "id": "osm-relation-2303411",
+      "name": "Tan Tock Seng Hospital",
+      "city": "sg",
+      "kind": "health",
+      "importance": 0.75,
+      "note": "Major multidisciplinary hospital serving the central region.",
+      "position": [
+        103.8462067,
+        1.3212774,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-41663272",
+      "name": "KK Women's and Children's Hospital",
+      "city": "sg",
+      "kind": "health",
+      "importance": 0.75,
+      "note": "Specialized hospital for obstetrics, gynecology, and pediatrics.",
+      "position": [
+        103.8467818,
+        1.3105457,
+        7
+      ]
+    },
+    {
+      "id": "osm-relation-6985173",
+      "name": "Parliament House",
+      "city": "sg",
+      "kind": "civic",
+      "importance": 0.8,
+      "note": "Seat of the Parliament of Singapore, located in the Civic District.",
+      "position": [
+        103.8505737,
+        1.288935,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-41895536",
+      "name": "Istana",
+      "city": "sg",
+      "kind": "civic",
+      "importance": 0.85,
+      "note": "Official residence and office of the President of Singapore.",
+      "position": [
+        103.8428805,
+        1.3070961,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-44414539",
+      "name": "National Library",
+      "city": "sg",
+      "kind": "civic",
+      "importance": 0.75,
+      "note": "The flagship building of the National Library Board.",
+      "position": [
+        103.8542522,
+        1.297616,
+        90
+      ]
+    },
+    {
+      "id": "osm-way-47298635",
+      "name": "Buddha Tooth Relic Temple",
+      "city": "sg",
+      "kind": "culture",
+      "importance": 0.8,
+      "note": "Tang-style Buddhist temple and museum located in Chinatown.",
+      "position": [
+        103.8442306,
+        1.2814954,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-155990076",
+      "name": "Masjid Sultan",
+      "city": "sg",
+      "kind": "culture",
+      "importance": 0.8,
+      "note": "Historic mosque in Kampong Glam, known for its golden domes.",
+      "position": [
+        103.8589901,
+        1.3022204,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-231917869",
+      "name": "ION Orchard",
+      "city": "sg",
+      "kind": "retail",
+      "importance": 0.8,
+      "note": "Landmark shopping mall located at the gateway of Orchard Road.",
+      "position": [
+        103.8319742,
+        1.3039546,
+        30
+      ]
+    },
+    {
+      "id": "osm-relation-2353588",
+      "name": "VivoCity",
+      "city": "sg",
+      "kind": "retail",
+      "importance": 0.75,
+      "note": "The largest shopping mall in Singapore, located at HarbourFront.",
+      "position": [
+        103.8220879,
+        1.2643743,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-45098520",
+      "name": "Lau Pa Sat",
+      "city": "sg",
+      "kind": "retail",
+      "importance": 0.7,
+      "note": "Historic food center in the financial district with Victorian ironwork.",
+      "position": [
+        103.8504767,
+        1.2806123,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-182827369",
+      "name": "National Stadium",
+      "city": "sg",
+      "kind": "leisure",
+      "importance": 0.8,
+      "note": "Multi-purpose arena with a retractable roof, part of the Sports Hub.",
+      "position": [
+        103.8743463,
+        1.3044408,
+        10
+      ]
+    },
+    {
+      "id": "osm-way-95756945",
+      "name": "Universal Studios Singapore",
+      "city": "sg",
+      "kind": "leisure",
+      "importance": 0.85,
+      "note": "Movie-themed amusement park located on Sentosa Island.",
+      "position": [
+        103.8229909,
+        1.2542331,
+        30
+      ]
+    },
+    {
+      "id": "osm-relation-11105973",
+      "name": "Bukit Timah Nature Reserve",
+      "city": "sg",
+      "kind": "leisure",
+      "importance": 0.75,
+      "note": "Primary rainforest reserve containing Singapore's highest point.",
+      "position": [
+        103.7792539,
+        1.3542651,
+        30
+      ]
+    },
+    {
+      "id": "osm-node-4759240362",
+      "name": "National Gallery Singapore",
+      "city": "sg",
+      "kind": "culture",
+      "importance": 0.8,
+      "note": "Art museum housed in the former City Hall and Supreme Court buildings.",
+      "position": [
+        103.8514709,
+        1.2902557,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-32342169",
+      "name": "National Museum of Singapore",
+      "city": "sg",
+      "kind": "culture",
+      "importance": 0.75,
+      "note": "The nation's oldest museum, focusing on Singapore's history.",
+      "position": [
+        103.8484117,
+        1.2965624,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-97582570",
+      "name": "Esplanade Theatres on the Bay",
+      "city": "sg",
+      "kind": "icon",
+      "importance": 0.85,
+      "note": "Performing arts center known for its unique architectural design.",
+      "position": [
+        103.8556842,
+        1.289663,
+        13
+      ]
+    },
+    {
+      "id": "osm-relation-14314416",
+      "name": "ArtScience Museum",
+      "city": "sg",
+      "kind": "icon",
+      "importance": 0.85,
+      "note": "Lotus-inspired museum at Marina Bay Sands hosting touring exhibitions.",
+      "position": [
+        103.8592603,
+        1.2860633,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-230082125",
+      "name": "Singapore Flyer",
+      "city": "sg",
+      "kind": "icon",
+      "importance": 0.8,
+      "note": "Large observation wheel offering panoramic views of the city skyline.",
+      "position": [
+        103.8631253,
+        1.2894104,
+        30
+      ]
+    },
+    {
+      "id": "osm-way-155110820",
+      "name": "Marina South Pier",
+      "city": "sg",
+      "kind": "transport",
+      "importance": 0.6,
+      "note": "Ferry terminal for trips to Singapore's southern islands.",
+      "position": [
+        103.8631838,
+        1.2709083,
+        7
+      ]
+    },
+    {
+      "id": "osm-way-48035415",
+      "name": "Lasalle College of the Arts (McNally Campus)",
+      "city": "sg",
+      "kind": "education",
+      "importance": 0.7,
+      "note": "Specialist arts institution with a contemporary campus design.",
+      "position": [
+        103.8516085,
+        1.302824,
+        18
+      ]
+    },
+    {
+      "id": "osm-way-172368086",
+      "name": "Central Fire Station",
+      "city": "sg",
+      "kind": "civic",
+      "importance": 0.65,
+      "note": "Singapore's oldest fire station, featuring a distinctive red and white facade.",
+      "position": [
+        103.8489756,
+        1.2921445,
+        20
+      ]
+    },
+    {
+      "id": "osm-way-166311288",
+      "name": "Civilian War Memorial",
+      "city": "sg",
+      "kind": "culture",
+      "importance": 0.7,
+      "note": "Monument dedicated to civilians killed during the Japanese occupation.",
+      "position": [
+        103.8547118,
+        1.2928969,
+        67
+      ]
+    },
+    {
+      "id": "osm-way-262885931",
+      "name": "Singapore Zoo",
+      "city": "sg",
+      "kind": "leisure",
+      "importance": 0.8,
+      "note": "Renowned wildlife park featuring animals in open, naturalistic habitats.",
+      "position": [
+        103.7944215,
+        1.4037073,
+        30
+      ]
+    }
+  ]
+}

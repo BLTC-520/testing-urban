@@ -15,7 +15,7 @@ export default defineConfig({
     // here, pmtiles' range requests are answered by Vite with index.html and
     // fail as "Wrong magic number for PMTiles archive".
     proxy: Object.fromEntries(
-      ["/api", "/basemap", "/fonts"].map((p) => [
+      ["/api", "/basemap", "/fonts", "/data"].map((p) => [
         p,
         { target: "http://127.0.0.1:8787", changeOrigin: true },
       ]),

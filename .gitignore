@@ -19,3 +19,6 @@ web/playwright-report/
 
 # root workspace scripts (server/ and dashboard/ keep their own lockfiles)
 /node_modules/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

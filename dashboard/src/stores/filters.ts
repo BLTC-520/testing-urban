@@ -1,6 +1,6 @@
 /**
  * The filter state every panel reads. One source of truth for what the screen
- * is currently showing.
+ * is currently showing, including landmark walk-focus mode and camera restore.
  *
  * React equivalent: a Zustand store (the React site uses one in
  * web/src/lib/store.ts). `state` here is Zustand's initial state, `getters` are
@@ -10,6 +10,7 @@
  */
 import { defineStore } from "pinia";
 import type { CityId, SpeedId } from "../api/types.ts";
+import type { Landmark } from "../map/landmarkTypes.ts";
 
 /** What the map's hex click selected, if anything. */
 export interface Selection {
@@ -18,6 +19,16 @@ export interface Selection {
   unit: number | null;
   unitName: string | null;
 }
+
+/** Camera posture saved on entering landmark focus, restored on exit. */
+export interface CameraSnapshot {
+  center: [number, number];
+  zoom: number;
+  pitch: number;
+  bearing: number;
+}
+
+export type RightTab = "districts" | "landmarks";
 
 export const useFilters = defineStore("filters", {
   state: () => ({
@@ -32,7 +43,18 @@ export const useFilters = defineStore("filters", {
     res: 8,
     /** Cesium OSM Buildings under flattened hexagons (needs an ion token). */
     buildings: false,
+    /** Callouts naming the landmarks the camera passes (map/landmarks.ts). */
+    landmarks: true,
     selection: null as Selection | null,
+    /** Active landmark in walk-focus mode, or null in whole-city mode. */
+    focusedLandmark: null as Landmark | null,
+    /** Camera posture before focus mode began, preserved across direct landmark switches. */
+    savedCamera: null as CameraSnapshot | null,
+    /** Layer flags before focus mode began. */
+    savedBuildings: null as boolean | null,
+    savedLandmarks: null as boolean | null,
+    /** Active tab in the bottom-right table panel. */
+    rightTab: "districts" as RightTab,
   }),
 
   getters: {
@@ -51,11 +73,15 @@ export const useFilters = defineStore("filters", {
       return { ...this.query, unit: this.selection?.unit ?? null };
     },
     isScenario: (s) => s.scenario !== null,
+    isFocused: (s) => s.focusedLandmark !== null,
   },
 
   actions: {
     setCity(city: CityId) {
       if (city === this.city) return;
+      if (this.focusedLandmark && this.focusedLandmark.city !== city) {
+        this.exitFocus();
+      }
       this.city = city;
       // A hexagon belongs to one city, so the selection cannot survive the switch.
       this.selection = null;
@@ -70,10 +96,44 @@ export const useFilters = defineStore("filters", {
     },
     toggleDelta() { this.showDelta = !this.showDelta; },
     toggleBuildings() { this.buildings = !this.buildings; },
+    toggleLandmarks() { this.landmarks = !this.landmarks; },
+    setRightTab(tab: RightTab) { this.rightTab = tab; },
     select(sel: Selection | null) {
+      if (sel && this.focusedLandmark) this.exitFocus();
       // Clicking the selected hexagon again clears it.
       this.selection = sel && sel.hex === this.selection?.hex ? null : sel;
     },
     clearSelection() { this.selection = null; },
+
+    /**
+     * Enter landmark walk-focus mode, or switch directly to another landmark
+     * while preserving the pre-focus camera and layer state.
+     */
+    focusLandmark(landmark: Landmark, camera?: CameraSnapshot | null, hasIonToken = false) {
+      if (!this.focusedLandmark) {
+        this.savedCamera = camera ? { ...camera, center: [camera.center[0], camera.center[1]] } : null;
+        this.savedBuildings = this.buildings;
+        this.savedLandmarks = this.landmarks;
+      }
+      if (landmark.city !== this.city) this.city = landmark.city;
+      this.selection = null;
+      this.focusedLandmark = landmark;
+      this.landmarks = true;
+      this.rightTab = "landmarks";
+      if (hasIonToken && !this.buildings) this.buildings = true;
+    },
+
+    /** Leave focus mode and restore the previous camera and layer state. */
+    exitFocus(): CameraSnapshot | null {
+      if (!this.focusedLandmark) return null;
+      const restored = this.savedCamera;
+      if (this.savedBuildings !== null) this.buildings = this.savedBuildings;
+      if (this.savedLandmarks !== null) this.landmarks = this.savedLandmarks;
+      this.focusedLandmark = null;
+      this.savedCamera = null;
+      this.savedBuildings = null;
+      this.savedLandmarks = null;
+      return restored;
+    },
   },
 });

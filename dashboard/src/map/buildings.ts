@@ -66,7 +66,8 @@ export interface HexStyle {
  * space; flattened, the hexagons become a coloured ground plane and the
  * buildings read as the city standing on its access score.
  */
-export function hexStyle(buildingsOn: boolean): HexStyle {
+export function hexStyle(buildingsOn: boolean, focused = false): HexStyle {
+  if (focused) return { extruded: false, opacity: 0.22 };
   return buildingsOn ? { extruded: false, opacity: 0.6 } : { extruded: true, opacity: 1 };
 }
 

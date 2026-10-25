@@ -3,13 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SG / JB Command Centre — 1920x1080 large-screen dashboard.",
+  "description": "SG / JB Command Centre \u2014 1920x1080 large-screen dashboard.",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "vue-tsc -b",
-    "test": "vitest run"
+    "test": "vitest run",
+    "landmarks": "node --env-file-if-exists=.env.local scripts/landmarks/main.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",

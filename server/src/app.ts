@@ -189,6 +189,19 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
     immutable: true,
     maxAge: "7d",
   });
+  /*
+   * Walk-shed street-graph tiles and POI tables for landmark focus mode.
+   * Only the files the walk engine reads are exposed under /data/.
+   */
+  const DATA_ALLOW = /^\/(?:graph\/(?:index\.json|t_\d+_\d+\.bin)|pois_(?:sg|jb)\.(?:bin|json)|poi_access_(?:sg|jb)\.bin)$/;
+  await app.register(fastifyStatic, {
+    root: resolve(REPO, "web", "public", "data"),
+    prefix: "/data/",
+    decorateReply: false,
+    allowedPath: (pathName) => DATA_ALLOW.test(pathName),
+    immutable: true,
+    maxAge: "7d",
+  });
 
   if (opts.dashboardDir) {
     await app.register(fastifyStatic, {

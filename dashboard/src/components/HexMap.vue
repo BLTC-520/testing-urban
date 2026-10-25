@@ -34,7 +34,12 @@ import { rampAt, hexToRGB } from "../map/colors.ts";
 import {
   BUILDINGS_VIEW, buildingsFocus, buildingsLayer, cityMaskLayer, hexStyle, ionToken,
 } from "../map/buildings.ts";
+import {
+  BAND_COLORS, isochroneLayer, nearestPoiMarkers, walkMarkerLayers,
+} from "../map/walkFocus.ts";
 import { STUDY_AREA } from "../map/studyArea.ts";
+import { useWalkFocusController } from "../composables/useWalkFocus.ts";
+import LandmarkCallouts from "./LandmarkCallouts.vue";
 import type { Hex } from "../api/types.ts";
 import { pct, people } from "../lib.ts";
 
@@ -60,6 +65,18 @@ const overlay = shallowRef<MapboxOverlay | null>(null);
 const hovered = ref<{ x: number; y: number; hex: Hex } | null>(null);
 const ready = ref(false);
 
+const {
+  iso: walkIso,
+  reached: walkReached,
+  reveal: walkReveal,
+  suppressBuildingFrame,
+} = useWalkFocusController(map, ION_TOKEN);
+
+const speedMps = computed(() => d.summary?.meta.speeds[f.speed] ?? 1.2);
+const basket = computed(
+  () => d.summary?.meta.basket ?? ["groceries", "healthcare", "education", "green_space", "transit", "dining"],
+);
+
 /** What the colour encodes. Absolute level, or the scenario's change. */
 const mode = computed(() => (f.isScenario && f.showDelta ? "delta" : "level"));
 
@@ -74,9 +91,10 @@ const baselineByHex = computed(() => {
 function buildLayers() {
   const hexes = d.cells?.hexes ?? [];
   const selected = f.selection?.hex ?? null;
+  const focused = f.focusedLandmark !== null;
   const base = baselineByHex.value;
   const delta = mode.value === "delta";
-  const style = hexStyle(showBuildings.value);
+  const style = hexStyle(showBuildings.value, focused);
 
   const hexLayer =
     new H3HexagonLayer<Hex>({
@@ -109,8 +127,8 @@ function buildLayers() {
       lineWidthUnits: "pixels",
       stroked: true,
       filled: true,
-      pickable: true,
-      autoHighlight: true,
+      pickable: !focused,
+      autoHighlight: !focused,
       highlightColor: [243, 239, 230, 70],
       material: { ambient: 0.55, diffuse: 0.6, shininess: 32, specularColor: [40, 60, 80] },
       // deck.gl diffs accessors by this key rather than re-running them all.
@@ -122,7 +140,7 @@ function buildLayers() {
       },
       transitions: { getFillColor: 180, getElevation: 300 },
       onHover: (info: PickingInfo<Hex>) => {
-        hovered.value = info.object ? { x: info.x, y: info.y, hex: info.object } : null;
+        hovered.value = !focused && info.object ? { x: info.x, y: info.y, hex: info.object } : null;
       },
       onClick: (info: PickingInfo<Hex>) => {
         if (!info.object) return;
@@ -132,9 +150,18 @@ function buildLayers() {
 
   // Buildings after hexagons, so they draw over the flattened ground plane;
   // the mask (the same hexagons, never drawn) clips them to this city.
-  return showBuildings.value && ION_TOKEN
+  const baseLayers = showBuildings.value && ION_TOKEN
     ? [cityMaskLayer(hexes), hexLayer, buildingsLayer(ION_TOKEN, f.city)]
     : [hexLayer];
+
+  if (!focused || !walkIso.value) return baseLayers;
+
+  const markers = nearestPoiMarkers(walkReached.value, basket.value, f.minutes, walkReveal.value);
+  return [
+    ...baseLayers,
+    isochroneLayer("walk-isochrone", walkIso.value.segments, walkReveal.value, speedMps.value),
+    ...walkMarkerLayers(walkIso.value.startNode, markers),
+  ];
 }
 
 /**
@@ -206,6 +233,13 @@ onMounted(() => {
   const o = new MapboxOverlay({ interleaved: true, layers: [] });
   m.addControl(o);
 
+  m.on("click", () => {
+    if (f.focusedLandmark) {
+      hovered.value = null;
+      f.exitFocus();
+    }
+  });
+
   m.on("load", () => {
     ready.value = true;
     o.setProps({ layers: buildLayers() });
@@ -226,16 +260,35 @@ onBeforeUnmount(() => {
 
 /** Push new layers whenever the data or the encoding changes. */
 watch(
-  () => [d.cells, d.baselineCells, f.selection?.hex, mode.value, showBuildings.value] as const,
-  () => { if (ready.value) overlay.value?.setProps({ layers: buildLayers() }); },
+  () => [
+    d.cells, d.baselineCells, f.selection?.hex, mode.value, showBuildings.value,
+    f.focusedLandmark, walkIso.value, walkReached.value, walkReveal.value, speedMps.value,
+  ] as const,
+  () => {
+    if (f.focusedLandmark) hovered.value = null;
+    if (ready.value) overlay.value?.setProps({ layers: buildLayers() });
+  },
   { deep: false },
 );
 
-watch(() => f.city, () => (showBuildings.value ? frameBuildings(true) : flyToCity()));
-watch(showBuildings, (on) => frameBuildings(on));
+watch(() => f.city, () => {
+  if (!f.focusedLandmark) {
+    if (showBuildings.value) frameBuildings(true);
+    else flyToCity();
+  }
+});
+watch(showBuildings, (on) => {
+  if (!f.focusedLandmark && !suppressBuildingFrame.value) frameBuildings(on);
+});
 
-const legendStops = computed(() =>
-  mode.value === "delta"
+const legendStops = computed(() => {
+  if (f.focusedLandmark) {
+    return ["0–5 min", "5–10 min", "10–15 min", "15+ min"].map((label, i) => ({
+      label,
+      color: `rgb(${BAND_COLORS[i].join(",")})`,
+    }));
+  }
+  return mode.value === "delta"
     ? [
         { label: "no change", color: "rgb(34,42,53)" },
         { label: "+5 pp", color: "rgba(255,209,102,.55)" },
@@ -244,8 +297,8 @@ const legendStops = computed(() =>
     : [0, 0.25, 0.5, 0.75, 1].map((v) => ({
         label: `${Math.round(v * 100)}%`,
         color: `rgb(${rampAt(v).slice(0, 3).join(",")})`,
-      })),
-);
+      }));
+});
 </script>
 
 <template>
@@ -263,10 +316,11 @@ const legendStops = computed(() =>
 
     <div class="canvas-wrap">
       <div ref="container" class="canvas" />
+      <LandmarkCallouts :map="map" />
 
       <div class="legend">
         <span class="legend-label">
-          {{ mode === "delta" ? "Change" : "Complete access" }}
+          {{ f.focusedLandmark ? "Walking routes (5-min bands)" : mode === "delta" ? "Change" : "Complete access" }}
         </span>
         <div class="stops">
           <span v-for="s in legendStops" :key="s.label" class="stop">
@@ -287,6 +341,11 @@ const legendStops = computed(() =>
           :aria-pressed="f.buildings"
           @click="f.toggleBuildings()"
         >3D buildings</button>
+        <button
+          :class="['chip', { on: f.landmarks }]"
+          :aria-pressed="f.landmarks"
+          @click="f.toggleLandmarks()"
+        >Landmarks</button>
       </div>
 
       <!-- Cesium ion's terms ask for visible credit wherever its data is shown. -->
