@@ -111,6 +111,70 @@
     "anchor_offset_m": 38.2,
     "bearing_trusted": true
   },
+  "guoco-tower": {
+    "centroid": [
+      103.845715,
+      1.276475
+    ],
+    "area_m2": 235.6,
+    "bearing_deg": 139.1,
+    "length_m": 33.8,
+    "width_m": 19.9,
+    "elongation": 1.69,
+    "vertices": 13,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 80.6,
+    "bearing_trusted": false
+  },
+  "one-raffles-place": {
+    "centroid": [
+      103.850953,
+      1.284466
+    ],
+    "area_m2": 6191.1,
+    "bearing_deg": 154.9,
+    "length_m": 150.9,
+    "width_m": 94.6,
+    "elongation": 1.59,
+    "vertices": 19,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 32.9,
+    "bearing_trusted": true
+  },
+  "republic-plaza": {
+    "centroid": [
+      103.850839,
+      1.283182
+    ],
+    "area_m2": 6221.5,
+    "bearing_deg": 141.4,
+    "length_m": 135.0,
+    "width_m": 94.3,
+    "elongation": 1.43,
+    "vertices": 11,
+    "matched": true,
+    "match": "contains-anchor",
+    "anchor_offset_m": 66.5,
+    "bearing_trusted": false
+  },
+  "uob-plaza": {
+    "centroid": [
+      103.849197,
+      1.285014
+    ],
+    "area_m2": 8521.6,
+    "bearing_deg": 83.7,
+    "length_m": 147.2,
+    "width_m": 106.8,
+    "elongation": 1.38,
+    "vertices": 53,
+    "matched": true,
+    "match": "nearest-large",
+    "anchor_offset_m": 78.6,
+    "bearing_trusted": false
+  },
   "sultan-ibrahim-building": {
     "centroid": [
       103.76111,

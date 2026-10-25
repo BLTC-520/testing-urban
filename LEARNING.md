@@ -450,8 +450,8 @@ from a script, and putting them there forced three changes to the map that were 
 | `dashboard/scripts/shot_landmarks.mjs` | drives that page headless and leaves twelve screenshots |
 | `tests/test_landmarks.py` | the footprint maths, the clustering, and the manifest |
 
-Fourteen landmarks: six in Singapore, four in Johor Bahru, and the Causeway with a checkpoint at
-each end — the crossing being the one piece of infrastructure this whole study's cross-border
+Eighteen landmarks: eleven in Singapore, four in Johor Bahru, and the Causeway with a checkpoint
+at each end — the crossing being the one piece of infrastructure this whole study's cross-border
 numbers depend on.
 
 ### Decisions
@@ -559,6 +559,13 @@ Nothing, and it improved it. The landmarks made it obvious that the population c
 unreadable at close zoom, which was already true and nobody had noticed because nobody zoomed in.
 The columns now flatten and the fill thins as the camera comes down, so the map reads as a
 choropleth over a real city instead of a forest of kilometre-high prisms.
+
+**When is one model for four buildings the honest answer?**
+When the sources only support one. The four central-area towers are published as a height, a floor
+count, a roughly square plan and a kind of top — a mast, an octagon, a pyramid, a flat slab — and
+at the range this map draws them that is the entire difference between them. One parameterised
+builder says exactly that much. Four hand-tuned models would say more than is known, and the extra
+detail would be invented.
 
 **Why one layer per model rather than one instanced layer?**
 A `ScenegraphLayer` holds one scenegraph. Twelve landmarks are twelve different buildings, so

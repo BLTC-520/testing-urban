@@ -141,12 +141,12 @@ interview.
 ### Decision: 3D landmarks, built from numbers
 
 The hex map answers the dashboard's question. It does not answer "where am I?", and on a wall
-display that is the question a passer-by asks first. So the map carries fourteen landmarks — the
+display that is the question a passer-by asks first. So the map carries eighteen landmarks — the
 Merlion, Marina Bay Sands, the ArtScience Museum, the Supertree Grove, the Singapore Flyer, the
-Esplanade and the Fullerton on one side; Bangunan Sultan Ibrahim, the state mosque, Komtar JBCC
-and The Astaka on the other; and across the strait between them, both checkpoints and the
-Causeway itself — the only land crossing in the study area, and the thing every cross-border
-walking time in this dashboard has to pass through.
+Esplanade, the Fullerton and the four tallest towers of the central area on one side; Bangunan
+Sultan Ibrahim, the state mosque, Komtar JBCC and The Astaka on the other; and across the strait
+between them, both checkpoints and the Causeway itself — the only land crossing in the study
+area, and the thing every cross-border walking time in this dashboard has to pass through.
 
 They are modelled in Blender, headless, from a Python script
 ([`scripts/landmarks/build_models.py`](scripts/landmarks/build_models.py)). Not sculpted and not
@@ -202,14 +202,20 @@ symbol that is not to scale is normal. One that is not to scale and does not say
 
 **Checking it.** None of this is assertable. "Is the Sands pointing along the bay or across it" is a
 question about pixels, so the dashboard ships a page that puts one landmark at a time on the real
-basemap — `npm --prefix dashboard run shots:landmarks` leaves fourteen screenshots to look at. That
+basemap — `npm --prefix dashboard run shots:landmarks` leaves eighteen screenshots to look at. That
 page is what caught the one real bug in the layer: deck.gl composes its orientation as
 Rz(yaw)·Ry(pitch)·Rx(roll), so after the fixed roll that turns glTF's Y-up into Z-up, a model's own
 axis points *east*, not north. Every landmark was quietly rotated by the same wrong amount and
 still looked like a building. Pointing the camera north and looking at the Merlion's water jet
 found it in one frame.
 
-Total cost: 836 kB of glTF, about 13,500 triangles across all fourteen, and no measurable frame time.
+Where the sources give less, the model says less. The four central-area towers — Guoco Tower at
+290 m and the three 280 m towers of Raffles Place, all three at exactly the height limit of their
+day — share one builder, because what is published about them is a height, a floor count, a
+roughly square plan and a kind of top. Four bespoke models would be four inventions.
+
+Total cost: 925 kB of glTF, about 13,900 triangles across all eighteen, and no measurable frame
+time.
 
 ### How this was built
 

@@ -121,6 +121,29 @@ labels and analysis layers depth-sort together: area fills are inserted beneath 
 (`beforeId`), lines and markers above them. H3 cells are aggregated to resolutions 8–9 at low
 zoom to keep the number of drawn polygons bounded.
 
+## Command centre (`dashboard/`, `server/`)
+
+A second front end on the same analysis, for a 1920x1080 wall display: Vue 3 + ECharts +
+deck.gl/MapLibre against a Node + SQLite API that aggregates the pipeline's outputs
+(`server/src/ingest.ts` → `sgjb.db`, `/api/cells` thresholds first and aggregates second).
+
+**3D landmarks.** The map carries eighteen generated landmark models.
+`scripts/landmarks/build_models.py` runs Blender headless (`bpy`) and writes one glTF binary per
+landmark into `dashboard/public/models/`, plus a manifest the dashboard imports. Nothing about
+them is hand-placed:
+
+| Input | Source |
+|---|---|
+| dimensions | `scripts/landmarks/landmarks.json`, each with a `confidence` field |
+| position, bearing | the OSM `buildings` layer of `web/public/tiles/basemap.pmtiles` (`footprints.py`) |
+| night colours | k-means over reference photographs (`analyse_refs.py`), chosen by rule, never by index |
+| facade and scale textures | generated from those colours (`textures.py`) |
+| drawn scale | the model's own measured extent; nothing under 80 m across is drawn to scale |
+
+The same archive's `buildings` layer is also extruded as uniform 9 m massing from zoom 13, and the
+hexagon columns collapse and their fill thins over the zoom level in which the landmarks fade in,
+so the data does not stand in front of the city. `make landmarks` rebuilds the lot.
+
 ## Testing
 
 * `pytest`: graph kernels against brute force, OSM parsing fixtures, metrics, export format.
@@ -136,3 +159,8 @@ zoom to keep the number of drawn polygons bounded.
   graphs, the candidate search and the building filter.
 * Playwright scripts (`web/scripts/shot*.mjs`) render the pages headlessly for visual review;
   `web/scripts/stills.mjs` renders the Story's fallback stills.
+* `pytest tests/test_landmarks.py`: the footprint geometry the 3D landmarks are placed from, the
+  colour clustering they are painted from, and the manifest the dashboard imports. Their
+  *appearance* is not assertable — `dashboard/landmarks.html` with
+  `npm --prefix dashboard run shots:landmarks` puts each one on the real basemap and leaves
+  eighteen screenshots for a person to look at.

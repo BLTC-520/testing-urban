@@ -1005,6 +1005,67 @@ def hip_roof(name: str, w: float, d: float, h: float, z0: float, at=(0.0, 0.0), 
     )
 
 
+def build_cbd_tower(spec, pal, tex):
+    """One builder for the four towers of the Singapore skyline.
+
+    They are not four bespoke models, and pretending otherwise would be
+    dishonest about what is known. What the sources give is a height, a floor
+    count, a plan roughly square, and a top: a mast, an octagon, a pyramid or
+    a flat slab. At the range this map draws them that is the whole difference
+    between them, and the setbacks are what stops four towers of the same
+    height reading as four copies of one.
+
+    Three of them are exactly 280 m because that was the height limit in
+    Singapore's central area for twenty years. That is not a coincidence worth
+    smoothing over.
+    """
+    h = spec["height_m"]
+    w = spec["plan_m"]
+    steps = spec["setbacks"]
+    facade = textured(f"{spec['id']}-facade", tex, "facade_tower", tile_m=24.0)
+    podium = textured(f"{spec['id']}-podium", tex, "facade_block", tile_m=16.0)
+    # The crowns are lit, not luminous. At full strength four of them read as
+    # white balls floating over the skyline, which is what the first render of
+    # Raffles Place looked like.
+    crown = material(f"{spec['id']}-crown", (0.46, 0.52, 0.62), rough=0.35, metallic=0.4,
+                     emit=(0.60, 0.78, 1.0), strength=0.4)
+
+    base = prism("podium", w * 1.9, w * 1.7, h * 0.07, chamfer=w * 0.18, mat=podium)
+    project_uvs(base, 16.0)
+
+    # The shaft, stepping in once per setback. A tower that tapers smoothly
+    # reads as a cooling tower; one that steps reads as an office building.
+    shaft_top = h * 0.93
+    sections = []
+    for i in range(steps + 1):
+        t = i / steps
+        z = h * 0.05 + (shaft_top - h * 0.05) * t
+        side = w * (1.0 - 0.22 * t)
+        sections.append((z, rect(side, side, 0.0, 0.0, side * 0.12)))
+    shaft = solid("shaft", sections, facade)
+    project_uvs(shaft, 24.0)
+
+    top = w * 0.78
+    kind = spec["crown"]
+    if kind == "pyramid":
+        solid("crown", [
+            (shaft_top, ring(0, 0, top * 0.55, top * 0.55, 8)),
+            (h, ring(0, 0, top * 0.08, top * 0.08, 8)),
+        ], crown)
+    elif kind == "octagon":
+        solid("crown", [
+            (shaft_top, ring(0, 0, top * 0.52, top * 0.52, 8)),
+            (h * 0.985, ring(0, 0, top * 0.44, top * 0.44, 8)),
+            (h, ring(0, 0, top * 0.24, top * 0.24, 8)),
+        ], crown)
+    elif kind == "mast":
+        prism("crown", top, top, h * 0.045, z0=shaft_top, chamfer=top * 0.2, mat=crown)
+        tube("mast", 1.4, 0.4, h * 0.06, z0=h * 0.975, n=5, mat=crown)
+    else:  # flat
+        prism("crown", top * 1.06, top * 1.06, h * 0.07, z0=shaft_top,
+              chamfer=top * 0.12, mat=crown)
+
+
 def build_sultan_ibrahim_building(spec, pal, tex):
     """Bukit Timbalan: a colonial range with a Saracenic tower over its middle."""
     h = spec["height_m"]
@@ -1172,6 +1233,11 @@ BUILDERS = {
     "woodlands-checkpoint": build_woodlands_checkpoint,
     "johor-causeway": build_johor_causeway,
     "fullerton": build_fullerton,
+    # The four tallest towers of the central area, all one builder.
+    "guoco-tower": build_cbd_tower,
+    "one-raffles-place": build_cbd_tower,
+    "republic-plaza": build_cbd_tower,
+    "uob-plaza": build_cbd_tower,
 }
 
 
