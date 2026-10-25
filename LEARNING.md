@@ -518,6 +518,14 @@ inside the clip range by luck; the Causeway is 1,056 m long and framed from 1,30
 preview came back blank rather than wrong. Worth remembering that an empty render is a camera
 problem far more often than a geometry one — the glTF had all 992 triangles in it.
 
+**A reference photograph is worth more than a second opinion about the shape.** Two models were
+wrong in the same way and both were found by looking at a picture rather than by thinking harder.
+The ArtScience Museum is not a burst of ten equal spikes: it is a low cupped bowl with *one* finger
+reaching 60 m and the rest short and broad, and ten equal petals turn a lotus into a sea anemone.
+The Sands' SkyPark is pale, not dark — its soffit is lit from the deck above and the towers below —
+and the first version had the most recognisable roof in the city disappearing into the water
+behind it. Neither is subtle once seen; neither was visible from the dimensions alone.
+
 **Picking a colour by its index in a cluster list is a latent bug.** The facade and scale textures
 originally read `palette[1]` and `palette[3]` out of the analysis. Raising the cluster count from
 six to ten — needed because the Supertrees' magenta uplighting is a thirtieth of its photograph and

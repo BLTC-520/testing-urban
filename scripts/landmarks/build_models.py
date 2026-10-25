@@ -534,11 +534,15 @@ def build_marina_bay_sands(spec, pal, tex):
     joint = h * 0.36             # where the two legs become one slab
 
     facade = textured("sands-facade", tex, "facade_sands", tile_m=26.0)
-    concrete = material("sands-concrete", pal["concrete"], rough=0.75)
-    deck_mat = material("sands-deck", (0.13, 0.14, 0.16), rough=0.45, metallic=0.4,
-                        emit=pal["warm"], strength=0.12)
+    concrete = material("sands-concrete", (0.30, 0.26, 0.20), rough=0.75,
+                        emit=pal["warm"], strength=0.55)
+    # The SkyPark reads pale in every photograph of it — the soffit is lit from
+    # the deck above and from the towers below. The first version had it dark,
+    # which made the most recognisable roof in the city disappear.
+    deck_mat = material("sands-deck", (0.42, 0.43, 0.43), rough=0.5, metallic=0.2,
+                        emit=pal["warm"], strength=0.14)
     pool = material("sands-pool", (0.05, 0.22, 0.32), rough=0.08, metallic=0.1,
-                    emit=(0.25, 0.75, 1.0), strength=1.2)
+                    emit=(0.25, 0.70, 1.0), strength=0.6)
     led = material("sands-led", pal["blue"], rough=0.3, emit=pal["blue"], strength=1.1)
 
     # Towers spaced so the deck's north end overhangs the north tower by `over`.
@@ -590,7 +594,14 @@ def build_marina_bay_sands(spec, pal, tex):
 
 
 def build_artscience_museum(spec, pal, tex):
-    """Safdie's lotus: ten petals of different lengths around a round core."""
+    """Safdie's lotus: ten petals of very different lengths around a round bowl.
+
+    The skyline reference settles the shape, which the first attempt had wrong
+    in the way that matters most. The building is not a burst of ten equal
+    spikes: it is a low cupped bowl with one finger reaching 60 m and the rest
+    short, broad and nearly flat. Making them equal turns a lotus into a
+    sea anemone, which is what it looked like.
+    """
     h = spec["height_m"]
     n = spec["petals"]
     skin = material("as-skin", (0.62, 0.63, 0.61), rough=0.35,
@@ -600,28 +611,35 @@ def build_artscience_museum(spec, pal, tex):
     water = material("as-pond", (0.02, 0.09, 0.14), rough=0.05, metallic=0.3)
 
     tube("pond", 62.0, 62.0, 1.0, z0=-0.6, n=24, mat=water)
-    tube("core", 21.0, 19.0, 15.0, n=16, mat=glass)
+    # The bowl the petals rise out of, and the glazed drum inside it.
+    solid("bowl", [
+        (0.0, ring(0, 0, 34.0, 34.0, 20)),
+        (6.0, ring(0, 0, 38.0, 38.0, 20)),
+        (9.0, ring(0, 0, 36.0, 36.0, 20)),
+    ], skin)
+    tube("core", 20.0, 18.0, 14.0, n=16, mat=glass)
 
+    # Petal lengths, as fractions of the tallest. *One* dominant finger — two
+    # of them and the building grows horns — two middling, the rest short.
+    # That is the pattern the photograph shows.
+    reaches = [1.0, 0.40, 0.27, 0.23, 0.29, 0.44, 0.50, 0.33, 0.25, 0.28]
     petals = []
     for i in range(n):
-        a = TAU * i / n
-        # Petal lengths alternate around the flower, as the building's do; the
-        # tallest reaches the published 60 m.
-        reach = h * (0.62 + 0.38 * (0.5 + 0.5 * math.cos(a * 2.0 + 0.7)))
+        a = TAU * i / n + 0.35
+        reach = h * reaches[i % len(reaches)]
+        # A tall finger is narrow; a short one is broad. That contrast is most
+        # of what makes the building read as cupped rather than spiked.
+        width = 15.5 - 7.0 * reaches[i % len(reaches)]
         sections = []
         steps = 5
         for k in range(steps + 1):
             t = k / steps
-            # The petal leans out as it rises and tapers to a skylit tip.
-            out = 14.0 + 30.0 * t**1.35
-            width = 13.0 * (1.0 - 0.80 * t)
-            z = 6.0 + (reach - 6.0) * math.sin(t * math.pi / 2)
-            # The petal is a flattened section, not a tube: a lotus petal is a
-            # blade. 0.42 across the radius is what the reference photograph of
-            # the building shows.
-            sections.append(
-                (z, ring(out * math.cos(a), out * math.sin(a), width, width * 0.42, 8, a))
-            )
+            out = 12.0 + reach * 0.52 * t**1.15
+            z = 5.0 + (reach - 5.0) * math.sin(t * math.pi / 2 * 0.96)
+            # rx runs across the petal, ry is its thickness: a blade, not a tube.
+            rx = width * (1.0 - 0.52 * t)
+            ry = 2.2 + 3.0 * (1.0 - t)
+            sections.append((z, ring(out * math.cos(a), out * math.sin(a), rx, ry, 8, a)))
         petals.append(solid(f"petal-{i}", sections, skin, cap_bottom=False))
     merge(petals, "petals", skin)
 
@@ -773,8 +791,13 @@ def build_esplanade(spec, pal, tex):
     led = material("es-led", pal["warm"], rough=0.3, emit=pal["warm"], strength=1.0)
     prism("base", 168.0, 92.0, h * 0.30, chamfer=26.0, mat=base)
     edge_lights("base-led", 170.0, 94.0, h * 0.30, 3.0, led, height=1.0)
-    spiky_dome("shell-0", 41.0, h * 0.86, h * 0.24, (-46.0, -7.0), spikes)
-    spiky_dome("shell-1", 34.0, h * 0.74, h * 0.24, (48.0, 11.0), spikes)
+    # Coarser facets than the building has, deliberately. Seven thousand
+    # sunshades at this range average to a smooth grey dome; a couple of
+    # hundred large ones keep the texture that earned it its nickname.
+    spiky_dome("shell-0", 41.0, h * 0.86, h * 0.24, (-46.0, -7.0), spikes,
+               subdiv=2, spike=0.10)
+    spiky_dome("shell-1", 34.0, h * 0.74, h * 0.24, (48.0, 11.0), spikes,
+               subdiv=2, spike=0.10)
 
 
 def build_merlion(spec, pal, tex):

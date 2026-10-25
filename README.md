@@ -214,7 +214,7 @@ Where the sources give less, the model says less. The four central-area towers â
 day â€” share one builder, because what is published about them is a height, a floor count, a
 roughly square plan and a kind of top. Four bespoke models would be four inventions.
 
-Total cost: 925 kB of glTF, about 13,900 triangles across all eighteen, and no measurable frame
+Total cost: 844 kB of glTF, about 12,500 triangles across all eighteen, and no measurable frame
 time.
 
 ### How this was built
