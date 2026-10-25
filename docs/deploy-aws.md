@@ -77,6 +77,18 @@ wall display is demonstrated live and even that is unacceptable, swap the Functi
 `ALB → ECS Fargate` running the same container with `node:22-slim` as the base and no adapter:
 about **$27/month more**, nearly all of it the load balancer.
 
+**Amazon ECS Express Mode** is the managed route to exactly that shape, and the one to reach for
+if the Lambda path looks like too much apparatus for a first deployment. It takes a container
+image and two IAM roles, then creates the ECS service, task definition, networking, load balancer
+and autoscaling in your own account, where they stay readable and editable. Express Mode itself is
+free; you pay for what it creates, which is the same Fargate task and ALB as above — so the
+simplicity is in the assembly, not the bill. One ALB is shared across up to 25 Express services,
+so a second and third project deployed this way cost only their own compute.
+
+AWS App Runner, which used to be the obvious choice here, **closed to new customers on
+30 April 2026** and is in maintenance mode. Existing customers keep it; new accounts cannot
+create services, and AWS points at Express Mode instead.
+
 ## The database is a build artifact
 
 `server/src/ingest.ts` reads `web/public/data` and writes `server/data/sgjb.db`; the API opens it
