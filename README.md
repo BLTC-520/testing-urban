@@ -236,8 +236,17 @@ Command centre dashboard (independent of the static site — it needs only the c
 npm run setup              # server + dashboard dependencies, then builds server/data/sgjb.db
 npm run dev                # API on :8787 and the dashboard on :5174, together
 npm run verify             # recompute the study's headline numbers out of SQLite (20 checks)
-npm test                   # 67 API tests, most of them about input that should be refused
+npm test                   # 77 API tests, most of them about input that should be refused
 npm run ingest             # rebuild the database from web/public/data
+```
+
+Deploying the command centre — one image holds the built dashboard, the API and the database,
+served from a single origin; `deploy/` puts Caddy in front for HTTPS on a single server:
+
+```bash
+docker build -t sgjb-command-centre .                     # builds, ingests and verifies inside the image
+docker run --rm -p 8787:8787 sgjb-command-centre          # → http://localhost:8787
+cd deploy && DOMAIN=cc.example.com docker compose up -d   # on the server, once DNS points at it
 ```
 
 Individual stages: `python -m sgjb.pipeline networks features population access access_overture form scenarios footpath summary export basemap`.

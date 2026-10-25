@@ -450,6 +450,10 @@ function main(): void {
   db.pragma("optimize");
   const integrity = db.pragma("integrity_check", { simple: true });
   if (integrity !== "ok") throw new Error(`integrity_check: ${integrity}`);
+  // WAL speeds up the writes above, but the finished file is only ever read.
+  // Left in WAL, every reader must create a -shm file beside it, so a read-only
+  // open fails wherever the directory is not writable (the Docker image).
+  db.pragma("journal_mode = DELETE");
   db.close();
 
   const seconds = ((Date.now() - started) / 1000).toFixed(1);

@@ -1,0 +1,39 @@
+# Production on a single server: Caddy terminates HTTPS and proxies to the app.
+#
+#   cd deploy
+#   DOMAIN=cc.example.com docker compose up -d --build
+#
+# Only Caddy publishes ports. The app is reachable from Caddy over the compose
+# network and from nowhere else, so trusting X-Forwarded-For is safe here.
+services:
+  app:
+    build:
+      context: ..
+    restart: unless-stopped
+    environment:
+      SGJB_TRUST_PROXY: "true"
+    expose:
+      - "8787"
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN to the dashboard's hostname, e.g. cc.example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates live here; losing them means re-issuing, which Let's
+      # Encrypt rate-limits, so they persist across container rebuilds.
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

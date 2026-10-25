@@ -8,7 +8,8 @@
  *   · the SQLite handle is opened read-only, so no route can mutate the study
  *   · every query string is parsed by zod before it reaches SQL (src/schemas.ts)
  *   · all SQL is parameterised; see the rules at the top of src/queries.ts
- *   · helmet sets the usual headers; CSP is off because this serves JSON only
+ *   · helmet sets the usual headers; CSP is on only when this also serves the
+ *     dashboard's HTML (dashboardDir) — for JSON alone it buys nothing
  *   · CORS is an explicit allowlist, not a reflection of Origin
  *   · rate limiting is per-IP
  *   · there are no secrets to leak: the API reads one local file and holds no
@@ -21,7 +22,8 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import { ZodError, type ZodType } from "zod";
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { openStore, type Store, BASKET } from "./db.ts";
 import { REPO } from "./paths.ts";
 import { schemas } from "./schemas.ts";
@@ -38,7 +40,45 @@ export interface AppOptions {
   /** Requests per minute per IP. */
   rateLimitMax?: number;
   logger?: boolean;
+  /**
+   * A built dashboard (dashboard/dist) to serve at /, for a single-origin
+   * deployment. Unset in dev, where Vite serves the dashboard and proxies here.
+   */
+  dashboardDir?: string;
+  /**
+   * Behind a reverse proxy (Caddy, nginx, a load balancer), take the client IP
+   * from X-Forwarded-For. Without it every request looks like the proxy, and
+   * the per-IP rate limit becomes one limit shared by all visitors. Never set it
+   * when exposed directly: the header would let any client pick its own IP.
+   */
+  trustProxy?: boolean;
 }
+
+/*
+ * Only sent when serving the dashboard. Each source is here for a reason:
+ *   · Google Fonts: index.html's stylesheet and the font files it points at
+ *   · style 'unsafe-inline': Vue :style bindings and ECharts tooltips set
+ *     inline styles; scripts stay strictly 'self'
+ *   · blob: workers: MapLibre starts its tile workers from a blob URL
+ *   · data:/blob: images: deck.gl and MapLibre upload textures that way
+ */
+const DASHBOARD_CSP = {
+  useDefaults: false,
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    imgSrc: ["'self'", "data:", "blob:"],
+    connectSrc: ["'self'", "data:", "blob:"],
+    workerSrc: ["'self'", "blob:"],
+    childSrc: ["blob:"],
+    objectSrc: ["'none'"],
+    baseUri: ["'self'"],
+    formAction: ["'self'"],
+    frameAncestors: ["'none'"],
+  },
+};
 
 const DEV_ORIGINS = [
   "http://localhost:5174", "http://127.0.0.1:5174", // dashboard
@@ -84,8 +124,14 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
   const { db, settings } = store;
   const s = schemas(settings);
 
+  // Fail at startup, not on the first visitor, if the dashboard was not built.
+  if (opts.dashboardDir && !existsSync(join(opts.dashboardDir, "index.html"))) {
+    throw new Error(`dashboardDir has no index.html: ${opts.dashboardDir} (run npm run build in dashboard/)`);
+  }
+
   const app = Fastify({
     logger: opts.logger ?? false,
+    trustProxy: opts.trustProxy ?? false,
     routerOptions: {
       // Collapse duplicated params to the last value rather than handing zod an
       // array it would reject with a confusing message.
@@ -94,8 +140,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
   });
 
   await app.register(helmet, {
-    // This origin serves JSON, never HTML, so a script-src policy buys nothing.
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: opts.dashboardDir ? DASHBOARD_CSP : false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
   });
 
@@ -140,6 +185,24 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
     immutable: true,
     maxAge: "7d",
   });
+
+  if (opts.dashboardDir) {
+    await app.register(fastifyStatic, {
+      root: opts.dashboardDir,
+      prefix: "/",
+      decorateReply: false,
+      cacheControl: false,
+      setHeaders(reply, path) {
+        // Vite hashes every asset's filename, so a changed file is a new URL and
+        // these can be cached forever. index.html is the one file that must be
+        // re-checked, or a deploy would keep serving the old asset names.
+        reply.header(
+          "cache-control",
+          path.endsWith(".html") ? "no-cache" : "public, max-age=31536000, immutable",
+        );
+      },
+    });
+  }
 
   // --- prepared statements, built once at startup ---------------------------
   const SOURCES: Source[] = ["baseline", "scenario"];

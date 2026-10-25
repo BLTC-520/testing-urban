@@ -1,0 +1,7 @@
+# Caddy fetches and renews a Let's Encrypt certificate for {$DOMAIN} on its
+# own, and redirects HTTP to HTTPS. The DNS record must point at this server
+# before the first start, or the certificate challenge fails.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8787
+}

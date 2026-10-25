@@ -12,15 +12,21 @@
  *   SGJB_ORIGINS      comma-separated CORS allowlist
  *   SGJB_RATE_LIMIT   requests per minute per IP
  *   SGJB_DB           database path
+ *   SGJB_DASHBOARD_DIR  built dashboard to serve at / (production; see Dockerfile)
+ *   SGJB_TRUST_PROXY  "true" when behind Caddy/nginx/a load balancer, so the
+ *                     rate limit sees each client's IP rather than the proxy's
  */
+import { resolve } from "node:path";
 import { buildApp } from "./app.ts";
 
 const port = Number(process.env.PORT ?? 8787);
 const host = process.env.HOST ?? "127.0.0.1";
 const allowedOrigins = process.env.SGJB_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean);
 const rateLimitMax = process.env.SGJB_RATE_LIMIT ? Number(process.env.SGJB_RATE_LIMIT) : undefined;
+const dashboardDir = process.env.SGJB_DASHBOARD_DIR ? resolve(process.env.SGJB_DASHBOARD_DIR) : undefined;
+const trustProxy = process.env.SGJB_TRUST_PROXY === "true";
 
-const { app, close } = await buildApp({ allowedOrigins, rateLimitMax, logger: true });
+const { app, close } = await buildApp({ allowedOrigins, rateLimitMax, dashboardDir, trustProxy, logger: true });
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {

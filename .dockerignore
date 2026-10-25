@@ -1,0 +1,16 @@
+# An allowlist: send the Docker build only what the Dockerfile copies. The
+# repository also holds raw downloads, a Python venv and several node_modules,
+# none of which belong in the build context or the image.
+*
+
+!dashboard/
+dashboard/node_modules
+dashboard/dist
+
+!server/
+server/node_modules
+server/data
+
+!web/public/data/
+!web/public/tiles/
+!web/public/fonts/
