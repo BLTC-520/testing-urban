@@ -51,7 +51,7 @@ export const LANDMARKS: Landmark[] = manifest.landmarks;
  * Below this zoom the layer is not drawn at all.
  *
  * At zoom 12 one pixel is about 38 m on the ground near the equator, so a 200 m
- * tower is five pixels tall and a cluster of twelve landmarks is noise over the
+ * tower is five pixels tall and a cluster of eighteen landmarks is noise over the
  * data. They fade in over the next three-quarters of a zoom level rather than
  * appearing all at once, which on a wall display reads as the map gaining
  * detail instead of something switching on.
@@ -94,11 +94,12 @@ export interface LandmarkLayerOptions {
 /**
  * One ScenegraphLayer per model file.
  *
- * deck.gl loads one scenegraph per layer, so twelve models means twelve layers.
- * That is cheaper than it sounds: each is a single instance of a few hundred
- * triangles, and deck.gl's layer overhead is far smaller than the draw it
- * replaces. The alternative — one layer with an instanced mesh — would need all
- * twelve landmarks to share one geometry, which is the opposite of the point.
+ * deck.gl loads one scenegraph per layer, so eighteen models means eighteen
+ * layers. That is cheaper than it sounds: each is a single instance of a few
+ * hundred triangles, and deck.gl's layer overhead is far smaller than the draw
+ * it replaces. The alternative — one layer with an instanced mesh — would need
+ * all eighteen landmarks to share one geometry, which is the opposite of the
+ * point.
  */
 export function landmarkLayers(opts: LandmarkLayerOptions) {
   const opacity = opacityAt(opts.zoom);

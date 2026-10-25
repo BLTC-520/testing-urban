@@ -432,14 +432,14 @@ scenario deltas are the pipeline's own published figures, not ones the dashboard
 
 ## Phase 8 — 3D landmarks on the map
 
-The map had the data and none of the place. Twelve landmarks now stand on it, modelled in Blender
+The map had the data and none of the place. Eighteen landmarks now stand on it, modelled in Blender
 from a script, and putting them there forced three changes to the map that were overdue anyway.
 
 ### Files
 
 | File | What it does |
 |---|---|
-| `scripts/landmarks/landmarks.json` | the twelve landmarks: anchor, dimensions, provenance, confidence |
+| `scripts/landmarks/landmarks.json` | every landmark: anchor, dimensions, provenance, confidence |
 | `scripts/landmarks/analyse_refs.py` | k-means over reference photographs → night palettes and silhouette profiles |
 | `scripts/landmarks/textures.py` | facade textures generated from those measured colours |
 | `scripts/landmarks/footprints.py` | reads each landmark's OSM footprint out of `basemap.pmtiles`: centroid, area, long axis |
@@ -447,7 +447,7 @@ from a script, and putting them there forced three changes to the map that were 
 | `dashboard/src/map/landmarks.ts` | placement, scale policy, zoom fade, one `ScenegraphLayer` per model |
 | `dashboard/src/map/lighting.ts` | the night lighting rig, shared by the hexagons and the landmarks |
 | `dashboard/landmarks.html` + `src/landmarksCheck.ts` | the check page: one landmark at a time on the real basemap |
-| `dashboard/scripts/shot_landmarks.mjs` | drives that page headless and leaves twelve screenshots |
+| `dashboard/scripts/shot_landmarks.mjs` | drives that page headless and leaves one screenshot each |
 | `tests/test_landmarks.py` | the footprint maths, the clustering, and the manifest |
 
 Eighteen landmarks: eleven in Singapore, four in Johor Bahru, and the Causeway with a checkpoint
@@ -559,8 +559,8 @@ seconds.
 Position and bearing come from the OSM footprint in our own basemap, and the manifest records which
 of the two sources each one used. The cross-check is that the Sands' footprint measures 339 m long
 against a published SkyPark of 340 m. Orientation is checked visually, because it has to be: the
-check page puts one landmark at a time on the real basemap and the screenshot script leaves twelve
-images to look at.
+check page puts one landmark at a time on the real basemap and the screenshot script leaves
+eighteen images to look at.
 
 **What did adding decoration cost the data?**
 Nothing, and it improved it. The landmarks made it obvious that the population columns were
@@ -576,7 +576,7 @@ builder says exactly that much. Four hand-tuned models would say more than is kn
 detail would be invented.
 
 **Why one layer per model rather than one instanced layer?**
-A `ScenegraphLayer` holds one scenegraph. Twelve landmarks are twelve different buildings, so
-sharing a geometry is not available; the alternative is twelve layers of one instance each, which
-is about 10,500 triangles in total and costs no measurable frame time. Instancing is the right
-answer when you have a thousand copies of one tree, not twelve copies of nothing.
+A `ScenegraphLayer` holds one scenegraph. Eighteen landmarks are eighteen different buildings, so
+sharing a geometry is not available; the alternative is eighteen layers of one instance each, which
+is about 12,500 triangles in total and costs no measurable frame time. Instancing is the right
+answer when you have a thousand copies of one tree, not eighteen copies of nothing.
