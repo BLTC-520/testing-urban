@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MaskExtension } from "@deck.gl/extensions";
 import {
+  BUILDING_TINTS,
   BUILDINGS_MASK_ID, OSM_BUILDINGS_ASSET, buildingsFocus, buildingsLayer, cityMaskLayer, emptyModelSafe, geodeticToEcef, hexStyle, ionToken,
   prepareTileset, regionToSphere,
 } from "./buildings.ts";
@@ -194,6 +195,17 @@ describe("the buildings layer", () => {
 
   it("is not pickable, so hovering still reaches the hexagons beneath", () => {
     expect(layer.props.pickable).toBe(false);
+  });
+
+  it("applies role tint by default and respects access color mode", () => {
+    expect(BUILDING_TINTS.role).toEqual([72, 92, 118, 235]);
+    expect(BUILDING_TINTS.access).toEqual([44, 148, 162, 230]);
+
+    const defaultLayer = buildingsLayer("tok", "sg");
+    expect(defaultLayer.props._subLayerProps?.scenegraph?.getColor).toEqual(BUILDING_TINTS.role);
+
+    const accessLayer = buildingsLayer("tok", "sg", "access");
+    expect(accessLayer.props._subLayerProps?.scenegraph?.getColor).toEqual(BUILDING_TINTS.access);
   });
 });
 

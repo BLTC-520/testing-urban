@@ -56,6 +56,8 @@ const ROWS: readonly Row[] = [
   ["aminah", "Hospital Sultanah Aminah", "jb", "health", 1.46008, 103.74690, 40, 0.74, "Johor's main public general hospital"],
   ["southkey", "Mid Valley Southkey", "jb", "retail", 1.50170, 103.77732, 150, 0.56, "Mall and towers in the Kota Southkey development"],
   ["legoland", "Legoland Malaysia", "jb", "leisure", 1.42777, 103.62948, 20, 0.58, "Theme park in Medini, Iskandar Puteri"],
+  ["larkin", "Larkin Sentral", "jb", "transport", 1.49572, 103.74257, 28, 0.78, "JB's main express and local bus terminal and wet market complex"],
+  ["sultan-ibrahim", "Bangunan Sultan Ibrahim", "jb", "civic", 1.45782, 103.76113, 60, 0.76, "Historic 1940 hilltop state secretariat building overlooking the Causeway"],
 ];
 
 export const CURATED: readonly Landmark[] = ROWS.map(

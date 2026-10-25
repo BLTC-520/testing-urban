@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { boundedDijkstra, csrFromEdges } from "./dijkstra.ts";
+import { boundedDijkstra, boundedDijkstraWithParents, csrFromEdges } from "./dijkstra.ts";
 import { CURATED, LANDMARKS } from "./landmarks.ts";
 import { reachedPois, type Pois } from "./pois.ts";
 import { MAX_SNAP_M, StreetGraph, type Isochrone } from "./streetGraph.ts";
 import {
   MIN_BEARING_DIST_M,
+  activeRouteLayer,
   bandOf,
   bearingToBuilding,
   isochroneLayer,
@@ -14,6 +15,8 @@ import {
   nearestPoiMarkers,
   pullbackCamera,
   visibleSegments,
+  walkMarkerLayers,
+  type NearestMarker,
 } from "./walkFocus.ts";
 
 /** Build a minimal valid SGJG binary tile in memory for deterministic unit tests. */
@@ -246,5 +249,231 @@ describe("walk-shed reveal slicing and pullback framing", () => {
     expect(cam.center[1]).toBeCloseTo(1.2875, 4);
     expect(cam.zoom).toBeGreaterThanOrEqual(13.2);
     expect(cam.zoom).toBeLessThanOrEqual(15.6);
+  });
+});
+
+describe("boundedDijkstraWithParents & shortest path tree", () => {
+  it("tracks predecessor nodes and edge indices across multiple paths", () => {
+    // 0 --(10)--> 1 --(15)--> 2
+    // |                       ^
+    // +--------(30)-----------+
+    const csr = csrFromEdges(3, [0, 1, 0], [1, 2, 2], [10, 15, 30]);
+    const { dist, prevNode, prevEdge } = boundedDijkstraWithParents(csr, [0], [0], 50);
+
+    expect(dist[0]).toBe(0);
+    expect(dist[1]).toBe(10);
+    expect(dist[2]).toBe(25); // via 1, not direct edge of 30
+
+    expect(prevNode[0]).toBe(-1);
+    expect(prevEdge[0]).toBe(-1);
+
+    expect(prevNode[1]).toBe(0);
+    expect(prevEdge[1]).toBe(0); // edge 0: (0, 1)
+
+    expect(prevNode[2]).toBe(1);
+    expect(prevEdge[2]).toBe(1); // edge 1: (1, 2)
+  });
+
+  it("handles cutoff properly leaving unreachable nodes as -1", () => {
+    const csr = csrFromEdges(3, [0, 1], [1, 2], [100, 200]);
+    const { dist, prevNode, prevEdge } = boundedDijkstraWithParents(csr, [0], [0], 150);
+    expect(dist[0]).toBe(0);
+    expect(dist[1]).toBe(100);
+    expect(dist[2]).toBe(Infinity);
+    expect(prevNode[2]).toBe(-1);
+    expect(prevEdge[2]).toBe(-1);
+  });
+});
+
+describe("shortest-path street route extraction (routeTo)", () => {
+  const index = {
+    tile_deg: 0.02,
+    origin: [103.84, 1.28] as [number, number],
+    tiles: { "0_0": { nodes: 3, edges: 2, bytes: 128 } },
+  };
+  // 3 nodes:
+  // Node 10 at (103.850000, 1.290000)
+  // Node 11 at (103.850000, 1.290900) ~100m north of 10
+  // Node 12 at (103.858980, 1.290900) ~1000m east of 11
+  const tile3 = makeSyntheticTile(
+    103.84,
+    1.28,
+    [
+      { id: 10, dlonMicro: 10_000, dlatMicro: 10_000 },
+      { id: 11, dlonMicro: 10_000, dlatMicro: 10_900 },
+      { id: 12, dlonMicro: 18_980, dlatMicro: 10_900 },
+    ],
+    [
+      { u: 10, v: 11, len: 100, dx: 0, dy: 900 },
+      { u: 11, v: 12, len: 1000, dx: 8980, dy: 0 },
+    ],
+  );
+
+  const makeGraph3 = () =>
+    new StreetGraph(async (p) => {
+      if (p === "graph/index.json") return new TextEncoder().encode(JSON.stringify(index)).buffer;
+      if (p === "graph/t_0_0.bin") return tile3;
+      throw new Error(`unexpected path ${p}`);
+    });
+
+  it("returns straight direct line if target is on the same edge as origin", async () => {
+    const g = makeGraph3();
+    const iso = await g.isochrone(103.85, 1.290050, 500);
+    expect(iso).not.toBeNull();
+    expect(iso!.routeTo).toBeDefined();
+
+    // Target is on edge 0 as well
+    const route = iso!.routeTo!(103.85, 1.290800);
+    expect(route).toHaveLength(2);
+    expect(route[0]).toEqual(iso!.startPoint);
+    expect(route[1]).toEqual([103.85, 1.290800]);
+  });
+
+  it("reconstructs multi-edge path from origin to destination across junctions", async () => {
+    const g = makeGraph3();
+    // Origin near node 10
+    const iso = await g.isochrone(103.85, 1.290020, 1500);
+    expect(iso).not.toBeNull();
+
+    // Target near node 12 (on edge 1)
+    const targetLon = 103.858900;
+    const targetLat = 1.290900;
+    const route = iso!.routeTo!(targetLon, targetLat);
+    expect(route.length).toBeGreaterThanOrEqual(3);
+    // Starts with startPoint
+    expect(route[0]).toEqual(iso!.startPoint);
+    // Ends with [targetLon, targetLat]
+    expect(route[route.length - 1]).toEqual([targetLon, targetLat]);
+    // Traverses node 11 junction in between
+    const junction = route.find((pt) => Math.abs(pt[0] - 103.85) < 1e-4 && Math.abs(pt[1] - 1.2909) < 1e-4);
+    expect(junction).toBeDefined();
+  });
+
+  it("extracts walking route on real MBS landmark tile", async () => {
+    const dataRoot = resolve(__dirname, "../../../web/public/data");
+    const g = new StreetGraph(async (p) => {
+      const buf = await readFile(resolve(dataRoot, p));
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    });
+
+    const mbs = CURATED.find((l) => l.id === "mbs")!;
+    const iso = await g.isochrone(mbs.position[0], mbs.position[1], 15 * 60 * 1.2);
+    expect(iso).not.toBeNull();
+    expect(iso!.routeTo).toBeDefined();
+
+    // Pick a reachable segment target
+    const targetSeg = iso!.segments[Math.floor(iso!.segments.length / 2)];
+    const route = iso!.routeTo!(targetSeg.to[0], targetSeg.to[1]);
+    expect(route.length).toBeGreaterThanOrEqual(2);
+    expect(route[0]).toEqual(iso!.startPoint);
+    expect(route[route.length - 1]).toEqual(targetSeg.to);
+  });
+});
+
+describe("walkMarkerLayers and 3D ColumnLayer beacons", () => {
+  const startNode: [number, number] = [103.85, 1.29];
+  const markers: NearestMarker[] = [
+    {
+      category: "groceries",
+      color: [190, 134, 9],
+      distanceM: 250,
+      minutes: 3.5,
+      name: "Supermarket",
+      lon: 103.852,
+      lat: 1.292,
+    },
+    {
+      category: "healthcare",
+      color: [220, 75, 110],
+      distanceM: 600,
+      minutes: 8.3,
+      name: "Hospital",
+      lon: 103.855,
+      lat: 1.295,
+    },
+  ];
+
+  it("builds start node, 3D beacon columns, and POI scatterplot layers", () => {
+    let hovered: NearestMarker | null = null;
+    let clicked: NearestMarker | null = null;
+
+    const layers = walkMarkerLayers(startNode, markers, {
+      activeCategory: "groceries",
+      onHoverMarker: (m) => { hovered = m; },
+      onClickMarker: (m) => { clicked = m; },
+    });
+
+    expect(layers).toHaveLength(3);
+    const startNodeLayer = layers.find((l) => l.id === "walk-start-node");
+    const columnLayer = layers.find((l) => l.id === "walk-nearest-poi-columns");
+    const scatterLayer = layers.find((l) => l.id === "walk-nearest-pois");
+
+    expect(startNodeLayer).toBeDefined();
+    expect(columnLayer).toBeDefined();
+    expect(scatterLayer).toBeDefined();
+
+    // ColumnLayer 3D Beacon assertions
+    const colProps = columnLayer!.props as any;
+    expect(colProps.radius).toBe(14);
+    expect(colProps.diskResolution).toBe(16);
+    expect(colProps.extruded).toBe(true);
+    expect(colProps.wireframe).toBe(true);
+    expect(colProps.pickable).toBe(true);
+    expect(colProps.autoHighlight).toBe(true);
+    expect(colProps.highlightColor).toEqual([255, 240, 150, 220]);
+    expect(colProps.getLineColor).toEqual([243, 239, 230, 245]);
+
+    // Active category elevated to 68m, inactive at 42m
+    expect(colProps.getElevation(markers[0])).toBe(68);
+    expect(colProps.getElevation(markers[1])).toBe(42);
+
+    // Active category fill alpha 245, inactive 205
+    expect(colProps.getFillColor(markers[0])).toEqual([190, 134, 9, 245]);
+    expect(colProps.getFillColor(markers[1])).toEqual([220, 75, 110, 205]);
+
+    // Test onHover / onClick on ColumnLayer
+    colProps.onHover({ object: markers[0], x: 10, y: 20 });
+    expect(hovered).toEqual(markers[0]);
+
+    colProps.onClick({ object: markers[1] });
+    expect(clicked).toEqual(markers[1]);
+
+    // Test ScatterplotLayer pickable & callbacks
+    const scatProps = scatterLayer!.props as any;
+    expect(scatProps.pickable).toBe(true);
+    hovered = null;
+    scatProps.onHover({ object: markers[1], x: 50, y: 60 });
+    expect(hovered).toEqual(markers[1]);
+  });
+});
+
+describe("activeRouteLayer polyline renderer", () => {
+  it("converts a polyline into consecutive line segments for deck.gl LineLayer", () => {
+    const route: [number, number][] = [
+      [103.85, 1.29],
+      [103.852, 1.292],
+      [103.854, 1.294],
+    ];
+    const layer = activeRouteLayer("active-route", route, [255, 200, 50]);
+    expect(layer.id).toBe("active-route");
+    const props = layer.props as any;
+    expect(props.data).toHaveLength(2);
+    expect(props.data[0]).toEqual({ from: [103.85, 1.29], to: [103.852, 1.292] });
+    expect(props.data[1]).toEqual({ from: [103.852, 1.292], to: [103.854, 1.294] });
+
+    expect(props.getWidth).toBe(5.5);
+    expect(props.widthUnits).toBe("pixels");
+    expect(props.widthMinPixels).toBe(3);
+    expect(props.pickable).toBe(false);
+    expect(props.getColor).toEqual([255, 200, 50, 255]);
+    expect(props.parameters).toEqual({ depthCompare: "always" });
+  });
+
+  it("handles null or single-point routes gracefully with empty segments", () => {
+    const nullLayer = activeRouteLayer("empty-route", null);
+    expect((nullLayer.props as any).data).toHaveLength(0);
+
+    const singlePointLayer = activeRouteLayer("single-route", [[103.85, 1.29]]);
+    expect((singlePointLayer.props as any).data).toHaveLength(0);
   });
 });

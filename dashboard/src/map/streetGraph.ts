@@ -8,7 +8,7 @@
  * a point is within straight-line distance R, so loading the tiles that
  * intersect the radius-R disc makes a search to R exact.
  */
-import { boundedDijkstra, csrFromEdges, type CSRGraph } from "./dijkstra.ts";
+import { boundedDijkstraWithParents, csrFromEdges, type CSRGraph } from "./dijkstra.ts";
 
 export const MAX_SNAP_M = 400;
 
@@ -114,6 +114,8 @@ export interface Isochrone {
   segments: Segment[];
   /** distance (m) per loaded global node id, for POI evaluation */
   distanceTo: (globalNode: number) => number;
+  /** Reconstruct the shortest walking polyline [[lon, lat], ...] from the origin to a target [lon, lat]. */
+  routeTo?: (targetLon: number, targetLat: number) => [number, number][];
 }
 
 export class StreetGraph {
@@ -304,7 +306,12 @@ export class StreetGraph {
     const csr = this.csr!;
     const { u, v } = this.edges[s.edge];
     const base = s.distM * this.detour;
-    const dist = boundedDijkstra(csr, [u, v], [base + s.offU, base + s.offV], cutoffM);
+    const { dist, prevNode, prevEdge } = boundedDijkstraWithParents(
+      csr,
+      [u, v],
+      [base + s.offU, base + s.offV],
+      cutoffM,
+    );
     const segments: Segment[] = [];
     let maxDistanceM = 0;
     for (let k = 0; k < this.edges.length; k++) {
@@ -329,6 +336,87 @@ export class StreetGraph {
     }
     segments.sort((a, b) => a.d - b.d);
     const localOf = this.localOf;
+
+    const routeTo = (targetLon: number, targetLat: number): [number, number][] => {
+      const ts = this.snap(targetLon, targetLat);
+      let targetNode = -1;
+      if (ts) {
+        if (ts.edge === s.edge) {
+          return [s.point, [targetLon, targetLat]];
+        }
+        const tEdge = this.edges[ts.edge];
+        const uNear = ts.offU <= ts.offV;
+        const first = uNear ? tEdge.u : tEdge.v;
+        const second = uNear ? tEdge.v : tEdge.u;
+        if (dist[first] < Infinity) {
+          targetNode = first;
+        } else if (dist[second] < Infinity) {
+          targetNode = second;
+        }
+      }
+
+      if (targetNode === -1) {
+        const kx = mPerDegLon(targetLat);
+        let bestD = Infinity;
+        for (let i = 0; i < this.nodeLon.length; i++) {
+          if (dist[i] === Infinity) continue;
+          const d = Math.hypot((this.nodeLon[i] - targetLon) * kx, (this.nodeLat[i] - targetLat) * M_PER_DEG_LAT);
+          if (d < bestD) {
+            bestD = d;
+            targetNode = i;
+          }
+        }
+      }
+
+      if (targetNode === -1 || targetNode === u || targetNode === v) {
+        return [s.point, [targetLon, targetLat]];
+      }
+
+      const steps: { from: number; to: number; edgeIdx: number }[] = [];
+      let curr = targetNode;
+      const visited = new Set<number>();
+      while (curr !== -1 && prevNode[curr] !== -1 && !visited.has(curr)) {
+        visited.add(curr);
+        const p = prevNode[curr];
+        const e = prevEdge[curr];
+        steps.push({ from: p, to: curr, edgeIdx: e });
+        if (p === u || p === v) {
+          curr = p;
+          break;
+        }
+        curr = p;
+      }
+
+      if (steps.length === 0 || (curr !== u && curr !== v)) {
+        return [s.point, [targetLon, targetLat]];
+      }
+
+      steps.reverse();
+      const coords: [number, number][] = [s.point];
+      for (const step of steps) {
+        const geom = this.geometry(step.edgeIdx);
+        const nPts = geom.lon.length;
+        const isForward = this.edges[step.edgeIdx].u === step.from;
+        const startIdx = isForward ? 0 : nPts - 1;
+        const endIdx = isForward ? nPts : -1;
+        const stride = isForward ? 1 : -1;
+
+        for (let i = startIdx; i !== endIdx; i += stride) {
+          const pt: [number, number] = [geom.lon[i], geom.lat[i]];
+          const last = coords[coords.length - 1];
+          if (!last || last[0] !== pt[0] || last[1] !== pt[1]) {
+            coords.push(pt);
+          }
+        }
+      }
+
+      const last = coords[coords.length - 1];
+      if (!last || last[0] !== targetLon || last[1] !== targetLat) {
+        coords.push([targetLon, targetLat]);
+      }
+      return coords;
+    };
+
     return {
       origin: [lon, lat],
       startNode: s.node,
@@ -341,6 +429,7 @@ export class StreetGraph {
         const i = localOf.get(gid);
         return i === undefined ? Infinity : dist[i];
       },
+      routeTo,
     };
   }
 }

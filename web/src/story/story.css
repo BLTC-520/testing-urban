@@ -955,3 +955,427 @@
 .hero-fine a {
   color: var(--paper-1);
 }
+
+/* ------------------------------------------------------------------ pitch deck briefing */
+
+.pitch-deck-briefing {
+  position: relative;
+}
+
+.pitch-deck-briefing h2 {
+  font-size: clamp(2rem, 1.6rem + 2vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: var(--space-3) 0 var(--space-4);
+  max-width: 22em;
+  color: var(--paper-0);
+}
+
+.pitch-deck-briefing .lede {
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--paper-1);
+  max-width: 46em;
+  margin-bottom: var(--space-6);
+}
+
+.pitch-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  margin: var(--space-6) 0 var(--space-7);
+}
+
+@media (max-width: 980px) {
+  .pitch-cards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+}
+
+.pitch-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(17, 21, 27, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: var(--space-5);
+  position: relative;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.pitch-card:hover {
+  border-color: var(--line-strong);
+  background: rgba(23, 28, 36, 0.85);
+}
+
+.pitch-card.pitch-card-problem {
+  border-top: 3px solid var(--sg);
+}
+
+.pitch-card.pitch-card-research {
+  border-top: 3px solid var(--ramp-5);
+}
+
+.pitch-card.pitch-card-policy {
+  border-top: 3px solid var(--jb);
+}
+
+.pitch-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-3);
+}
+
+.pitch-badge {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.pitch-badge.problem {
+  background: rgba(231, 84, 56, 0.14);
+  color: var(--sg);
+  border: 1px solid rgba(231, 84, 56, 0.3);
+}
+
+.pitch-badge.research {
+  background: rgba(106, 213, 182, 0.14);
+  color: var(--ramp-5);
+  border: 1px solid rgba(106, 213, 182, 0.3);
+}
+
+.pitch-badge.policy {
+  background: rgba(59, 137, 233, 0.14);
+  color: var(--jb);
+  border: 1px solid rgba(59, 137, 233, 0.3);
+}
+
+.pitch-meta-tag {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--paper-3);
+}
+
+.pitch-card h3 {
+  font-family: var(--font-sans);
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: var(--paper-0);
+  margin: 0 0 var(--space-3);
+  line-height: 1.25;
+}
+
+.pitch-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--paper-1);
+}
+
+.pitch-card-body p {
+  margin: 0 0 var(--space-3);
+}
+
+.pitch-stat-callout {
+  background: rgba(7, 9, 12, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+.stat-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+.stat-city {
+  text-align: center;
+}
+
+.stat-city .stat-num {
+  font-family: var(--font-sans);
+  font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  display: block;
+}
+
+.stat-city.sg .stat-num {
+  color: var(--sg);
+}
+
+.stat-city.jb .stat-num {
+  color: var(--jb);
+}
+
+.stat-city-lbl {
+  font-size: var(--step--2);
+  color: var(--paper-2);
+  margin-top: 4px;
+  display: block;
+  font-family: var(--font-mono);
+}
+
+.stat-divider {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--paper-3);
+  text-transform: uppercase;
+}
+
+.stat-caption {
+  margin-top: 8px;
+  font-size: var(--step--2);
+  color: var(--paper-2);
+  text-align: center;
+  line-height: 1.35;
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+}
+
+.stat-single {
+  text-align: center;
+}
+
+.stat-single .stat-num {
+  font-family: var(--font-sans);
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  display: block;
+}
+
+.stat-single .stat-num.highlight {
+  color: var(--ramp-5);
+}
+
+.stat-single-lbl {
+  font-size: var(--step--2);
+  color: var(--paper-1);
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+.pitch-bullet-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pitch-bullet-list li {
+  background: rgba(7, 9, 12, 0.45);
+  border-left: 2px solid var(--jb);
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+}
+
+.bullet-title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--paper-0);
+  font-size: var(--step--1);
+  margin-bottom: 3px;
+}
+
+.pitch-bullet-list li p {
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.42;
+  color: var(--paper-1);
+}
+
+.pitch-note {
+  margin-top: auto;
+  font-size: var(--step--2);
+  line-height: 1.45;
+  color: var(--paper-2);
+  border-top: 1px dashed var(--line);
+  padding-top: var(--space-3);
+}
+
+/* ------------------------------------------------------------------ 3D landmark launch strip */
+
+.landmark-launch-strip {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line-strong);
+}
+
+.launch-strip-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.launch-strip-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ramp-5);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.launch-strip-title {
+  font-size: var(--step-3);
+  color: var(--paper-0);
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.launch-strip-sub {
+  color: var(--paper-2);
+  font-size: var(--step--1);
+  margin: 0;
+  max-width: 40em;
+}
+
+.landmark-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 1040px) {
+  .landmark-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .landmark-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landmark-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  padding: var(--space-4);
+  background: rgba(17, 21, 27, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.landmark-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ramp-5);
+  background: var(--ink-3);
+}
+
+.landmark-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.landmark-city-pill {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+
+.landmark-city-pill.sg {
+  color: var(--sg);
+  background: var(--sg-soft);
+  border: 1px solid rgba(231, 84, 56, 0.35);
+}
+
+.landmark-city-pill.jb {
+  color: var(--jb);
+  background: var(--jb-soft);
+  border: 1px solid rgba(59, 137, 233, 0.35);
+}
+
+.landmark-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--paper-3);
+}
+
+.landmark-card-name {
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  font-weight: 600;
+  color: var(--paper-0);
+  margin: var(--space-3) 0 6px;
+  line-height: 1.25;
+}
+
+.landmark-card-desc {
+  font-size: var(--step--1);
+  line-height: 1.4;
+  color: var(--paper-2);
+  margin: 0 0 var(--space-4);
+  flex: 1;
+}
+
+.landmark-card-action {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--ramp-5);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.landmark-card:hover .landmark-card-action {
+  color: var(--ramp-6);
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ ending landmark enhancements */
+
+.end-card.with-landmarks {
+  max-width: 960px;
+  text-align: center;
+}
+
+.end-landmarks-wrap {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+.end-landmarks-wrap .landmark-launch-strip {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}

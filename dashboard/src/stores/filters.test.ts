@@ -87,4 +87,24 @@ describe("landmark focus-state transitions", () => {
     expect(f.city).toBe("jb");
     expect(f.focusedLandmark?.id).toBe("ciq");
   });
+
+  it("toggles 3D building colour mode and manages active shortest-route category", () => {
+    const f = useFilters();
+    expect(f.buildingColorMode).toBe("role");
+    f.toggleBuildingColorMode();
+    expect(f.buildingColorMode).toBe("access");
+
+    f.setActiveRouteCategory("healthcare");
+    expect(f.activeRouteCategory).toBe("healthcare");
+    f.focusLandmark(mbs, initialCam, true);
+    expect(f.activeRouteCategory).toBeNull();
+  });
+
+  it("applies URL deep-link parameters for city, 3D buildings, and landmark focus", () => {
+    const f = useFilters();
+    f.applyUrlParams("?city=jb&landmark=larkin&buildings=1", CURATED);
+    expect(f.city).toBe("jb");
+    expect(f.buildings).toBe(true);
+    expect(f.focusedLandmark?.id).toBe("larkin");
+  });
 });

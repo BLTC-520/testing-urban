@@ -67,6 +67,11 @@ const categoryRows = computed(() => {
 });
 
 const reachedCount = computed(() => categoryRows.value.filter((r) => r.within).length);
+
+function toggleCategoryRoute(id: string, within: boolean) {
+  if (!within) return;
+  f.setActiveRouteCategory(f.activeRouteCategory === id ? null : id);
+}
 </script>
 
 <template>
@@ -105,7 +110,17 @@ const reachedCount = computed(() => categoryRows.value.filter((r) => r.within).l
       </div>
 
       <ul class="cat-list">
-        <li v-for="r in categoryRows" :key="r.id" :class="{ out: !r.within }">
+        <li
+          v-for="r in categoryRows"
+          :key="r.id"
+          :class="{ out: !r.within, active: f.activeRouteCategory === r.id }"
+          :role="r.within ? 'button' : undefined"
+          :tabindex="r.within ? 0 : undefined"
+          @mouseenter="r.within && f.setActiveRouteCategory(r.id)"
+          @mouseleave="r.within && f.activeRouteCategory === r.id && f.setActiveRouteCategory(null)"
+          @click="toggleCategoryRoute(r.id, r.within)"
+          @keydown.enter="toggleCategoryRoute(r.id, r.within)"
+        >
           <i :style="{ background: `var(--cat-${r.id})` }" />
           <div class="cat-main">
             <span class="cat-label">{{ r.label }}</span>
@@ -117,7 +132,7 @@ const reachedCount = computed(() => categoryRows.value.filter((r) => r.within).l
       </ul>
 
       <p class="note foot">
-        Walking {{ speedMps }} m/s · markers show nearest per category · Esc to exit
+        Walking {{ speedMps }} m/s · hover or click a category or 3D beacon to trace its shortest route · Esc to exit
       </p>
     </template>
   </aside>
@@ -173,10 +188,20 @@ header strong { font-size: 13px; color: var(--paper-0); }
   display: grid;
   grid-template-columns: 9px 1fr auto 36px;
   align-items: center; gap: 6px;
-  padding: 2px 0;
+  padding: 3px 5px;
+  margin: 0 -5px;
+  border-radius: 5px;
+  border: 1px solid transparent;
   font-size: 11px; color: var(--paper-1);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
 }
-.cat-list li.out { color: var(--paper-3); }
+.cat-list li:hover:not(.out),
+.cat-list li.active {
+  background: var(--ink-3);
+  border-color: var(--line-strong);
+}
+.cat-list li.out { color: var(--paper-3); cursor: default; }
 .cat-list li i { width: 7px; height: 7px; border-radius: 50%; }
 .cat-list li.out i { opacity: 0.35; }
 .cat-main { display: flex; flex-direction: column; min-width: 0; }

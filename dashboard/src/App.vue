@@ -24,6 +24,7 @@ import HexMap from "./components/HexMap.vue";
 import ScenarioBar from "./components/ScenarioBar.vue";
 import Inspector from "./components/Inspector.vue";
 import WalkFocusPanel from "./components/WalkFocusPanel.vue";
+import { LANDMARKS } from "./map/landmarks.ts";
 import { useData } from "./stores/data.ts";
 import { useFilters } from "./stores/filters.ts";
 
@@ -31,6 +32,9 @@ const d = useData();
 const f = useFilters();
 
 onMounted(async () => {
+  if (typeof window !== "undefined" && window.location.search) {
+    f.applyUrlParams(window.location.search, LANDMARKS);
+  }
   await d.loadStatic();
   await d.loadAll();
 });

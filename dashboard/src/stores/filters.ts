@@ -10,6 +10,7 @@
  */
 import { defineStore } from "pinia";
 import type { CityId, SpeedId } from "../api/types.ts";
+import type { BuildingColorMode } from "../map/buildings.ts";
 import type { Landmark } from "../map/landmarkTypes.ts";
 
 /** What the map's hex click selected, if anything. */
@@ -55,6 +56,10 @@ export const useFilters = defineStore("filters", {
     savedLandmarks: null as boolean | null,
     /** Active tab in the bottom-right table panel. */
     rightTab: "districts" as RightTab,
+    /** Colour mode for 3D buildings ("role" = semantic dark slate with vivid landmark meshes; "access" = urban twin cyan tint). */
+    buildingColorMode: "role" as BuildingColorMode,
+    /** Essential category whose shortest walking path from the focused landmark is highlighted in 3D. */
+    activeRouteCategory: null as string | null,
   }),
 
   getters: {
@@ -96,6 +101,12 @@ export const useFilters = defineStore("filters", {
     },
     toggleDelta() { this.showDelta = !this.showDelta; },
     toggleBuildings() { this.buildings = !this.buildings; },
+    toggleBuildingColorMode() {
+      this.buildingColorMode = this.buildingColorMode === "role" ? "access" : "role";
+    },
+    setActiveRouteCategory(cat: string | null) {
+      this.activeRouteCategory = cat;
+    },
     toggleLandmarks() { this.landmarks = !this.landmarks; },
     setRightTab(tab: RightTab) { this.rightTab = tab; },
     select(sel: Selection | null) {
@@ -117,6 +128,7 @@ export const useFilters = defineStore("filters", {
       }
       if (landmark.city !== this.city) this.city = landmark.city;
       this.selection = null;
+      this.activeRouteCategory = null;
       this.focusedLandmark = landmark;
       this.landmarks = true;
       this.rightTab = "landmarks";
@@ -130,10 +142,35 @@ export const useFilters = defineStore("filters", {
       if (this.savedBuildings !== null) this.buildings = this.savedBuildings;
       if (this.savedLandmarks !== null) this.landmarks = this.savedLandmarks;
       this.focusedLandmark = null;
+      this.activeRouteCategory = null;
       this.savedCamera = null;
       this.savedBuildings = null;
       this.savedLandmarks = null;
       return restored;
+    },
+
+    /** Apply initial URL query parameters (e.g. ?city=jb&landmark=larkin&buildings=1 from Story deep links). */
+    applyUrlParams(search: string, landmarks: readonly Landmark[]) {
+      const p = new URLSearchParams(search);
+      const cityParam = p.get("city");
+      if (cityParam === "sg" || cityParam === "jb") {
+        this.city = cityParam;
+      }
+      const bld = p.get("buildings");
+      if (bld === "1" || bld === "true") {
+        this.buildings = true;
+      }
+      const scen = p.get("scenario");
+      if (scen) {
+        this.scenario = scen;
+      }
+      const lmId = p.get("landmark");
+      if (lmId) {
+        const found = landmarks.find((l) => l.id === lmId);
+        if (found) {
+          this.focusLandmark(found, null, true);
+        }
+      }
     },
   },
 });

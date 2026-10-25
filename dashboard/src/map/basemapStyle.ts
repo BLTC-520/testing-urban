@@ -82,6 +82,8 @@ export function basemapStyle(): StyleSpecification {
         paint: { "fill-color": "#06111b" } },
       { id: "water-edge", type: "line", source: "basemap", "source-layer": "water", minzoom: 10,
         paint: { "line-color": "#0d2030", "line-width": 0.6 } },
+      { id: "buildings-footprint", type: "fill", source: "basemap", "source-layer": "buildings", minzoom: 13,
+        paint: { "fill-color": "#18202c", "fill-outline-color": "#263244" } },
       road("roads-minor", 12, ["service", "residential", "living_street", "unclassified"], [[12, 0.25], [18, 3]], "#1b2129"),
       road("roads-mid", 10, ["tertiary", "secondary"], [[10, 0.35], [18, 6]], "#222a34"),
       road("roads-major", 8, ["primary", "trunk", "motorway"], [[8, 0.45], [18, 9]], "#2b3440"),

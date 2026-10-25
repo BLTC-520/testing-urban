@@ -8,6 +8,7 @@ import { useMemo, type ReactNode } from "react";
 import { Badge, Segmented } from "../components/Controls";
 import { CATEGORY_COLOR, cssRGB, GAIN, JB, NEUTRAL, SG } from "../lib/colors";
 import { shareWithin, sortedByMinutes, weightedMedian, type Mode } from "../lib/crossborder";
+import { dashboardSceneUrl } from "../lib/dashboard";
 import type { CrossBorder } from "../lib/data";
 import { int, people, pct } from "../lib/format";
 import { href } from "../lib/router";
@@ -103,6 +104,7 @@ export function Chapters(p: Props) {
     <main className="chapters">
       <Hero meta={meta} summary={summary} />
       <WhyTheseCities summary={summary} />
+      <PitchDeckBriefing meta={meta} summary={summary} />
       <WalkSteps {...p} meta={meta} summary={summary} />
       <BasketEssay meta={meta} summary={summary} />
       <SurfaceSteps meta={meta} summary={summary} />
@@ -225,6 +227,256 @@ function WhyTheseCities({ summary }: { summary: Summary }) {
           <Badge kind="scenario" />
           <span>What-ifs about future mobility. Explorations, never predictions.</span>
         </div>
+      </div>
+    </Essay>
+  );
+}
+
+// ============================================================================ pitch deck briefing
+
+export interface LandmarkLaunchTarget {
+  id: string;
+  name: string;
+  city: CityId;
+  cityLabel: string;
+  badge: string;
+  desc: string;
+  lon: number;
+  lat: number;
+}
+
+export const LANDMARK_LAUNCH_TARGETS: readonly LandmarkLaunchTarget[] = [
+  {
+    id: "mbs",
+    name: "Marina Bay Sands",
+    city: "sg",
+    cityLabel: "Singapore",
+    badge: "3D Towers · SkyPark",
+    desc: "3D multi-part towers + SkyPark mesh & walk-shed",
+    lon: 103.86072,
+    lat: 1.28370,
+  },
+  {
+    id: "larkin",
+    name: "Larkin Sentral",
+    city: "jb",
+    cityLabel: "Johor Bahru",
+    badge: "Transit Hub · Market",
+    desc: "Regional bus terminal & market hub walk-shed",
+    lon: 103.74257,
+    lat: 1.49572,
+  },
+  {
+    id: "ciq",
+    name: "Bangunan Sultan Iskandar CIQ",
+    city: "jb",
+    cityLabel: "Johor Bahru",
+    badge: "Causeway · RTS Link",
+    desc: "Causeway border crossing & RTS catchment",
+    lon: 103.76673,
+    lat: 1.46500,
+  },
+  {
+    id: "sgh",
+    name: "Singapore General Hospital",
+    city: "sg",
+    cityLabel: "Outram · Singapore",
+    badge: "Healthcare Anchor",
+    desc: "Healthcare access anchor in central Singapore",
+    lon: 103.83464,
+    lat: 1.27973,
+  },
+];
+
+export function LandmarkLaunchStrip({
+  title = "Inspect Real Places in 3D",
+  subtitle = "Direct 3D Command Centre landmark launch with full building meshes & walk-sheds",
+}: {
+  title?: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="landmark-launch-strip">
+      <div className="launch-strip-header">
+        <div>
+          <span className="launch-strip-kicker">Interactive 3D Landmark Launch Strip</span>
+          <h3 className="launch-strip-title">{title}</h3>
+        </div>
+        {subtitle ? <p className="launch-strip-sub">{subtitle}</p> : null}
+      </div>
+      <div className="landmark-cards-grid">
+        {LANDMARK_LAUNCH_TARGETS.map((target) => {
+          const dashUrl = dashboardSceneUrl(import.meta.env, {
+            city: target.city,
+            landmark: target.id,
+            buildings: true,
+          });
+          const linkUrl =
+            dashUrl ??
+            href("/explore", {
+              city: target.city,
+              lon: target.lon.toFixed(5),
+              lat: target.lat.toFixed(5),
+              landmark: target.id,
+            });
+          const is3D = Boolean(dashUrl);
+
+          return (
+            <a
+              key={target.id}
+              className={`landmark-card landmark-card-${target.city}`}
+              href={linkUrl}
+              target={is3D ? "_blank" : undefined}
+              rel={is3D ? "noreferrer" : undefined}
+            >
+              <div className="landmark-card-top">
+                <span className={`landmark-city-pill ${target.city}`}>
+                  {target.city === "sg" ? "Singapore" : "Johor Bahru"}
+                </span>
+                <span className="landmark-tag">{target.badge}</span>
+              </div>
+              <h4 className="landmark-card-name">{target.name}</h4>
+              <p className="landmark-card-desc">{target.desc}</p>
+              <div className="landmark-card-action">
+                <span>{is3D ? "Open in 3D Command Centre ↗" : "Explore Walk-Shed →"}</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function PitchDeckBriefing({ meta, summary }: { meta: Meta; summary: Summary }) {
+  const sg = summary.cities.sg.all;
+  const jb = summary.cities.jb.all;
+  const basketCount = meta.basket.length;
+  const popMillions = ((sg.population + jb.population) / 1e6).toFixed(1);
+  const sgComplete = pct(sg.share_complete, 1);
+  const jbComplete = pct(jb.share_complete, 1);
+  const jbLowAccess = pct(jb.share_low_access, 1);
+  const sensitivityRuns = summary.sensitivity?.runs ?? 162;
+
+  const parking = summary.scenarios.parking;
+  const sgP2p = parking?.sg?.after["25"]?.newly_complete
+    ? int(Math.round(parking.sg.after["25"].newly_complete / 100) * 100)
+    : "393,500";
+  const jbP2p = parking?.jb?.after["25"]?.newly_complete
+    ? int(Math.round(parking.jb.after["25"].newly_complete / 100) * 100)
+    : "152,800";
+
+  const rtsCentral = summary.scenarios.rts?.central as Record<string, Record<string, number>> | undefined;
+  const rtsBaseMin = rtsCentral?.baseline?.median_min ? Math.round(rtsCentral.baseline.median_min) : 132;
+  const rtsAvMin = rtsCentral?.rts_av?.median_min ? Math.round(rtsCentral.rts_av.median_min) : 85;
+
+  return (
+    <Essay id="briefing" tone="deep">
+      <div className="pitch-deck-briefing">
+        <Kicker n="01B">Mission &amp; Impact · Why This Platform Exists</Kicker>
+        <h2>From static maps to an operational 3D decision sandbox</h2>
+        <p className="lede">
+          Standard planning models draw 1 km buffer circles across satellite tiles. In reality, pedestrian life is bounded by physical barriers: multi-lane expressways, drainage canals, fenced compounds, and missing footpaths. We rebuilt cross-border accessibility from scratch as an open, verifiable 3D decision tool across all {basketCount} daily essentials.
+        </p>
+
+        <div className="pitch-cards-grid">
+          {/* Card 1: Real-World Problem Solving */}
+          <div className="pitch-card pitch-card-problem">
+            <div className="pitch-card-head">
+              <span className="pitch-badge problem">Real-World Diagnosis</span>
+              <span className="pitch-meta-tag">Ground Truth</span>
+            </div>
+            <h3>Real-World Problem Solving</h3>
+            <div className="pitch-card-body">
+              <p>
+                Straight-line 1 km circles hide real barriers—highways, canals, compound walls, and missing footpaths that turn a 75 m gap in Johor Bahru into a 1,402 m walk.
+              </p>
+              <div className="pitch-stat-callout">
+                <div className="stat-split">
+                  <div className="stat-city sg">
+                    <span className="stat-num">{sgComplete}</span>
+                    <span className="stat-city-lbl">Singapore</span>
+                  </div>
+                  <div className="stat-divider">vs</div>
+                  <div className="stat-city jb">
+                    <span className="stat-num">{jbComplete}</span>
+                    <span className="stat-city-lbl">Johor Bahru</span>
+                  </div>
+                </div>
+                <div className="stat-caption">Complete 15-minute access across {popMillions} million residents</div>
+              </div>
+              <p>
+                Across {popMillions} million residents ({sgComplete} vs {jbComplete} complete 15-min access), <strong>healthcare</strong> is the binding constraint in both cities, while {jbLowAccess} of JB residents reach fewer than 3 essentials.
+              </p>
+              <p className="pitch-note">
+                Our 100% open-source 3D landmark &amp; street mesh grounds abstract hexagons in real places—from <strong>Marina Bay Sands</strong> and <strong>Toa Payoh</strong> to <strong>Larkin Sentral</strong> and <strong>JB CIQ</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2: For Urban Researchers */}
+          <div className="pitch-card pitch-card-research">
+            <div className="pitch-card-head">
+              <span className="pitch-badge research">Open &amp; Reproducible Science</span>
+              <span className="pitch-meta-tag">Audit-Ready</span>
+            </div>
+            <h3>For Urban Researchers</h3>
+            <div className="pitch-card-body">
+              <p>
+                Zero-cost, fully reproducible Python + Rust/Numba + WebGL pipeline built on open data (OpenStreetMap <code>building:part</code> 3D geometry, Overture Places cross-audit revealing 2/3 clinic under-mapping in JB, HRSL/Kontur population calibration).
+              </p>
+              <div className="pitch-stat-callout">
+                <div className="stat-single">
+                  <span className="stat-num highlight">{sensitivityRuns}</span>
+                  <span className="stat-single-lbl">Sensitivity Audit Runs</span>
+                </div>
+                <div className="stat-caption">Walking speeds 0.9–1.4 m/s · Strict vs. permissive networks · Taxonomy tiers</div>
+              </div>
+              <p>
+                Verified across all <strong>{sensitivityRuns} sensitivity runs</strong> (walking speeds 0.9–1.4 m/s, strict vs. permissive networks, taxonomy tiers) plus in-browser WebMCP agent tools (<code>window.sgjb</code>) for automated querying.
+              </p>
+              <p className="pitch-note">
+                100% transparent: any researcher or agent can execute live graph queries, inspect sensitivity frontiers, and download full raw parquet meshes without proprietary API gates.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3: For Governments & Planners */}
+          <div className="pitch-card pitch-card-policy">
+            <div className="pitch-card-head">
+              <span className="pitch-badge policy">Policy &amp; Capital Allocation</span>
+              <span className="pitch-meta-tag">High-Impact ROI</span>
+            </div>
+            <h3>For Governments &amp; Planners</h3>
+            <div className="pitch-card-body">
+              <ul className="pitch-bullet-list">
+                <li>
+                  <div className="bullet-title">Site Selection (Parking to Proximity)</div>
+                  <p>
+                    Test converting 25 surface car parks into neighbourhood hubs before spending capital—unlocking complete 15-min access for <strong>{sgP2p} Singapore</strong> and <strong>{jbP2p} Johor Bahru</strong> residents.
+                  </p>
+                </li>
+                <li>
+                  <div className="bullet-title">Cross-Border First-Mile (RTS Link + Feeders)</div>
+                  <p>
+                    Model how shared autonomous feeders into hubs like <strong>Larkin Sentral</strong> and <strong>Bukit Chagar</strong> cut median JB-to-Singapore MRT door-to-platform trips from <strong>{rtsBaseMin} to {rtsAvMin} minutes</strong>.
+                  </p>
+                </li>
+                <li>
+                  <div className="bullet-title">Surgical Micro-Infrastructure (One Footpath)</div>
+                  <p>
+                    Pinpoint exact dead-ends—like a single <strong>75 m footpath in Bukit Indah</strong> that gives <strong>2,200 residents</strong> complete 15-minute access.
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <LandmarkLaunchStrip
+          title="Inspect Real Places in 3D"
+          subtitle="Explore landmark geometry, multi-part towers, and pedestrian walk-sheds in the 3D Command Centre"
+        />
       </div>
     </Essay>
   );
@@ -981,7 +1233,7 @@ function Ending({ meta }: { meta: Meta }) {
   return (
     <>
       <section className="story-step end-step" data-scene="end">
-        <div className="end-card">
+        <div className="end-card with-landmarks">
           <Kicker>Your turn</Kicker>
           <h2>Walk any street in either city</h2>
           <p>Click anywhere on the map to see your own walk-shed, change the definitions, slow the walker down, or switch on the Parking-to-Proximity scenario.</p>
@@ -992,6 +1244,12 @@ function Ending({ meta }: { meta: Meta }) {
             <a className="cta" href={href("/methods")}>
               Read the methods
             </a>
+          </div>
+          <div className="end-landmarks-wrap">
+            <LandmarkLaunchStrip
+              title="Inspect Real Places in 3D"
+              subtitle="Deep-link directly to 3D Command Centre landmark scenes"
+            />
           </div>
         </div>
       </section>

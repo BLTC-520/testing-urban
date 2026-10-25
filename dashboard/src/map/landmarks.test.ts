@@ -98,6 +98,21 @@ describe("the city Landmarks list: order and dedupe", () => {
     expect(listLandmarks("jb").some((l) => l.id === "ciq")).toBe(true);
   });
 
+  it("includes curated Larkin Sentral and Bangunan Sultan Ibrahim for JB, deduplicating with generated", () => {
+    const curatedLarkin = CURATED.find((l) => l.id === "larkin");
+    expect(curatedLarkin).toBeDefined();
+    expect(curatedLarkin?.name).toBe("Larkin Sentral");
+
+    const curatedSultan = CURATED.find((l) => l.id === "sultan-ibrahim");
+    expect(curatedSultan).toBeDefined();
+
+    const jbList = listLandmarks("jb");
+    expect(jbList.some((l) => l.id === "larkin")).toBe(true);
+    expect(jbList.some((l) => l.id === "sultan-ibrahim")).toBe(true);
+    // OSM Larkin Bus Terminal is within 100m and should be deduplicated out
+    expect(LANDMARKS.some((l) => l.id === "osm-way-106590670")).toBe(false);
+  });
+
   it("dedupes duplicate ids, case-insensitive names and <100 m neighbours, keeping the higher-ranked one", () => {
     const sample = Object.freeze([
       mk("a1", "Marina Bay Sands", "sg", "icon", 103.8607, 1.2837, 0.7),

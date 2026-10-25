@@ -8,7 +8,7 @@
  *   3. Progressive 5-minute-banded LineLayer without adding @deck.gl/extensions
  *   4. Start-node and nearest-essential POI markers
  */
-import { LineLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { ColumnLayer, LineLayer, ScatterplotLayer } from "@deck.gl/layers";
 import type { RGBA } from "./colors.ts";
 import type { NearestPoi, Reached } from "./pois.ts";
 import type { Segment } from "./streetGraph.ts";
@@ -188,10 +188,17 @@ export function nearestPoiMarkers(
   return out;
 }
 
+export interface WalkMarkerOptions {
+  activeCategory?: string | null;
+  onHoverMarker?: (m: NearestMarker | null, x: number, y: number) => void;
+  onClickMarker?: (m: NearestMarker) => void;
+}
+
 /** Start-node marker and per-category nearest-place markers on the map. */
 export function walkMarkerLayers(
   startNode: readonly [number, number] | null,
   markers: readonly NearestMarker[],
+  options?: WalkMarkerOptions,
 ) {
   return [
     new ScatterplotLayer<readonly [number, number]>({
@@ -208,6 +215,34 @@ export function walkMarkerLayers(
       pickable: false,
       parameters: { depthCompare: "always" },
     }),
+    new ColumnLayer<NearestMarker>({
+      id: "walk-nearest-poi-columns",
+      data: [...markers],
+      diskResolution: 16,
+      radius: 14,
+      extruded: true,
+      wireframe: true,
+      pickable: true,
+      autoHighlight: true,
+      highlightColor: [255, 240, 150, 220],
+      getPosition: (d) => [d.lon, d.lat],
+      getElevation: (d) => (options?.activeCategory === d.category ? 68 : 42),
+      getFillColor: (d) => [
+        d.color[0],
+        d.color[1],
+        d.color[2],
+        options?.activeCategory === d.category ? 245 : 205,
+      ],
+      getLineColor: [243, 239, 230, 245],
+      onHover: (info) => options?.onHoverMarker?.(info.object ?? null, info.x, info.y),
+      onClick: (info) => {
+        if (info.object) options?.onClickMarker?.(info.object);
+      },
+      updateTriggers: {
+        getElevation: [options?.activeCategory],
+        getFillColor: [options?.activeCategory],
+      },
+    }),
     new ScatterplotLayer<NearestMarker>({
       id: "walk-nearest-pois",
       data: [...markers],
@@ -219,8 +254,49 @@ export function walkMarkerLayers(
       stroked: true,
       getLineColor: [243, 239, 230, 240],
       lineWidthMinPixels: 1.8,
-      pickable: false,
+      pickable: true,
+      onHover: (info) => options?.onHoverMarker?.(info.object ?? null, info.x, info.y),
+      onClick: (info) => {
+        if (info.object) options?.onClickMarker?.(info.object);
+      },
       parameters: { depthCompare: "always" },
     }),
   ];
+}
+
+export interface RouteSegment {
+  from: [number, number];
+  to: [number, number];
+}
+
+/** Walking shortest-path polyline layer from landmark street origin to destination. */
+export function activeRouteLayer(
+  id: string,
+  route: readonly [number, number][] | null,
+  color: readonly [number, number, number] = [255, 209, 102],
+): LineLayer<RouteSegment> {
+  const segments: RouteSegment[] = [];
+  if (route && route.length >= 2) {
+    for (let i = 0; i < route.length - 1; i++) {
+      segments.push({
+        from: [route[i][0], route[i][1]],
+        to: [route[i + 1][0], route[i + 1][1]],
+      });
+    }
+  }
+  return new LineLayer<RouteSegment>({
+    id,
+    data: segments,
+    getSourcePosition: (d) => d.from,
+    getTargetPosition: (d) => d.to,
+    getColor: [color[0], color[1], color[2], 255],
+    getWidth: 5.5,
+    widthUnits: "pixels",
+    widthMinPixels: 3,
+    pickable: false,
+    updateTriggers: {
+      getColor: [color],
+    },
+    parameters: { depthCompare: "always" },
+  });
 }

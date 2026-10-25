@@ -122,6 +122,50 @@ export function boundedDijkstra(
   return dist;
 }
 
+/**
+ * Distances (metres) from the nearest source to every node within `cutoff`,
+ * along with predecessor nodes and traversed edges for shortest-path reconstruction.
+ * Unreached nodes are +Infinity, and unreached or root predecessor entries are -1.
+ */
+export function boundedDijkstraWithParents(
+  g: CSRGraph & { arcEdge?: Int32Array },
+  sources: ArrayLike<number>,
+  sourceCost: ArrayLike<number>,
+  cutoff: number,
+): { dist: Float64Array; prevNode: Int32Array; prevEdge: Int32Array } {
+  const n = g.indptr.length - 1;
+  const dist = new Float64Array(n).fill(Infinity);
+  const prevNode = new Int32Array(n).fill(-1);
+  const prevEdge = new Int32Array(n).fill(-1);
+  const heap = new MinHeap(Math.min(1 << 16, Math.max(64, g.indices.length)));
+  for (let k = 0; k < sources.length; k++) {
+    const s = sources[k];
+    const c = sourceCost[k];
+    if (c < dist[s] && c <= cutoff) {
+      dist[s] = c;
+      heap.push(c, s);
+    }
+  }
+  const out = new Float64Array(1);
+  const { indptr, indices, weights, arcEdge } = g;
+  while (heap.size > 0) {
+    const u = heap.pop(out);
+    const c = out[0];
+    if (c > dist[u]) continue;
+    for (let e = indptr[u]; e < indptr[u + 1]; e++) {
+      const v = indices[e];
+      const nc = c + weights[e];
+      if (nc < dist[v] && nc <= cutoff) {
+        dist[v] = nc;
+        prevNode[v] = u;
+        prevEdge[v] = arcEdge ? arcEdge[e] : e;
+        heap.push(nc, v);
+      }
+    }
+  }
+  return { dist, prevNode, prevEdge };
+}
+
 /** Build CSR (both directions) from an undirected edge list. */
 export function csrFromEdges(
   nNodes: number,

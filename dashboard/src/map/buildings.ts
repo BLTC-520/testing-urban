@@ -254,17 +254,24 @@ export function cityMaskLayer(hexes: Hex[]): H3HexagonLayer<Hex> {
   });
 }
 
-/**
- * Tint for the building meshes. OSM Buildings arrive white, which on a dark
- * wall display out-shouts the data; a cool grey lets the access colours lead.
- */
-const BUILDING_TINT: [number, number, number, number] = [150, 162, 178, 255];
+export type BuildingColorMode = "role" | "access";
+
+export const BUILDING_TINTS: Record<BuildingColorMode, [number, number, number, number]> = {
+  /** Architectural slate-blue so colored 3D landmark meshes pop */
+  role: [72, 92, 118, 235],
+  /** Teal-cyan urban twin tint */
+  access: [44, 148, 162, 230],
+};
 
 /**
  * The current city's buildings. Each city is its own layer id, so switching
  * city loads a tileset pruned to that city instead of reusing the other's.
  */
-export function buildingsLayer(token: string, city: CityId): Tile3DLayer {
+export function buildingsLayer(
+  token: string,
+  city: CityId,
+  colorMode: BuildingColorMode = "role",
+): Tile3DLayer {
   return new Tile3DLayer({
     id: `osm-buildings-${city}`,
     data: `https://assets.ion.cesium.com/${OSM_BUILDINGS_ASSET}/tileset.json`,
@@ -284,7 +291,7 @@ export function buildingsLayer(token: string, city: CityId): Tile3DLayer {
     // Hover and click stay with the hexagons; a building has nothing to report.
     pickable: false,
     _subLayerProps: {
-      scenegraph: { getColor: BUILDING_TINT },
+      scenegraph: { getColor: BUILDING_TINTS[colorMode] },
     },
   });
 }

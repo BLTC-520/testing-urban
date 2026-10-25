@@ -35,21 +35,25 @@ import {
   BUILDINGS_VIEW, buildingsFocus, buildingsLayer, cityMaskLayer, hexStyle, ionToken,
 } from "../map/buildings.ts";
 import {
-  BAND_COLORS, isochroneLayer, nearestPoiMarkers, walkMarkerLayers,
+  buildLandmarkMeshes, landmarkMeshLayer, type LandmarkMeshPart,
+} from "../map/landmarkMeshes.ts";
+import { LANDMARKS } from "../map/landmarks.ts";
+import {
+  BAND_COLORS, CATEGORY_RGB, activeRouteLayer, isochroneLayer, nearestPoiMarkers, walkMarkerLayers, type NearestMarker,
 } from "../map/walkFocus.ts";
 import { STUDY_AREA } from "../map/studyArea.ts";
 import { useWalkFocusController } from "../composables/useWalkFocus.ts";
 import FamousLandmarksBar from "./FamousLandmarksBar.vue";
 import LandmarkCallouts from "./LandmarkCallouts.vue";
 import type { Hex } from "../api/types.ts";
-import { pct, people } from "../lib.ts";
+import { int, pct, people, titleise } from "../lib.ts";
 
 const d = useData();
 const f = useFilters();
 
-/** Resolved at build time; null hides the 3D buildings switch entirely. */
+/** Optional Cesium ion token for streaming OSM Buildings on top of the open-source 3D landmark meshes. */
 const ION_TOKEN = ionToken(import.meta.env);
-const showBuildings = computed(() => ION_TOKEN !== null && f.buildings);
+const showBuildings = computed(() => f.buildings);
 
 const container = ref<HTMLDivElement | null>(null);
 /*
@@ -64,7 +68,13 @@ const container = ref<HTMLDivElement | null>(null);
 const map = shallowRef<MlMap | null>(null);
 const overlay = shallowRef<MapboxOverlay | null>(null);
 const hovered = ref<{ x: number; y: number; hex: Hex } | null>(null);
+const hoveredLandmark = ref<{ x: number; y: number; part: LandmarkMeshPart } | null>(null);
+const hoveredPoi = ref<{ x: number; y: number; marker: NearestMarker } | null>(null);
 const ready = ref(false);
+
+const cityMeshParts = computed(() =>
+  buildLandmarkMeshes(LANDMARKS.filter((l) => l.city === f.city)),
+);
 
 const {
   iso: walkIso,
@@ -151,17 +161,63 @@ function buildLayers() {
 
   // Buildings after hexagons, so they draw over the flattened ground plane;
   // the mask (the same hexagons, never drawn) clips them to this city.
-  const baseLayers = showBuildings.value && ION_TOKEN
-    ? [cityMaskLayer(hexes), hexLayer, buildingsLayer(ION_TOKEN, f.city)]
-    : [hexLayer];
+  const baseLayers = [
+    ...(showBuildings.value && ION_TOKEN
+      ? [cityMaskLayer(hexes), hexLayer, buildingsLayer(ION_TOKEN, f.city, f.buildingColorMode)]
+      : [hexLayer]),
+    ...(showBuildings.value || f.landmarks || focused
+      ? [
+          landmarkMeshLayer({
+            meshParts: cityMeshParts.value,
+            focusedId: f.focusedLandmark?.id ?? null,
+            hoveredId: hoveredLandmark.value?.part.landmarkId ?? null,
+            onHover: (info) => {
+              hoveredLandmark.value = info.object
+                ? { x: info.x, y: info.y, part: info.object }
+                : null;
+            },
+            onClick: (info) => {
+              if (!info.object) return;
+              hoveredLandmark.value = null;
+              f.focusLandmark(info.object.landmark, null, true);
+            },
+          }),
+        ]
+      : []),
+  ];
 
   if (!focused || !walkIso.value) return baseLayers;
 
   const markers = nearestPoiMarkers(walkReached.value, basket.value, f.minutes, walkReveal.value);
+  const activeCat = f.activeRouteCategory;
+  const activeTarget = activeCat ? walkReached.value?.nearest[activeCat] ?? null : null;
+  const activeRoutePts =
+    activeTarget && walkIso.value.routeTo
+      ? walkIso.value.routeTo(activeTarget.lon, activeTarget.lat)
+      : null;
+
   return [
     ...baseLayers,
     isochroneLayer("walk-isochrone", walkIso.value.segments, walkReveal.value, speedMps.value),
-    ...walkMarkerLayers(walkIso.value.startNode, markers),
+    ...(activeRoutePts && activeCat
+      ? [
+          activeRouteLayer(
+            "walk-shortest-route",
+            activeRoutePts,
+            CATEGORY_RGB[activeCat] ?? [255, 209, 102],
+          ),
+        ]
+      : []),
+    ...walkMarkerLayers(walkIso.value.startNode, markers, {
+      activeCategory: activeCat,
+      onHoverMarker: (m, x, y) => {
+        hoveredPoi.value = m ? { x, y, marker: m } : null;
+        f.setActiveRouteCategory(m ? m.category : null);
+      },
+      onClickMarker: (m) => {
+        f.setActiveRouteCategory(f.activeRouteCategory === m.category ? null : m.category);
+      },
+    }),
   ];
 }
 
@@ -234,13 +290,6 @@ onMounted(() => {
   const o = new MapboxOverlay({ interleaved: true, layers: [] });
   m.addControl(o);
 
-  m.on("click", () => {
-    if (f.focusedLandmark) {
-      hovered.value = null;
-      f.exitFocus();
-    }
-  });
-
   m.on("load", () => {
     ready.value = true;
     o.setProps({ layers: buildLayers() });
@@ -263,7 +312,8 @@ onBeforeUnmount(() => {
 watch(
   () => [
     d.cells, d.baselineCells, f.selection?.hex, mode.value, showBuildings.value,
-    f.focusedLandmark, walkIso.value, walkReached.value, walkReveal.value, speedMps.value,
+    f.buildingColorMode, f.landmarks, f.focusedLandmark, hoveredLandmark.value?.part.landmarkId,
+    f.activeRouteCategory, walkIso.value, walkReached.value, walkReveal.value, speedMps.value,
   ] as const,
   () => {
     if (f.focusedLandmark) hovered.value = null;
@@ -338,11 +388,17 @@ const legendStops = computed(() => {
           @click="f.res = r"
         >r{{ r }}</button>
         <button
-          v-if="ION_TOKEN"
           :class="['chip', { on: f.buildings }]"
           :aria-pressed="f.buildings"
           @click="f.toggleBuildings()"
         >3D buildings</button>
+        <button
+          v-if="showBuildings"
+          :class="['chip', { on: f.buildingColorMode === 'access' }]"
+          :aria-pressed="f.buildingColorMode === 'access'"
+          title="Switch 3D building colour palette"
+          @click="f.toggleBuildingColorMode()"
+        >{{ f.buildingColorMode === "role" ? "Role colours" : "Twin tint" }}</button>
         <button
           :class="['chip', { on: f.landmarks }]"
           :aria-pressed="f.landmarks"
@@ -352,14 +408,34 @@ const legendStops = computed(() => {
 
       <!-- Cesium ion's terms ask for visible credit wherever its data is shown. -->
       <div v-if="showBuildings" class="credit">
-        3D buildings:
-        <a href="https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/" target="_blank" rel="noopener">Cesium OSM Buildings</a>
-        · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors
+        3D meshes:
+        <template v-if="ION_TOKEN">
+          <a href="https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/" target="_blank" rel="noopener">Cesium OSM Buildings</a> ·
+        </template>
+        © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors
       </div>
 
-      <!-- Hover tooltip: the per-mark hover layer the dataviz rules require. -->
+      <!-- Hover tooltip: 3D POI beacon, 3D landmark mesh, or H3 hexagon. -->
       <div
-        v-if="hovered"
+        v-if="hoveredPoi"
+        class="tip num"
+        :style="{ left: `${hoveredPoi.x + 14}px`, top: `${hoveredPoi.y + 14}px` }"
+      >
+        <span class="dim">{{ titleise(hoveredPoi.marker.category) }} · nearest within budget</span><br />
+        <strong>{{ hoveredPoi.marker.name || titleise(hoveredPoi.marker.category) }}</strong><br />
+        <b>{{ hoveredPoi.marker.minutes.toFixed(1) }} min</b> walk ({{ int(Math.round(hoveredPoi.marker.distanceM)) }} m)
+      </div>
+      <div
+        v-else-if="hoveredLandmark"
+        class="tip num"
+        :style="{ left: `${hoveredLandmark.x + 14}px`, top: `${hoveredLandmark.y + 14}px` }"
+      >
+        <span class="dim">{{ hoveredLandmark.part.landmark.kind.toUpperCase() }} · {{ hoveredLandmark.part.partName }} ({{ hoveredLandmark.part.heightM }} m)</span><br />
+        <strong>{{ hoveredLandmark.part.landmark.name }}</strong><br />
+        <span class="dim">Click 3D building to walk the street network</span>
+      </div>
+      <div
+        v-else-if="hovered"
         class="tip num"
         :style="{ left: `${hovered.x + 14}px`, top: `${hovered.y + 14}px` }"
       >
