@@ -91,7 +91,13 @@ export function Chapters(p: Props) {
         <section className="hero" data-scene="hero">
           <div className="hero-inner">
             <Kicker>Singapore · Johor Bahru</Kicker>
-            <h1>Fifteen minutes from home</h1>
+            <h1>
+              Can you walk
+              <br />
+              to everything
+              <br />
+              you need?
+            </h1>
             <p className="hero-loading" aria-live="polite">
               Loading the street network…
             </p>
@@ -132,13 +138,18 @@ function Hero({ meta, summary }: { meta: Meta; summary: Summary }) {
       <div className="hero-inner">
         <Kicker>Singapore · Johor Bahru · a street-network study</Kicker>
         <h1>
-          Fifteen minutes
+          Can you walk
           <br />
-          from home
+          to everything
+          <br />
+          you need?
         </h1>
+        <p className="hero-sub">
+          A 15-minute walk, {meta.basket.length} everyday essentials, {((sg.population + jb.population) / 1e6).toFixed(1)} million residents of Singapore and Johor Bahru.
+        </p>
         <p className="dek">
-          Two cities share a strait, a causeway and a labour market, but not a street pattern. We routed {((sg.population + jb.population) / 1e6).toFixed(1)} million people, Singapore's
-          residents and all of Johor Bahru's, along the mapped streets and footpaths on both sides to ask a plain question: <em>can you reach the basics of daily life on foot?</em>
+          Two cities share a strait, a causeway and a labour market, but not a street pattern. We walked every home along the mapped streets and footpaths on both sides —
+          Singapore's residents and all of Johor Bahru's — to find out.
         </p>
         <div className="hero-figures">
           <CityFigure city="sg" value={pct(sg.share_complete, 1)}>
@@ -353,10 +364,7 @@ export function PitchDeckBriefing({ meta, summary }: { meta: Meta; summary: Summ
   const jb = summary.cities.jb.all;
   const basketCount = meta.basket.length;
   const popMillions = ((sg.population + jb.population) / 1e6).toFixed(1);
-  const sgComplete = pct(sg.share_complete, 1);
-  const jbComplete = pct(jb.share_complete, 1);
-  const jbLowAccess = pct(jb.share_low_access, 1);
-  const sensitivityRuns = summary.sensitivity?.runs ?? 162;
+  const sensitivityRuns = summary.sensitivity?.runs ?? 72;
 
   const parking = summary.scenarios.parking;
   const sgP2p = parking?.sg?.after["25"]?.newly_complete
@@ -373,100 +381,68 @@ export function PitchDeckBriefing({ meta, summary }: { meta: Meta; summary: Summ
   return (
     <Essay id="briefing" tone="deep">
       <div className="pitch-deck-briefing">
-        <Kicker n="01B">Mission &amp; Impact · Why This Platform Exists</Kicker>
-        <h2>From static maps to an operational 3D decision sandbox</h2>
+        <Kicker n="01B">What this is for</Kicker>
+        <h2>One question, three ways to use the answer</h2>
         <p className="lede">
-          Standard planning models draw 1 km buffer circles across satellite tiles. In reality, pedestrian life is bounded by physical barriers: multi-lane expressways, drainage canals, fenced compounds, and missing footpaths. We rebuilt cross-border accessibility from scratch as an open, verifiable 3D decision tool across all {basketCount} daily essentials.
+          A one-kilometre circle drawn on a map assumes you can walk straight through expressways, canals and fenced compounds. We measured the walk itself instead — every
+          street, footpath and dead end — for {popMillions} million residents, against {basketCount} everyday essentials.
         </p>
 
         <div className="pitch-cards-grid">
-          {/* Card 1: Real-World Problem Solving */}
           <div className="pitch-card pitch-card-problem">
-            <div className="pitch-card-head">
-              <span className="pitch-badge problem">Real-World Diagnosis</span>
-              <span className="pitch-meta-tag">Ground Truth</span>
-            </div>
-            <h3>Real-World Problem Solving</h3>
+            <span className="pitch-badge problem">If you live here</span>
+            <h3>The walk, not the circle</h3>
             <div className="pitch-card-body">
               <p>
-                Straight-line 1 km circles hide real barriers—highways, canals, compound walls, and missing footpaths that turn a 75 m gap in Johor Bahru into a 1,402 m walk.
+                In Bukit Indah, two streets sit 75 m apart with nothing between them but a fence line. The walk is 1,402 m. A circle on a map calls those two streets
+                neighbours; the street network knows better.
               </p>
               <div className="pitch-stat-callout">
-                <div className="stat-split">
-                  <div className="stat-city sg">
-                    <span className="stat-num">{sgComplete}</span>
-                    <span className="stat-city-lbl">Singapore</span>
-                  </div>
-                  <div className="stat-divider">vs</div>
-                  <div className="stat-city jb">
-                    <span className="stat-num">{jbComplete}</span>
-                    <span className="stat-city-lbl">Johor Bahru</span>
-                  </div>
+                <div className="stat-single">
+                  <span className="stat-num">1,402 m</span>
+                  <span className="stat-single-lbl">the walk between two streets 75 m apart</span>
                 </div>
-                <div className="stat-caption">Complete 15-minute access across {popMillions} million residents</div>
               </div>
-              <p>
-                Across {popMillions} million residents ({sgComplete} vs {jbComplete} complete 15-min access), <strong>healthcare</strong> is the binding constraint in both cities, while {jbLowAccess} of JB residents reach fewer than 3 essentials.
-              </p>
-              <p className="pitch-note">
-                Our 100% open-source 3D landmark &amp; street mesh grounds abstract hexagons in real places—from <strong>Marina Bay Sands</strong> and <strong>Toa Payoh</strong> to <strong>Larkin Sentral</strong> and <strong>JB CIQ</strong>.
-              </p>
             </div>
           </div>
 
-          {/* Card 2: For Urban Researchers */}
           <div className="pitch-card pitch-card-research">
-            <div className="pitch-card-head">
-              <span className="pitch-badge research">Open &amp; Reproducible Science</span>
-              <span className="pitch-meta-tag">Audit-Ready</span>
-            </div>
-            <h3>For Urban Researchers</h3>
+            <span className="pitch-badge research">If you do research</span>
+            <h3>Every number, re-runnable</h3>
             <div className="pitch-card-body">
               <p>
-                Zero-cost, fully reproducible Python + Rust/Numba + WebGL pipeline built on open data (OpenStreetMap <code>building:part</code> 3D geometry, Overture Places cross-audit revealing 2/3 clinic under-mapping in JB, HRSL/Kontur population calibration).
+                Open data, open code, no API keys: change the walking speed, the time budget or the definition of an essential and the whole study recomputes. We ran{" "}
+                {sensitivityRuns} such combinations before publishing — Singapore comes out ahead in every one of them.
               </p>
               <div className="pitch-stat-callout">
                 <div className="stat-single">
                   <span className="stat-num highlight">{sensitivityRuns}</span>
-                  <span className="stat-single-lbl">Sensitivity Audit Runs</span>
+                  <span className="stat-single-lbl">re-runs under different assumptions</span>
                 </div>
-                <div className="stat-caption">Walking speeds 0.9–1.4 m/s · Strict vs. permissive networks · Taxonomy tiers</div>
               </div>
-              <p>
-                Verified across all <strong>{sensitivityRuns} sensitivity runs</strong> (walking speeds 0.9–1.4 m/s, strict vs. permissive networks, taxonomy tiers) plus in-browser WebMCP agent tools (<code>window.sgjb</code>) for automated querying.
-              </p>
-              <p className="pitch-note">
-                100% transparent: any researcher or agent can execute live graph queries, inspect sensitivity frontiers, and download full raw parquet meshes without proprietary API gates.
-              </p>
             </div>
           </div>
 
-          {/* Card 3: For Governments & Planners */}
           <div className="pitch-card pitch-card-policy">
-            <div className="pitch-card-head">
-              <span className="pitch-badge policy">Policy &amp; Capital Allocation</span>
-              <span className="pitch-meta-tag">High-Impact ROI</span>
-            </div>
-            <h3>For Governments &amp; Planners</h3>
+            <span className="pitch-badge policy">If you plan or fund</span>
+            <h3>What would actually change it</h3>
             <div className="pitch-card-body">
               <ul className="pitch-bullet-list">
                 <li>
-                  <div className="bullet-title">Site Selection (Parking to Proximity)</div>
+                  <div className="bullet-title">25 car parks become neighbourhood hubs</div>
                   <p>
-                    Test converting 25 surface car parks into neighbourhood hubs before spending capital—unlocking complete 15-min access for <strong>{sgP2p} Singapore</strong> and <strong>{jbP2p} Johor Bahru</strong> residents.
+                    {sgP2p} more Singapore and {jbP2p} more Johor Bahru residents reach all {basketCount} essentials.
                   </p>
                 </li>
                 <li>
-                  <div className="bullet-title">Cross-Border First-Mile (RTS Link + Feeders)</div>
+                  <div className="bullet-title">The RTS Link, plus a feeder to the station</div>
                   <p>
-                    Model how shared autonomous feeders into hubs like <strong>Larkin Sentral</strong> and <strong>Bukit Chagar</strong> cut median JB-to-Singapore MRT door-to-platform trips from <strong>{rtsBaseMin} to {rtsAvMin} minutes</strong>.
+                    A Johor Bahru home to the first Singapore platform: {rtsBaseMin} → {rtsAvMin} minutes.
                   </p>
                 </li>
                 <li>
-                  <div className="bullet-title">Surgical Micro-Infrastructure (One Footpath)</div>
-                  <p>
-                    Pinpoint exact dead-ends—like a single <strong>75 m footpath in Bukit Indah</strong> that gives <strong>2,200 residents</strong> complete 15-minute access.
-                  </p>
+                  <div className="bullet-title">One 75 m footpath in Bukit Indah</div>
+                  <p>About 2,200 residents gain all {basketCount} essentials. Cost: a path.</p>
                 </li>
               </ul>
             </div>

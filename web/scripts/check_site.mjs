@@ -51,7 +51,7 @@ try {
     const html = await get("/");
     const t = textOf(html);
     assert.match(html, /<div id="root" data-prerendered>/);
-    for (const s of ["Fifteen minutes", "80.4%", "12.0%", "One region, two answers", "How sure are we?"]) assert.ok(t.includes(s), `missing "${s}"`);
+    for (const s of ["Can you walk to everything you need?", "80.4%", "12.0%", "One region, two answers", "How sure are we?"]) assert.ok(t.includes(s), `missing "${s}"`);
     assert.ok(t.length > 15000, `only ${t.length} characters`);
     assert.match(html, /<link rel="canonical" href="https:\/\/sgjburbansideprojects\.brianhar\.site\/"\s*\/?>/);
     const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
@@ -103,7 +103,7 @@ try {
   });
   await check("Markdown copies", async () => {
     const story = await get("/index.md");
-    assert.match(story, /^# Fifteen minutes from home$/m);
+    assert.match(story, /^# Can you walk to everything you need\?$/m);
     assert.match(story, /\| 6 of 6 \| 80\.4% \| 12\.0% \|/);
     const methods = await get("/methods.md");
     assert.match(methods, /^## Metrics$/m);
@@ -118,7 +118,7 @@ try {
     assert.match(llms, /Singapore 80\.4% of 4,044,340 residents .*, Johor Bahru 12\.0% of 1,753,284 people/);
     for (const t of ["get_city_summary", "find_neighbourhoods", "walk_from", "get_footpath_scenario", "open_explorer"]) assert.ok(llms.includes(`\`${t}\``), t);
     const full = await get("/llms-full.txt");
-    assert.ok(full.length > 40000 && full.includes("## Metrics") && full.includes("# Fifteen minutes from home"));
+    assert.ok(full.length > 40000 && full.includes("## Metrics") && full.includes("# Can you walk to everything you need?"));
     const robots = await get("/robots.txt");
     assert.match(robots, /^Allow: \/$/m);
     assert.match(robots, /^Sitemap: https:\/\/sgjburbansideprojects\.brianhar\.site\/sitemap\.xml$/m);
@@ -280,7 +280,7 @@ try {
   await check("the story keeps its text, a still image and the notice; no map is drawn", async () => {
     await bp.goto(origin + "/", { waitUntil: "networkidle" });
     await bp.waitForFunction(() => !document.getElementById("root").hasAttribute("data-prerendered"), null, { timeout: 30000 });
-    assert.match(await bp.locator(".story .hero h1").innerText(), /Fifteen minutes/);
+    assert.match(await bp.locator(".story .hero h1").innerText(), /Can you walk/);
     assert.ok((await bp.locator(".step-card").count()) >= 5, "the step cards are missing");
     assert.equal(await bp.locator(".story canvas").count(), 0, "a map was drawn without WebGL");
     assert.ok(await bp.locator(".webgl-notice").isVisible(), "no WebGL notice");
