@@ -19,7 +19,7 @@ const WEB = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(WEB, "dist");
 const SITE_URL = (process.env.SITE_URL ?? "https://sgjburbansideprojects.brianhar.site").replace(/\/$/, "");
 const BASE = (process.env.BASE_PATH ?? "/").replace(/\/?$/, "/");
-const REPO = "https://github.com/BLTC-520/testing-urban";
+const REPO = "https://github.com/BLTC-520/sgjb-15-minute-city";
 const TODAY = new Date().toISOString().slice(0, 10);
 
 const PAGES = [

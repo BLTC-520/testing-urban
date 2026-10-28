@@ -20,7 +20,7 @@ Values used below — change them if yours differ:
 |---|---|
 | Region | `ap-southeast-1` (Singapore) |
 | Dashboard address | `cc.sgjburbansideprojects.brianhar.site` |
-| Repository | `https://github.com/BLTC-520/testing-urban` (public) |
+| Repository | `https://github.com/BLTC-520/sgjb-15-minute-city` (public) |
 
 ---
 
@@ -116,8 +116,8 @@ docker version    # should show both Client and Server
 ## 6. Get the code and configure it
 
 ```bash
-git clone https://github.com/BLTC-520/testing-urban.git
-cd testing-urban
+git clone https://github.com/BLTC-520/sgjb-15-minute-city.git
+cd sgjb-15-minute-city
 git checkout feat/command-centre-deploy     # or stay on main once it is merged
 cd deploy
 nano .env
@@ -170,7 +170,7 @@ The React site's **Command Centre ↗** button appears once it knows the address
 **Deploy a change** (after pushing it):
 
 ```bash
-cd ~/testing-urban && git pull && cd deploy && docker compose up -d --build
+cd ~/sgjb-15-minute-city && git pull && cd deploy && docker compose up -d --build
 ```
 
 **Logs:** `docker compose logs -f app` · **Restart:** `docker compose restart`

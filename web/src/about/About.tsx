@@ -96,8 +96,8 @@ function AboutContent({ meta, summary }: { meta: Meta; summary: Summary }) {
             </p>
             <p>
               <strong>Source code.</strong>{" "}
-              <a href="https://github.com/BLTC-520/testing-urban" target="_blank" rel="noreferrer">
-                github.com/BLTC-520/testing-urban
+              <a href="https://github.com/BLTC-520/sgjb-15-minute-city" target="_blank" rel="noreferrer">
+                github.com/BLTC-520/sgjb-15-minute-city
               </a>
             </p>
           </div>
