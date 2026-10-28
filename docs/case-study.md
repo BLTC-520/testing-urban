@@ -1,7 +1,7 @@
 # Case study — Singapore / Johor Bahru 15-Minute City Explorer
 
-> How far is daily life from home in two cities that share a strait — and what could future
-> mobility change? An open, reproducible street-network study for 5.8 million people.
+> Can you walk to everything you need? Two cities share a strait — and not a street pattern.
+> An open, reproducible street-network study for 5.8 million people.
 
 All figures below come from `data/derived/summary.json` (OpenStreetMap snapshot 2026-10-05,
 walking at 1.2 m/s, 15 minutes, core definitions) unless stated otherwise.

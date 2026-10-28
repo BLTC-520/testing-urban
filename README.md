@@ -1,11 +1,11 @@
 # Singapore / Johor Bahru 15-Minute City Explorer
 
-**How far is daily life from home — and what could change it?** An open, reproducible
-street-network study of walkable access to everyday essentials for 5.8 million people in
-Singapore and Johor Bahru, with scenario models for the RTS Link, shared autonomous feeders and
-the conversion of car-park land into neighbourhood hubs.
+**Can you walk to everything you need?** An open, reproducible street-network study of
+walkable access to everyday essentials for 5.8 million people in Singapore and Johor Bahru,
+with scenario models for the RTS Link, shared autonomous feeders and the conversion of
+car-park land into neighbourhood hubs.
 
-![Fifteen minutes from home — Singapore and Johor Bahru as hexagon columns: height shows residents, colour shows how many of six essentials are within a 15-minute walk](docs/img/story-hero.jpg)
+![Can you walk to everything you need? — Singapore and Johor Bahru as hexagon columns: height shows residents, colour shows how many of six essentials are within a 15-minute walk](docs/img/story-hero.jpg)
 
 **Three views of one dataset:** a scrollytelling **Story**, an interactive **Explorer** (change any
 assumption, click anywhere to walk the network) and a **Methods** page generated from the data.
