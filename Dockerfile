@@ -5,7 +5,7 @@
 #   docker run --rm -p 8787:8787 sgjb-command-centre      → http://localhost:8787
 #
 # Three stages, so the final image carries no compilers, no dev dependencies
-# and none of the 35 MB of pipeline outputs the database is built from.
+# and, of the 35 MB of pipeline outputs, only the files served under /data/.
 # The build context is the repository root because the server reads the
 # basemap and fonts from web/public (see server/src/paths.ts).
 
@@ -54,6 +54,11 @@ COPY --from=server /app/server/data/sgjb.db server/data/sgjb.db
 COPY --from=dashboard /app/dashboard/dist dashboard/dist
 COPY web/public/tiles web/public/tiles
 COPY web/public/fonts web/public/fonts
+# The files the server exposes under /data/ (DATA_ALLOW in server/src/app.ts):
+# street-graph tiles for walk sheds and the POI tables for landmark focus.
+COPY web/public/data/graph web/public/data/graph
+COPY web/public/data/pois_sg.bin web/public/data/pois_sg.json web/public/data/pois_jb.bin web/public/data/pois_jb.json \
+     web/public/data/poi_access_sg.bin web/public/data/poi_access_jb.bin web/public/data/
 
 # The database is opened read-only, so the app needs to write nothing; run it
 # as the image's unprivileged user rather than root.
