@@ -146,6 +146,10 @@ export async function buildApp(opts: AppOptions = {}): Promise<App> {
   await app.register(helmet, {
     contentSecurityPolicy: opts.dashboardDir ? DASHBOARD_CSP : false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    // helmet's default is no-referrer, which hides the page's origin from
+    // Cesium ion; a token restricted to the dashboard's URL then gets 403.
+    // Cross-origin requests still carry the origin only, never the path.
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   });
 
   const allowed = new Set(opts.allowedOrigins ?? DEV_ORIGINS);

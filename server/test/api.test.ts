@@ -217,6 +217,11 @@ describe("security headers and CORS", () => {
     expect(r.headers["strict-transport-security"]).toBeDefined();
   });
 
+  it("sends the origin as referrer so a URL-restricted Cesium ion token works", async () => {
+    const r = await api.app.inject({ method: "GET", url: "/api/health" });
+    expect(r.headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  });
+
   it("allows the dashboard's dev origin", async () => {
     const r = await api.app.inject({
       method: "GET", url: "/api/health",
